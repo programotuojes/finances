@@ -18,7 +18,7 @@ class AccountService with ChangeNotifier {
 
   void add({required String name, required Money balance}) {
     accounts.add(Account(
-      id: _lastId++,
+      id: ++_lastId,
       name: name,
       balance: balance,
     ));

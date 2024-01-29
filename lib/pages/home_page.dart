@@ -1,4 +1,6 @@
 import 'package:finances/account/pages/list.dart';
+import 'package:finances/category/pages/list.dart';
+import 'package:finances/category/service.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -37,7 +39,19 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AccountsPage(),
+                    builder: (context) => const AccountsPage(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              title: const Text('Categories'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        CategoryListPage(CategoryService.instance.root),
                   ),
                 );
               },

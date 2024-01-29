@@ -9,7 +9,7 @@ class AccountsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Accounts'),
+        title: const Text('Edit accounts'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: ListenableBuilder(
