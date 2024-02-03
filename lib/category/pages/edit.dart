@@ -13,32 +13,36 @@ class CategoryEditPage extends StatefulWidget {
 }
 
 class _CategoryEditPageState extends State<CategoryEditPage> {
-  late String categoryName;
   VoidCallback? onPressed;
-
-  final textCtrl = TextEditingController();
+  bool showFab = false;
+  late TextEditingController nameTextCtrl;
+  late TextEditingController newChildTextCtrl;
   final formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    textCtrl.addListener(() {
+    nameTextCtrl = TextEditingController(text: widget.category.name);
+    newChildTextCtrl = TextEditingController();
+
+    newChildTextCtrl.addListener(() {
       setState(() {
-        onPressed = textCtrl.text.isNotEmpty ? addCategory : null;
+        onPressed = newChildTextCtrl.text.isNotEmpty ? addCategory : null;
       });
     });
   }
 
   @override
   void dispose() {
-    textCtrl.dispose();
+    nameTextCtrl.dispose();
+    newChildTextCtrl.dispose();
     super.dispose();
   }
 
   void addCategory() {
     setState(() {
-      widget.category.addChild(textCtrl.text);
-      textCtrl.clear();
+      widget.category.addChild(newChildTextCtrl.text);
+      newChildTextCtrl.clear();
     });
   }
 
@@ -62,19 +66,20 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
               ),
               child: Form(
                 key: formKey,
+                onChanged: () {
+                  setState(() {
+                    showFab = widget.category.name != nameTextCtrl.text;
+                  });
+                },
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: TextFormField(
-                  onSaved: (value) => categoryName = value!,
-                  initialValue: widget.category.name,
+                  controller: nameTextCtrl,
                   textCapitalization: TextCapitalization.sentences,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter a name';
                     }
                     return null;
-                  },
-                  onTapOutside: (event) {
-                    // FocusManager.instance.primaryFocus?.unfocus();
                   },
                   decoration: const InputDecoration(
                     labelText: 'Name',
@@ -120,7 +125,7 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
                     ),
                   ),
                   title: TextField(
-                    controller: textCtrl,
+                    controller: newChildTextCtrl,
                     decoration: const InputDecoration(
                       hintText: 'New category name',
                       border: UnderlineInputBorder(),
@@ -140,83 +145,23 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.save),
-        // TODO disable if the form content hasn't changed
-        onPressed: () {
-          if (!formKey.currentState!.validate()) {
-            return;
-          }
+      floatingActionButton: AnimatedSwitcher(
+        switchInCurve: Curves.easeOutExpo,
+        switchOutCurve: Curves.easeInExpo,
+        duration: const Duration(milliseconds: 300),
+        child: !showFab
+            ? null
+            : FloatingActionButton(
+                child: const Icon(Icons.save),
+                onPressed: () {
+                  if (!formKey.currentState!.validate()) {
+                    return;
+                  }
 
-          formKey.currentState!.save();
-          widget.category.update(categoryName);
-        },
+                  widget.category.update(nameTextCtrl.text);
+                },
+              ),
       ),
     );
   }
 }
-
-// class NewCategoryListTile extends StatefulWidget {
-//   final CategoryModel parent;
-//   const NewCategoryListTile(this.parent, {super.key});
-//
-//   @override
-//   State<NewCategoryListTile> createState() => _NewCategoryListTileState();
-// }
-//
-// class _NewCategoryListTileState extends State<NewCategoryListTile> {
-//   late TextEditingController textCtrl;
-//   VoidCallback? onPressed;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     textCtrl = TextEditingController();
-//     textCtrl.addListener(() {
-//       setState(() {
-//         onPressed = textCtrl.text.isNotEmpty ? addCategory : null;
-//       });
-//     });
-//   }
-//
-//   @override
-//   void dispose() {
-//     textCtrl.dispose();
-//     super.dispose();
-//   }
-//
-//   void addCategory() {
-//     widget.parent.addChild(textCtrl.text);
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return ListTile(
-//       leading: Container(
-//         width: 40,
-//         height: 40,
-//         decoration: BoxDecoration(
-//           shape: BoxShape.circle,
-//           color: Theme.of(context).colorScheme.primary,
-//         ),
-//         child: Icon(
-//           Icons.food_bank,
-//           color: Theme.of(context).colorScheme.onPrimary,
-//         ),
-//       ),
-//       title: TextField(
-//         controller: textCtrl,
-//         decoration: const InputDecoration(
-//           hintText: 'New category name',
-//           border: UnderlineInputBorder(),
-//         ),
-//         textCapitalization: TextCapitalization.sentences,
-//         scrollPadding: const EdgeInsets.all(_paddingForFab),
-//       ),
-//       trailing: FilledButton(
-//         onPressed: onPressed,
-//         child: const Text('Add'),
-//       ),
-//     );
-//   }
-// }
