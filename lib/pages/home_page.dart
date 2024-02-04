@@ -1,6 +1,8 @@
 import 'package:finances/account/pages/list.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
+import 'package:finances/expense/pages/add.dart';
+import 'package:finances/expense/service.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -18,10 +20,37 @@ class _HomePageState extends State<HomePage> {
         title: const Text('Finances'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: const Placeholder(),
+      body: ListenableBuilder(
+          listenable: ExpenseService.instance,
+          builder: (context, _) {
+            return ListView(
+              children: [
+                for (var i in ExpenseService.instance.expenses)
+                  ListTile(
+                    title: Text(i.category.name),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (i.description != null) Text(i.description!),
+                        Text(i.amount.toString()),
+                        Text(i.account.name),
+                        Text(i.dateTime.toString()),
+                      ],
+                    ),
+                  ),
+              ],
+            );
+          }),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddExpensePage(),
+            ),
+          );
+        },
       ),
       drawer: Drawer(
         child: ListView(
@@ -50,8 +79,10 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        CategoryListPage(CategoryService.instance.root),
+                    builder: (context) => CategoryListPage(
+                      CategoryService.instance.root,
+                      isForEditing: true,
+                    ),
                   ),
                 );
               },

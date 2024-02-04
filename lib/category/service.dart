@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 class CategoryService with ChangeNotifier {
   static final instance = CategoryService._ctor();
 
+  CategoryModel lastSelection = food;
+
   CategoryService._ctor();
 
   CategoryModel root = CategoryModel(
@@ -13,13 +15,6 @@ class CategoryService with ChangeNotifier {
       transport,
       income,
       other,
-      food,
-      food,
-      food,
-      transport,
-      transport,
-      transport,
-      transport
     ],
   );
 

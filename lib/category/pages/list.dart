@@ -5,8 +5,13 @@ import 'package:flutter/material.dart';
 
 class CategoryListPage extends StatelessWidget {
   final CategoryModel category;
+  final bool isForEditing;
 
-  const CategoryListPage(this.category, {super.key});
+  const CategoryListPage(
+    this.category, {
+    super.key,
+    this.isForEditing = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +42,11 @@ class CategoryListPage extends StatelessWidget {
                 trailing: i.children.isNotEmpty
                     ? const Icon(Icons.navigate_next)
                     : null,
-                onTap: () {
+                onTap: () async {
                   if (i.children.isNotEmpty) {
-                    goDeeper(context, i);
+                    await goDeeper(context, i);
                   } else {
-                    editCategory(context, i);
+                    emptyCategoryClicked(context, i);
                   }
                 },
               ),
@@ -51,24 +56,46 @@ class CategoryListPage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.edit),
         onPressed: () {
-          editCategory(context, category);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CategoryEditPage(category),
+            ),
+          );
         },
       ),
     );
   }
 
-  void goDeeper(BuildContext context, CategoryModel selectedCategory) {
-    Navigator.push(
+  Future<void> goDeeper(BuildContext context, CategoryModel selected) async {
+    var result = await Navigator.push<CategoryModel>(
       context,
-      MaterialPageRoute(builder: (context) => CategoryListPage(selectedCategory)),
+      MaterialPageRoute(
+        builder: (context) => CategoryListPage(
+          selected,
+          isForEditing: isForEditing,
+        ),
+      ),
     );
+
+    if (!context.mounted) return;
+
+    if (!isForEditing) {
+      Navigator.pop(context, result);
+    }
   }
 
-  void editCategory(BuildContext context, CategoryModel category) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => CategoryEditPage(category)),
-    );
+  void emptyCategoryClicked(BuildContext context, CategoryModel category) {
+    if (isForEditing) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CategoryEditPage(category),
+        ),
+      );
+    } else {
+      Navigator.pop(context, category);
+    }
   }
 }
 
