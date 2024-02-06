@@ -3,6 +3,7 @@ import 'package:finances/account/service.dart';
 import 'package:finances/category/models/category.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
+import 'package:finances/components/square_button.dart';
 import 'package:finances/expense/models/expense.dart';
 import 'package:finances/expense/service.dart';
 import 'package:finances/extensions/money.dart';
@@ -53,116 +54,143 @@ class _AddExpensePageState extends State<AddExpensePage> {
         autovalidateMode: AutovalidateMode.onUserInteraction,
         child: Column(
           children: [
-            // Account
-            DropdownMenu<Account>(
-              initialSelection: account,
-              label: const Text('Account'),
-              onSelected: (selected) {
-                if (selected == null) return;
-                setState(() {
-                  account = selected;
-                });
-              },
-              dropdownMenuEntries: AccountService.instance.accounts.map(
-                (account) {
-                  return DropdownMenuEntry<Account>(
-                    value: account,
-                    label: account.name,
-                  );
-                },
-              ).toList(),
-            ),
-            // Category
-            OutlinedButton(
-              child: Text(category.name),
-              onPressed: () async {
-                var selection = await Navigator.push<CategoryModel>(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        CategoryListPage(CategoryService.instance.root),
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: DropdownMenu<Account>(
+                        expandedInsets: const EdgeInsets.all(0),
+                        initialSelection: account,
+                        label: const Text('Account'),
+                        onSelected: (selected) {
+                          if (selected == null) return;
+                          setState(() {
+                            account = selected;
+                          });
+                        },
+                        dropdownMenuEntries:
+                            AccountService.instance.accounts.map(
+                          (account) {
+                            return DropdownMenuEntry<Account>(
+                              value: account,
+                              label: account.name,
+                            );
+                          },
+                        ).toList(),
+                      ),
+                    ),
                   ),
-                );
-                if (selection == null) return;
-                CategoryService.instance.lastSelection = selection;
-                setState(() {
-                  category = selection;
-                });
-              },
-            ),
-            // Amount
-            TextFormField(
-              onSaved: (value) => formAmount = value!,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                labelText: 'Amount',
-                helperText: '',
-                prefixText: '€ ',
+                  Expanded(
+                    child: SquareButton(
+                      onPressed: () async {
+                        var selection = await Navigator.push<CategoryModel>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                CategoryListPage(CategoryService.instance.root),
+                          ),
+                        );
+                        if (selection == null) return;
+                        CategoryService.instance.lastSelection = selection;
+                        setState(() {
+                          category = selection;
+                        });
+                      },
+                      child: Text(category.name),
+                    ),
+                  ),
+                ],
               ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter an amount';
-                }
-                if (double.tryParse(value) == null) {
-                  return 'Must be a number';
-                }
-                return null;
-              },
-              onTapOutside: (event) {
-                FocusManager.instance.primaryFocus?.unfocus();
-              },
             ),
-            TextFormField(
-              onSaved: (value) {
-                if (value!.trim().isNotEmpty) {
-                  formDescription = value;
-                }
-              },
-              textCapitalization: TextCapitalization.sentences,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                helperText: '',
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextFormField(
+                onSaved: (value) => formAmount = value!,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: 'Amount',
+                  prefixText: '€ ',
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter an amount';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Must be a number';
+                  }
+                  return null;
+                },
+                onTapOutside: (event) {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
               ),
-              onTapOutside: (event) {
-                FocusManager.instance.primaryFocus?.unfocus();
-              },
             ),
-            OutlinedButton(
-              child: Text(dateTime.toIso8601String().split('T')[0]),
-              onPressed: () async {
-                var selected = await showDatePicker(
-                  context: context,
-                  initialDate: dateTime,
-                  firstDate: DateTime(0),
-                  lastDate: DateTime(9999),
-                );
-                if (selected == null) return;
-                setState(() {
-                  dateTime = dateTime.copyWith(
-                    year: selected.year,
-                    month: selected.month,
-                    day: selected.day,
-                  );
-                });
-              },
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextFormField(
+                onSaved: (value) {
+                  if (value!.trim().isNotEmpty) {
+                    formDescription = value;
+                  }
+                },
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                ),
+                onTapOutside: (event) {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
+              ),
             ),
-            OutlinedButton(
-              child: Text(
-                  dateTime.toIso8601String().split('T')[1].substring(0, 5)),
-              onPressed: () async {
-                var selected = await showTimePicker(
-                  context: context,
-                  initialTime: TimeOfDay.fromDateTime(dateTime),
-                );
-                if (selected == null) return;
-                setState(() {
-                  dateTime = dateTime.copyWith(
-                    hour: selected.hour,
-                    minute: selected.minute,
-                  );
-                });
-              },
+            Row(
+              children: [
+                Expanded(
+                  child: SquareButton(
+                    onPressed: () async {
+                      var selected = await showDatePicker(
+                        context: context,
+                        initialDate: dateTime,
+                        firstDate: DateTime(0),
+                        lastDate: DateTime(9999),
+                      );
+                      if (selected == null) return;
+                      setState(() {
+                        dateTime = dateTime.copyWith(
+                          year: selected.year,
+                          month: selected.month,
+                          day: selected.day,
+                        );
+                      });
+                    },
+                    child: Text(dateTime.toIso8601String().split('T')[0]),
+                  ),
+                ),
+                Expanded(
+                  child: SquareButton(
+                    onPressed: () async {
+                      var selected = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.fromDateTime(dateTime),
+                      );
+                      if (selected == null) return;
+                      setState(() {
+                        dateTime = dateTime.copyWith(
+                          hour: selected.hour,
+                          minute: selected.minute,
+                        );
+                      });
+                    },
+                    child: Text(dateTime
+                        .toIso8601String()
+                        .split('T')[1]
+                        .substring(0, 5)),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
