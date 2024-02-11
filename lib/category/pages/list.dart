@@ -39,15 +39,25 @@ class CategoryListPage extends StatelessWidget {
                     color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
+                contentPadding: const EdgeInsets.only(
+                  left: 16,
+                  right: 12, // Otherwise `trailing` is too far from the edge
+                ),
                 trailing: i.children.isNotEmpty
-                    ? const Icon(Icons.navigate_next)
+                    ? InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () async {
+                          await goDeeper(context, i);
+                        },
+                        child: const SizedBox(
+                          width: 48,
+                          height: 48,
+                          child: Icon(Icons.navigate_next),
+                        ),
+                      )
                     : null,
-                onTap: () async {
-                  if (i.children.isNotEmpty) {
-                    await goDeeper(context, i);
-                  } else {
-                    emptyCategoryClicked(context, i);
-                  }
+                onTap: () {
+                  listItemSelected(context, i);
                 },
               ),
           ],
@@ -80,22 +90,21 @@ class CategoryListPage extends StatelessWidget {
 
     if (!context.mounted) return;
 
-    if (!isForEditing) {
+    if (result != null) {
       Navigator.pop(context, result);
     }
   }
 
-  void emptyCategoryClicked(BuildContext context, CategoryModel category) {
+  void listItemSelected(BuildContext context, CategoryModel selected) {
     if (isForEditing) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => CategoryEditPage(category),
+          builder: (context) => CategoryEditPage(selected),
         ),
       );
     } else {
-      Navigator.pop(context, category);
+      Navigator.pop(context, selected);
     }
   }
 }
-
