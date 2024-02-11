@@ -9,6 +9,10 @@ class ExpenseService with ChangeNotifier {
 
   void add(Expense expense) {
     expenses.add(expense);
+
+    // TODO don't sort on every insert
+    expenses.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+
     notifyListeners();
   }
 }
