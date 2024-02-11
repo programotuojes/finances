@@ -46,7 +46,14 @@ class AccountsPage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AccountEditPage(),
+            ),
+          );
+        },
       ),
     );
   }

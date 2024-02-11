@@ -2,7 +2,6 @@ import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/extensions/money.dart';
 import 'package:flutter/material.dart';
-import 'package:money2/money2.dart';
 
 class AccountEditPage extends StatefulWidget {
   final Account? account;
@@ -14,10 +13,10 @@ class AccountEditPage extends StatefulWidget {
 }
 
 class _AccountEditPageState extends State<AccountEditPage> {
+  var autovalidateMode = AutovalidateMode.disabled;
+  final formKey = GlobalKey<FormState>();
   late String formAccountName;
   late String formBalance;
-
-  final formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +32,7 @@ class _AccountEditPageState extends State<AccountEditPage> {
         ),
         child: Form(
           key: formKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
+          autovalidateMode: autovalidateMode,
           child: Column(
             children: [
               Padding(
@@ -90,6 +89,10 @@ class _AccountEditPageState extends State<AccountEditPage> {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.save),
         onPressed: () {
+          setState(() {
+            autovalidateMode = AutovalidateMode.onUserInteraction;
+          });
+
           if (!formKey.currentState!.validate()) {
             return;
           }
