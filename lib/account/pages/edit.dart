@@ -1,5 +1,6 @@
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
+import 'package:finances/extensions/money.dart';
 import 'package:flutter/material.dart';
 import 'package:money2/money2.dart';
 
@@ -72,8 +73,7 @@ class _AccountEditPageState extends State<AccountEditPage> {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter an amount';
                     }
-                    // Double because Fixed.tryParse() is too lenient
-                    if (double.tryParse(value) == null) {
+                    if (!amountValidator.hasMatch(value)) {
                       return 'Must be a number';
                     }
                     return null;
@@ -95,22 +95,16 @@ class _AccountEditPageState extends State<AccountEditPage> {
           }
 
           formKey.currentState!.save();
-          var fixed = Fixed.parse(formBalance);
+          var balance = formBalance.toMoney('EUR');
 
           if (widget.account == null) {
             AccountService.instance.add(
               name: formAccountName,
-              balance: Money.fromFixedWithCurrency(
-                fixed,
-                CommonCurrencies().euro,
-              ),
+              balance: balance,
             );
           } else {
             widget.account!.name = formAccountName;
-            widget.account!.balance = Money.fromFixedWithCurrency(
-              fixed,
-              CommonCurrencies().euro,
-            );
+            widget.account!.balance = balance;
             AccountService.instance.update();
           }
 

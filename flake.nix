@@ -29,6 +29,7 @@
         build-tools-33-0-1
         sources-android-33
         platforms-android-33
+        system-images-android-34-google-apis-x86-64
       ]);
     in
     {

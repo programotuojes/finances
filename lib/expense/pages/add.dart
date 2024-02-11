@@ -119,7 +119,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter an amount';
                   }
-                  if (double.tryParse(value) == null) {
+                  if (!amountValidator.hasMatch(value)) {
                     return 'Must be a number';
                   }
                   return null;

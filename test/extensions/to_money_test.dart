@@ -29,4 +29,25 @@ void main() {
       '4,20€',
     );
   });
+
+  test('Just cents', () {
+    expect(
+      '.42'.toMoney('EUR').toString(),
+      '0,42€',
+    );
+  });
+
+  test('Amount with just dot separator', () {
+    expect(
+      '1.'.toMoney('EUR').toString(),
+      '1,00€',
+    );
+  });
+
+  test('Amount with just comma separator', () {
+    expect(
+      '1,'.toMoney('EUR').toString(),
+      '1,00€',
+    );
+  });
 }
