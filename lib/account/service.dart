@@ -6,10 +6,9 @@ class AccountService with ChangeNotifier {
   static final instance = AccountService._ctor();
   final accounts = [revolut, swedbank, cash];
   Account lastSelection = swedbank;
+  Account? selectedFilter;
 
-  AccountService._ctor() {
-    print('Account service created');
-  }
+  AccountService._ctor();
 
   void add({required String name, required Money balance}) {
     accounts.add(Account(
@@ -21,6 +20,15 @@ class AccountService with ChangeNotifier {
   }
 
   void update() {
+    notifyListeners();
+  }
+
+  void filterBy(Account i) {
+    if (selectedFilter == i) {
+      selectedFilter = null;
+    } else {
+      selectedFilter = i;
+    }
     notifyListeners();
   }
 }
