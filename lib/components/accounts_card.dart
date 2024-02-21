@@ -7,23 +7,23 @@ class AccountsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: AccountService.instance,
-      builder: (context, child) {
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    'Accounts',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                GridView.count(
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                'Accounts',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            ListenableBuilder(
+              listenable: AccountService.instance,
+              builder: (context, child) {
+                return GridView.count(
                   crossAxisCount: 2,
                   childAspectRatio: 3,
                   shrinkWrap: true,
@@ -32,12 +32,12 @@ class AccountsCard extends StatelessWidget {
                     for (var i in AccountService.instance.accounts)
                       smallCard(context, i),
                   ],
-                ),
-              ],
+                );
+              },
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 
