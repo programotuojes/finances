@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   money2: ^4.0.0
+  syncfusion_flutter_charts: ^24.2.7+1
 
 dev_dependencies:
   flutter_test:

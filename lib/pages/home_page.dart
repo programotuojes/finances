@@ -2,6 +2,7 @@ import 'package:finances/account/pages/list.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/components/accounts_card.dart';
+import 'package:finances/components/balance_history.dart';
 import 'package:finances/expense/pages/add.dart';
 import 'package:finances/expense/pages/edit.dart';
 import 'package:finances/expense/service.dart';
@@ -101,9 +102,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget home() {
-    return const Column(
+    return Column(
       children: [
-        AccountsCard(),
+        const AccountsCard(),
+        BalanceGraphCard(),
       ],
     );
   }
