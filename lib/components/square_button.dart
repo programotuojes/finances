@@ -13,9 +13,8 @@ class SquareButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      height: 96,
+    return SizedBox(
+      height: 64,
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
           // TODO change text color

@@ -3,9 +3,8 @@ import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/components/accounts_card.dart';
 import 'package:finances/components/balance_history.dart';
-import 'package:finances/expense/pages/add.dart';
-import 'package:finances/expense/pages/edit.dart';
-import 'package:finances/expense/service.dart';
+import 'package:finances/transaction/pages/edit.dart';
+import 'package:finances/transaction/service.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -55,7 +54,7 @@ class _HomePageState extends State<HomePage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const AddExpensePage(),
+              builder: (context) => const EditTransactionPage(),
             ),
           );
         },
@@ -112,16 +111,16 @@ class _HomePageState extends State<HomePage> {
 
   Widget history() {
     return ListenableBuilder(
-      listenable: ExpenseService.instance,
+      listenable: TransactionService.instance,
       builder: (context, _) {
-        if (ExpenseService.instance.expenses.isEmpty) {
-          return const Center(child: Text('There are no expenses'));
+        if (TransactionService.instance.transactions.isEmpty) {
+          return const Center(child: Text('There are no transactions'));
         }
         return ListView(
           children: [
-            for (var i in ExpenseService.instance.expenses)
+            for (var expense in TransactionService.instance.expenses)
               ListTile(
-                title: Text(i.category.name),
+                title: Text(expense.category.name),
                 leading: Container(
                   width: 40,
                   height: 40,
@@ -138,22 +137,26 @@ class _HomePageState extends State<HomePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(i.account.name),
-                    Text(i.amount.toString()),
+                    Text(expense.transaction.account.name),
+                    Text(expense.money.toString()),
                   ],
                 ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(i.dateTime.toString().substring(0, 16)),
-                    if (i.description != null) Text(i.description!),
+                    Text(expense.transaction.dateTime
+                        .toString()
+                        .substring(0, 16)),
+                    if (expense.description != null) Text(expense.description!),
                   ],
                 ),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => EditExpensePage(i),
+                      builder: (context) => EditTransactionPage(
+                        transaction: expense.transaction,
+                      ),
                     ),
                   );
                 },
