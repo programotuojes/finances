@@ -22,11 +22,11 @@ class EditTransactionPage extends StatefulWidget {
 }
 
 class _EditTransactionPageState extends State<EditTransactionPage> {
+  var dateTime = DateTime.now();
   var account = AccountService.instance.lastSelection;
   var category = CategoryService.instance.lastSelection;
   var dialogCategory = CategoryService.instance.lastSelection;
-  var dateTime = DateTime.now();
-  final splits = List<_TempExpense>.empty(growable: true);
+  var splits = List<_TempExpense>.empty(growable: true);
 
   late TextEditingController amountCtrl;
   late TextEditingController descriptionCtrl;
@@ -36,6 +36,17 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.transaction != null) {
+      account = widget.transaction!.account;
+      dateTime = widget.transaction!.dateTime;
+      splits = widget.transaction!.expenses
+          .map((e) => _TempExpense(
+                category: e.category,
+                amount: e.money.amount.toString(),
+              ))
+          .toList();
+    }
+
     amountCtrl = TextEditingController();
     descriptionCtrl = TextEditingController();
     dialogAmountCtrl = TextEditingController();
@@ -59,7 +70,9 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New transaction'),
+        title: widget.transaction == null
+            ? const Text('New transaction')
+            : const Text('Edit a transaction'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: ListView(
@@ -137,46 +150,57 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                         ],
                       ),
                     ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(0),
-                        child: SquareButton(
-                          onPressed: () async {
-                            var selection = await Navigator.push<CategoryModel>(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CategoryListPage(
-                                    CategoryService.instance.root),
-                              ),
-                            );
-                            if (selection == null) return;
-                            CategoryService.instance.lastSelection = selection;
-                            setState(() {
-                              category = selection;
-                            });
-                          },
-                          child: Text(category.name),
+                    Visibility(
+                      visible: widget.transaction == null,
+                      child: Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(0),
+                          child: SquareButton(
+                            onPressed: () async {
+                              var selection =
+                                  await Navigator.push<CategoryModel>(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CategoryListPage(
+                                      CategoryService.instance.root),
+                                ),
+                              );
+                              if (selection == null) return;
+                              CategoryService.instance.lastSelection =
+                                  selection;
+                              setState(() {
+                                category = selection;
+                              });
+                            },
+                            child: Text(category.name),
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
-                TextField(
-                  controller: amountCtrl,
-                  inputFormatters: amountFormatter,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Amount',
-                    prefixText: '€ ',
+                Visibility(
+                  visible: widget.transaction == null,
+                  child: TextField(
+                    controller: amountCtrl,
+                    inputFormatters: amountFormatter,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: const InputDecoration(
+                      labelText: 'Amount',
+                      prefixText: '€ ',
+                    ),
                   ),
                 ),
-                TextField(
-                  controller: descriptionCtrl,
-                  textCapitalization: TextCapitalization.sentences,
-                  decoration: const InputDecoration(
-                    labelText: 'Description',
+                Visibility(
+                  visible: widget.transaction == null,
+                  child: TextField(
+                    controller: descriptionCtrl,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: const InputDecoration(
+                      labelText: 'Description',
+                    ),
                   ),
                 )
               ],
@@ -201,7 +225,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
               },
             ),
           Visibility(
-            visible: splits.isEmpty,
+            visible: widget.transaction == null && splits.isEmpty,
             child: const Center(
               child: Column(
                 children: [
@@ -223,14 +247,17 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
           return Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              FloatingActionButton.small(
-                onPressed: amountIsValid
-                    ? () {
-                        split(context);
-                      }
-                    : null,
-                tooltip: 'Split into a new category',
-                child: const Icon(Icons.call_split),
+              Visibility(
+                visible: widget.transaction == null,
+                child: FloatingActionButton.small(
+                  onPressed: amountIsValid
+                      ? () {
+                          split(context);
+                        }
+                      : null,
+                  tooltip: 'Split into a new category',
+                  child: const Icon(Icons.call_split),
+                ),
               ),
               const SizedBox(height: 16),
               FloatingActionButton(
@@ -473,6 +500,7 @@ class _ExpenseCardState extends State<_ExpenseCard> {
   }
 }
 
+// TODO remove and use Expense directly
 class _TempExpense {
   CategoryModel category;
   String amount;
