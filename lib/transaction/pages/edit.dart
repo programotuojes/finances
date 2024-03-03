@@ -73,6 +73,48 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
         title: widget.transaction == null
             ? const Text('New transaction')
             : const Text('Edit a transaction'),
+        actions: widget.transaction != null
+            ? [
+                IconButton(
+                  onPressed: () async {
+                    final accepted = await showDialog<bool>(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text('Delete this transaction?'),
+                          content: const Text(
+                              'Deleting a transaction also removes all expenses associated with it.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop(false);
+                              },
+                              child: const Text(
+                                'Cancel',
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop(true);
+                              },
+                              child: const Text(
+                                'Delete',
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+
+                    if (accepted == true && context.mounted) {
+                      TransactionService.instance.delete(widget.transaction!);
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  icon: const Icon(Icons.delete),
+                ),
+              ]
+            : null,
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: ListView(

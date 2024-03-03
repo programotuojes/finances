@@ -23,4 +23,9 @@ class TransactionService with ChangeNotifier {
 
     notifyListeners();
   }
+
+  void delete(Transaction transaction) {
+    transactions.remove(transaction);
+    notifyListeners();
+  }
 }
