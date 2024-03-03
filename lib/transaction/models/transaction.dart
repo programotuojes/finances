@@ -5,7 +5,7 @@ class Transaction {
   Account account;
   DateTime dateTime;
   // TODO attachment
-  late List<Expense> expenses;
+  List<Expense> expenses = List.empty(growable:  true);
 
   Transaction({
     required this.account,

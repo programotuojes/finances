@@ -9,8 +9,8 @@ import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/amount_input_formatter.dart';
+import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
-import 'package:money2/money2.dart';
 
 class EditTransactionPage extends StatefulWidget {
   final Transaction? transaction;
@@ -22,29 +22,30 @@ class EditTransactionPage extends StatefulWidget {
 }
 
 class _EditTransactionPageState extends State<EditTransactionPage> {
-  var dateTime = DateTime.now();
-  var account = AccountService.instance.lastSelection;
+  final transaction = Transaction(
+    account: AccountService.instance.lastSelection,
+    dateTime: DateTime.now(),
+  );
+
   var category = CategoryService.instance.lastSelection;
   var dialogCategory = CategoryService.instance.lastSelection;
-  var splits = List<_TempExpense>.empty(growable: true);
+  var expenses = List<Expense>.empty(growable: true);
 
   late TextEditingController amountCtrl;
   late TextEditingController descriptionCtrl;
   late TextEditingController dialogAmountCtrl;
   late TextEditingController dialogDescriptionCtrl;
+  late bool isEditing;
 
   @override
   void initState() {
     super.initState();
-    if (widget.transaction != null) {
-      account = widget.transaction!.account;
-      dateTime = widget.transaction!.dateTime;
-      splits = widget.transaction!.expenses
-          .map((e) => _TempExpense(
-                category: e.category,
-                amount: e.money.amount.toString(),
-              ))
-          .toList();
+    isEditing = widget.transaction != null;
+
+    if (isEditing) {
+      transaction.account = widget.transaction!.account;
+      transaction.dateTime = widget.transaction!.dateTime;
+      expenses = widget.transaction!.expenses;
     }
 
     amountCtrl = TextEditingController();
@@ -64,16 +65,16 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
 
   @override
   Widget build(BuildContext context) {
-    final dateTimeParts = dateTime.toIso8601String().split('T');
+    final dateTimeParts = transaction.dateTime.toIso8601String().split('T');
     final date = dateTimeParts[0];
     final time = dateTimeParts[1].substring(0, 5);
 
     return Scaffold(
       appBar: AppBar(
-        title: widget.transaction == null
+        title: !isEditing
             ? const Text('New transaction')
             : const Text('Edit a transaction'),
-        actions: widget.transaction != null
+        actions: isEditing
             ? [
                 IconButton(
                   onPressed: () async {
@@ -130,13 +131,14 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                         onPressed: () async {
                           var selected = await showDatePicker(
                             context: context,
-                            initialDate: dateTime,
+                            initialDate: transaction.dateTime,
                             firstDate: DateTime(0),
                             lastDate: DateTime(9999),
                           );
                           if (selected == null) return;
                           setState(() {
-                            dateTime = dateTime.copyWith(
+                            transaction.dateTime =
+                                transaction.dateTime.copyWith(
                               year: selected.year,
                               month: selected.month,
                               day: selected.day,
@@ -151,11 +153,13 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                         onPressed: () async {
                           var selected = await showTimePicker(
                             context: context,
-                            initialTime: TimeOfDay.fromDateTime(dateTime),
+                            initialTime:
+                                TimeOfDay.fromDateTime(transaction.dateTime),
                           );
                           if (selected == null) return;
                           setState(() {
-                            dateTime = dateTime.copyWith(
+                            transaction.dateTime =
+                                transaction.dateTime.copyWith(
                               hour: selected.hour,
                               minute: selected.minute,
                             );
@@ -178,12 +182,12 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                     Expanded(
                       child: DropdownMenu<Account>(
                         expandedInsets: const EdgeInsets.all(0),
-                        initialSelection: account,
+                        initialSelection: transaction.account,
                         label: const Text('Account'),
                         onSelected: (selected) {
                           if (selected == null) return;
                           setState(() {
-                            account = selected;
+                            transaction.account = selected;
                           });
                         },
                         dropdownMenuEntries: [
@@ -193,7 +197,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                       ),
                     ),
                     Visibility(
-                      visible: widget.transaction == null,
+                      visible: !isEditing,
                       child: Expanded(
                         child: Padding(
                           padding: const EdgeInsets.all(0),
@@ -222,7 +226,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                   ],
                 ),
                 Visibility(
-                  visible: widget.transaction == null,
+                  visible: !isEditing,
                   child: TextField(
                     controller: amountCtrl,
                     inputFormatters: amountFormatter,
@@ -236,7 +240,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                   ),
                 ),
                 Visibility(
-                  visible: widget.transaction == null,
+                  visible: !isEditing,
                   child: TextField(
                     controller: descriptionCtrl,
                     textCapitalization: TextCapitalization.sentences,
@@ -249,25 +253,60 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
             ),
           ),
           const SizedBox(height: 24),
-          for (final x in splits)
+          for (final expense in expenses)
             _ExpenseCard(
-              expense: x,
-              onDelete: () {
-                final money = amountCtrl.text.toMoney('EUR') ??
-                    CommonCurrencies().euro.parse('0');
-                final splitMoney = x.amount.toMoney('EUR');
+              expense: expense,
+              onDelete: () async {
+                if (!isEditing) {
+                  final money = amountCtrl.text.toMoney('EUR') ?? zeroEur;
+                  final moneySplitOff = expense.money;
+                  setState(() {
+                    expenses.remove(expense);
+                    amountCtrl.text = (money + moneySplitOff).amount.toString();
+                  });
+                  return;
+                }
 
-                setState(() {
-                  splits.remove(x);
+                if (expenses.length > 1) {
+                  setState(() {
+                    expenses.remove(expense);
+                  });
+                  return;
+                }
 
-                  if (splitMoney != null) {
-                    amountCtrl.text = (money + splitMoney).amount.toString();
-                  }
-                });
+                final accepted = await showDialog<bool>(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('Delete this transaction?'),
+                      content: const Text(
+                          'Deleting the last expense will also delete this transaction.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(false);
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(true);
+                          },
+                          child: const Text('Delete'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+
+                if (accepted != true || !context.mounted) return;
+
+                TransactionService.instance.delete(widget.transaction!);
+                Navigator.of(context).pop();
               },
             ),
           Visibility(
-            visible: widget.transaction == null && splits.isEmpty,
+            visible: !isEditing && transaction.expenses.isEmpty,
             child: const Center(
               child: Column(
                 children: [
@@ -281,18 +320,18 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
           const SizedBox(height: 140),
         ],
       ),
-      // TODO when onPressed is null, FABs aren't grayed out
+      // TODO gray out FABs when they are disabled
       floatingActionButton: ListenableBuilder(
         listenable: amountCtrl,
         builder: (context, _) {
-          final amountIsValid = amountCtrl.text.toMoney('EUR') != null;
+          final money = amountCtrl.text.toMoney('EUR');
           return Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Visibility(
-                visible: widget.transaction == null,
+                visible: !isEditing,
                 child: FloatingActionButton.small(
-                  onPressed: amountIsValid
+                  onPressed: money != null
                       ? () {
                           split(context);
                         }
@@ -303,25 +342,27 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
               ),
               const SizedBox(height: 16),
               FloatingActionButton(
-                onPressed: amountIsValid
+                onPressed: money != null || isEditing
                     ? () {
-                        final transaction = Transaction(
-                          account: account,
-                          dateTime: dateTime,
-                        );
+                        if (isEditing) {
+                          TransactionService.instance.update(
+                            target: widget.transaction!,
+                            account: transaction.account,
+                            dateTime: transaction.dateTime,
+                            expenses: expenses,
+                          );
+                          Navigator.of(context).pop();
+                          return;
+                        }
+
                         final mainExpense = Expense(
                           transaction: transaction,
-                          money: amountCtrl.text.toMoney('EUR')!,
+                          money: money!, // Will return early if money is null
                           category: category,
                           description: descriptionCtrl.text,
                         );
-                        final otherExpenses = splits.map((e) => Expense(
-                              transaction: transaction,
-                              money: e.amount.toMoney('EUR')!,
-                              category: e.category,
-                              description: e.description,
-                            ));
-                        transaction.expenses = [mainExpense, ...otherExpenses];
+                        expenses.add(mainExpense);
+                        transaction.expenses = expenses;
                         TransactionService.instance.add(transaction);
                         Navigator.of(context).pop();
                       }
@@ -339,7 +380,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
   /// Show a dialog to create a new subcategory.
   /// Returns true if a split was successful, false if there were validation errors.
   Future<bool> split(BuildContext context) async {
-    final result = await showDialog<_TempExpense>(
+    final result = await showDialog<Expense>(
       context: context,
       builder: (context) => PopScope(
         onPopInvoked: (didPop) {
@@ -414,9 +455,10 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                 return TextButton(
                   onPressed: isValid
                       ? () {
-                          Navigator.of(context).pop(_TempExpense(
+                          Navigator.of(context).pop(Expense(
+                            transaction: transaction,
                             category: dialogCategory,
-                            amount: dialogAmountCtrl.text,
+                            money: moneyToSplit,
                             description: dialogDescriptionCtrl.text,
                           ));
                         }
@@ -435,15 +477,15 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
     }
 
     final money = amountCtrl.text.toMoney('EUR');
-    final moneySplitOff = result.amount.toMoney('EUR');
+    final moneySplitOff = result.money;
 
-    if (money == null || moneySplitOff == null) {
+    if (money == null) {
       return false;
     }
 
     setState(() {
       amountCtrl.text = (money - moneySplitOff).amount.toString();
-      splits.add(result);
+      expenses.add(result);
     });
 
     return true;
@@ -451,7 +493,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
 }
 
 class _ExpenseCard extends StatefulWidget {
-  final _TempExpense expense;
+  final Expense expense;
   final VoidCallback? onDelete;
 
   const _ExpenseCard({
@@ -466,17 +508,15 @@ class _ExpenseCard extends StatefulWidget {
 class _ExpenseCardState extends State<_ExpenseCard> {
   late TextEditingController amountCtrl;
   late TextEditingController descriptionCtrl;
-  late CategoryModel category;
 
   @override
   void initState() {
     super.initState();
-    amountCtrl = TextEditingController(text: widget.expense.amount);
+    amountCtrl = TextEditingController(text: widget.expense.money.toString());
     descriptionCtrl = TextEditingController(text: widget.expense.description);
-    category = widget.expense.category;
 
     amountCtrl.addListener(() {
-      widget.expense.amount = amountCtrl.text;
+      widget.expense.money = amountCtrl.text.toMoney('EUR') ?? zeroEur;
     });
 
     descriptionCtrl.addListener(() {
@@ -527,10 +567,10 @@ class _ExpenseCardState extends State<_ExpenseCard> {
               if (selection == null) return;
               CategoryService.instance.lastSelection = selection;
               setState(() {
-                category = selection;
+                widget.expense.category = selection;
               });
             },
-            child: Text(category.name),
+            child: Text(widget.expense.category.name),
           ),
         ],
       ),
@@ -540,17 +580,4 @@ class _ExpenseCardState extends State<_ExpenseCard> {
       ),
     );
   }
-}
-
-// TODO remove and use Expense directly
-class _TempExpense {
-  CategoryModel category;
-  String amount;
-  String? description;
-
-  _TempExpense({
-    required this.category,
-    required this.amount,
-    this.description,
-  });
 }

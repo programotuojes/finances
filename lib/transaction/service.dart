@@ -1,3 +1,4 @@
+import 'package:finances/account/models/account.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:flutter/foundation.dart';
@@ -26,6 +27,18 @@ class TransactionService with ChangeNotifier {
 
   void delete(Transaction transaction) {
     transactions.remove(transaction);
+    notifyListeners();
+  }
+
+  void update({
+    required Transaction target,
+    required Account account,
+    required DateTime dateTime,
+    required List<Expense> expenses,
+  }) {
+    target.account = account;
+    target.dateTime = dateTime;
+    target.expenses = expenses;
     notifyListeners();
   }
 }
