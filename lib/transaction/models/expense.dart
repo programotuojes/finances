@@ -6,12 +6,24 @@ class Expense {
   Transaction transaction;
   Money money;
   CategoryModel category;
-  String? description;
+  String? _description;
+
+  String? get description => _description;
+
+  set description(String? value) {
+    if (value != null && value.isNotEmpty) {
+      _description = value;
+    }
+
+    _description = null;
+  }
 
   Expense({
     required this.transaction,
     required this.money,
     required this.category,
-    required this.description,
-  });
+    required String? description,
+  }) {
+    this.description = description;
+  }
 }
