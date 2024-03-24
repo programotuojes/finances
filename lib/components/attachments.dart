@@ -1,0 +1,176 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:mime/mime.dart';
+import 'package:thumbnailer/thumbnailer.dart';
+
+class Attachments extends StatefulWidget {
+  const Attachments({super.key});
+
+  @override
+  State<Attachments> createState() => _AttachmentsState();
+}
+
+class _AttachmentsState extends State<Attachments> {
+  final List<File> attachments = List.empty(growable: true);
+
+  Future<void> selectFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg'],
+      allowMultiple: true,
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    // final appDir = await getApplicationDocumentsDirectory();
+    // final attachmentsDir =
+    //     await Directory('${appDir.path}/attachments').create();
+
+    for (final file in result.files) {
+      if (file.path == null) {
+        print('File ${file.name} has null path');
+        continue;
+      }
+
+      final cacheFile = File(file.path!);
+      // final attachmentFile =
+      //     await cacheFile.rename('${attachmentsDir.path}/${file.name}');
+
+      setState(() {
+        attachments.add(cacheFile);
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    Thumbnailer.addCustomGenerationStrategies(
+      <String, GenerationStrategyFunction>{
+        'image': (
+          String? name,
+          String mimeType,
+          int? dataSize,
+          DataResolvingFunction getData,
+          double widgetSize,
+          WidgetDecoration? widgetDecoration,
+        ) async {
+          final Uint8List resolvedData = await getData();
+          return Center(
+            child: Image.memory(
+              resolvedData,
+              fit: BoxFit.cover,
+              semanticLabel: name,
+              width: widgetSize,
+              height: widgetSize,
+              filterQuality: FilterQuality.none,
+            ),
+          );
+        },
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10, bottom: 35),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            const SizedBox(width: 24),
+            for (final attachment in attachments)
+              Thumb(
+                attachment: attachment,
+                onRemove: () {
+                  setState(() {
+                    print('removing $attachment');
+                    attachments.remove(attachment);
+                  });
+                },
+              ),
+            Padding(
+              padding: const EdgeInsets.only(top: 25),
+              child: InkWell(
+                onTap: () {
+                  selectFile();
+                },
+                borderRadius: BorderRadius.circular(10),
+                child: Ink(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    // color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  child: Icon(
+                    Symbols.attach_file_add,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class Thumb extends StatelessWidget {
+  final File attachment;
+  final VoidCallback? onRemove;
+
+  const Thumb({
+    super.key,
+    required this.attachment,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.bottomLeft,
+      children: [
+        const SizedBox(width: 136, height: 125),
+        Container(
+          clipBehavior: Clip.hardEdge,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Colors.white,
+          ),
+          child: Thumbnail(
+            key: Key(attachment.path),
+            mimeType: lookupMimeType(attachment.path)!,
+            widgetSize: 100,
+            dataResolver: attachment.readAsBytes,
+          ),
+        ),
+        Positioned(
+          top: 0,
+          right: 0,
+          child: ElevatedButton(
+            onPressed: onRemove,
+            style: ButtonStyle(
+              shape: MaterialStateProperty.all(
+                const CircleBorder(),
+              ),
+            ),
+            child: const Icon(Icons.clear),
+          ),
+        ),
+      ],
+    );
+  }
+}

@@ -11,6 +11,11 @@ dependencies:
     sdk: flutter
   money2: ^4.0.0
   syncfusion_flutter_charts: ^24.2.7+1
+  file_picker: ^8.0.0+1
+  path_provider: ^2.1.2
+  thumbnailer: ^2.2.0
+  mime: ^1.0.5
+  material_symbols_icons: ^4.2719.3
 
 dev_dependencies:
   flutter_test:

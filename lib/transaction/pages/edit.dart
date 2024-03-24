@@ -3,6 +3,7 @@ import 'package:finances/account/service.dart';
 import 'package:finances/category/models/category.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
+import 'package:finances/components/attachments.dart';
 import 'package:finances/components/square_button.dart';
 import 'package:finances/extensions/money.dart';
 import 'package:finances/transaction/models/expense.dart';
@@ -123,6 +124,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
           Material(
             elevation: 5,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
                   children: [
@@ -170,13 +172,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                     ),
                   ],
                 ),
-                Container(
-                  height: 100,
-                  color: Theme.of(context).colorScheme.surfaceVariant,
-                  child: const Center(
-                    child: Text('+'),
-                  ),
-                ),
+                const Attachments(),
                 Row(
                   children: [
                     Expanded(
@@ -311,8 +307,22 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
               child: Column(
                 children: [
                   SizedBox(height: 24),
-                  Text('Click the "split" button to'),
-                  Text('subcategorize this transaction'),
+                  Text(
+                    'After entering an amount,',
+                  ),
+                  Text.rich(
+                    TextSpan(
+                      text: 'click the ',
+                      children: [
+                        WidgetSpan(
+                          child: Icon(Icons.call_split),
+                          alignment: PlaceholderAlignment.middle,
+                        ),
+                        TextSpan(text: ' button to'),
+                      ],
+                    ),
+                  ),
+                  Text('split off into a different category'),
                 ],
               ),
             ),
@@ -331,6 +341,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
               Visibility(
                 visible: !isEditing,
                 child: FloatingActionButton.small(
+                  heroTag: 'split',
                   onPressed: money != null
                       ? () {
                           split(context);
@@ -342,6 +353,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
               ),
               const SizedBox(height: 16),
               FloatingActionButton(
+                heroTag: 'add',
                 onPressed: money != null || isEditing
                     ? () {
                         if (isEditing) {
