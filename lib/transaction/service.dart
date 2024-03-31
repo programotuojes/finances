@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:finances/account/models/account.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
+import 'package:finances/utils/random_string.dart';
 import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
 
 class TransactionService with ChangeNotifier {
   static final TransactionService instance = TransactionService._ctor();
@@ -16,7 +20,15 @@ class TransactionService with ChangeNotifier {
     }
   }
 
-  void add(Transaction transaction) {
+  Future<void> add(
+    Transaction transaction, {
+    required List<Expense> expenses,
+    required List<File> attachments,
+  }) async {
+    transaction.attachments = await moveAttachmentsFromCache(
+      attachments,
+    ).toList();
+    transaction.expenses = expenses;
     transactions.add(transaction);
 
     // TODO don't sort on every insert
@@ -30,15 +42,55 @@ class TransactionService with ChangeNotifier {
     notifyListeners();
   }
 
-  void update({
+  Future<void> update({
     required Transaction target,
     required Account account,
     required DateTime dateTime,
     required List<Expense> expenses,
-  }) {
+    required List<File> attachments,
+  }) async {
+    final previousDateTime = target.dateTime;
+
     target.account = account;
     target.dateTime = dateTime;
     target.expenses = expenses;
+    target.attachments = await moveAttachmentsFromCache(attachments).toList();
+
+    if (previousDateTime != target.dateTime) {
+      transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    }
+
     notifyListeners();
+  }
+
+  Stream<File> moveAttachmentsFromCache(List<File> attachments) async* {
+    final appDir = await getApplicationDocumentsDirectory();
+    final attachmentsDir = await Directory(
+      '${appDir.path}/attachments',
+    ).create();
+
+    for (final cacheFile in attachments) {
+      final fileExtensionIndex = cacheFile.path.lastIndexOf('.');
+      final extension = cacheFile.path.substring(fileExtensionIndex + 1);
+      final name = await getUniqueName(attachmentsDir.path, extension);
+
+      final movedAttachment = await cacheFile.rename(
+        '${attachmentsDir.path}/$name.$extension',
+      );
+      yield movedAttachment;
+    }
+  }
+
+  Future<String> getUniqueName(
+    String attachmentsDir,
+    String extension,
+  ) async {
+    String name;
+
+    do {
+      name = generateRandomString(15);
+    } while (await File('$attachmentsDir/$name.$extension').exists());
+
+    return name;
   }
 }

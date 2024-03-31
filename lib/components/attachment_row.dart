@@ -7,16 +7,15 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:mime/mime.dart';
 import 'package:thumbnailer/thumbnailer.dart';
 
-class Attachments extends StatefulWidget {
-  const Attachments({super.key});
+class AttachmentRow extends StatefulWidget {
+  final List<File> attachments;
+  const AttachmentRow({super.key, required this.attachments});
 
   @override
-  State<Attachments> createState() => _AttachmentsState();
+  State<AttachmentRow> createState() => _AttachmentRowState();
 }
 
-class _AttachmentsState extends State<Attachments> {
-  final List<File> attachments = List.empty(growable: true);
-
+class _AttachmentRowState extends State<AttachmentRow> {
   Future<void> selectFile() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -43,7 +42,7 @@ class _AttachmentsState extends State<Attachments> {
       //     await cacheFile.rename('${attachmentsDir.path}/${file.name}');
 
       setState(() {
-        attachments.add(cacheFile);
+        widget.attachments.add(cacheFile);
       });
     }
   }
@@ -86,14 +85,15 @@ class _AttachmentsState extends State<Attachments> {
         child: Row(
           children: [
             const SizedBox(width: 24),
-            for (final attachment in attachments)
+            for (final attachment in widget.attachments)
               Thumb(
                 attachment: attachment,
-                onRemove: () {
+                onRemove: () async {
+                  // TODO only actually delete when saving
                   setState(() {
-                    print('removing $attachment');
-                    attachments.remove(attachment);
+                    widget.attachments.remove(attachment);
                   });
+                  await attachment.delete();
                 },
               ),
             Padding(

@@ -1,9 +1,11 @@
+import 'dart:io';
+
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/category/models/category.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
-import 'package:finances/components/attachments.dart';
+import 'package:finances/components/attachment_row.dart';
 import 'package:finances/components/square_button.dart';
 import 'package:finances/extensions/money.dart';
 import 'package:finances/transaction/models/expense.dart';
@@ -12,6 +14,7 @@ import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/amount_input_formatter.dart';
 import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
+import 'package:money2/money2.dart';
 
 class EditTransactionPage extends StatefulWidget {
   final Transaction? transaction;
@@ -31,6 +34,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
   var category = CategoryService.instance.lastSelection;
   var dialogCategory = CategoryService.instance.lastSelection;
   var expenses = List<Expense>.empty(growable: true);
+  var attachments = List<File>.empty(growable: true);
 
   late TextEditingController amountCtrl;
   late TextEditingController descriptionCtrl;
@@ -47,6 +51,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
       transaction.account = widget.transaction!.account;
       transaction.dateTime = widget.transaction!.dateTime;
       expenses = widget.transaction!.expenses;
+      attachments = widget.transaction!.attachments;
     }
 
     amountCtrl = TextEditingController();
@@ -172,7 +177,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                     ),
                   ],
                 ),
-                const Attachments(),
+                AttachmentRow(attachments: attachments),
                 Row(
                   children: [
                     Expanded(
@@ -252,6 +257,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
           for (final expense in expenses)
             _ExpenseCard(
               expense: expense,
+              // TODO only actually delete when saving
               onDelete: () async {
                 if (!isEditing) {
                   final money = amountCtrl.text.toMoney('EUR') ?? zeroEur;
@@ -295,7 +301,9 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                   },
                 );
 
-                if (accepted != true || !context.mounted) return;
+                if (accepted != true || !context.mounted) {
+                  return;
+                }
 
                 TransactionService.instance.delete(widget.transaction!);
                 Navigator.of(context).pop();
@@ -334,7 +342,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
       floatingActionButton: ListenableBuilder(
         listenable: amountCtrl,
         builder: (context, _) {
-          final money = amountCtrl.text.toMoney('EUR');
+          final mainMoney = amountCtrl.text.toMoney('EUR');
           return Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -342,7 +350,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                 visible: !isEditing,
                 child: FloatingActionButton.small(
                   heroTag: 'split',
-                  onPressed: money != null
+                  onPressed: mainMoney != null
                       ? () {
                           split(context);
                         }
@@ -354,31 +362,18 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
               const SizedBox(height: 16),
               FloatingActionButton(
                 heroTag: 'add',
-                onPressed: money != null || isEditing
-                    ? () {
+                onPressed: !isEditing && mainMoney == null
+                    ? null
+                    : () async {
                         if (isEditing) {
-                          TransactionService.instance.update(
-                            target: widget.transaction!,
-                            account: transaction.account,
-                            dateTime: transaction.dateTime,
-                            expenses: expenses,
-                          );
-                          Navigator.of(context).pop();
-                          return;
+                          await update();
+                        } else {
+                          await save(mainMoney!);
                         }
-
-                        final mainExpense = Expense(
-                          transaction: transaction,
-                          money: money!, // Will return early if money is null
-                          category: category,
-                          description: descriptionCtrl.text,
-                        );
-                        expenses.add(mainExpense);
-                        transaction.expenses = expenses;
-                        TransactionService.instance.add(transaction);
-                        Navigator.of(context).pop();
-                      }
-                    : null,
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                        }
+                      },
                 tooltip: 'Save',
                 child: const Icon(Icons.save),
               ),
@@ -386,6 +381,30 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
           );
         },
       ),
+    );
+  }
+
+  Future<void> update() async {
+    await TransactionService.instance.update(
+      target: widget.transaction!,
+      account: transaction.account,
+      dateTime: transaction.dateTime,
+      expenses: expenses,
+      attachments: attachments,
+    );
+  }
+
+  Future<void> save(Money money) async {
+    final mainExpense = Expense(
+      transaction: transaction,
+      money: money,
+      category: category,
+      description: descriptionCtrl.text,
+    );
+    await TransactionService.instance.add(
+      transaction,
+      expenses: [mainExpense, ...expenses],
+      attachments: attachments,
     );
   }
 
@@ -435,7 +454,9 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                               CategoryListPage(CategoryService.instance.root),
                         ),
                       );
-                      if (selection == null) return;
+                      if (selection == null) {
+                        return;
+                      }
                       CategoryService.instance.lastSelection = selection;
                       setState(() {
                         dialogCategory = selection;
