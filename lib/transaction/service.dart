@@ -51,10 +51,12 @@ class TransactionService with ChangeNotifier {
   }) async {
     final previousDateTime = target.dateTime;
 
+    await removeUnusedFiles(attachments, target.attachments);
+    target.attachments = await moveAttachmentsFromCache(attachments).toList();
+
     target.account = account;
     target.dateTime = dateTime;
     target.expenses = expenses;
-    target.attachments = await moveAttachmentsFromCache(attachments).toList();
 
     if (previousDateTime != target.dateTime) {
       transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime));
@@ -92,5 +94,16 @@ class TransactionService with ChangeNotifier {
     } while (await File('$attachmentsDir/$name.$extension').exists());
 
     return name;
+  }
+
+  Future<void> removeUnusedFiles(
+    List<File> current,
+    List<File> previous,
+  ) async {
+    for (final i in previous) {
+      if (!current.contains(i)) {
+        await i.delete();
+      }
+    }
   }
 }

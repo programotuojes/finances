@@ -13,9 +13,9 @@ class Expense {
   set description(String? value) {
     if (value != null && value.isNotEmpty) {
       _description = value;
+    } else {
+      _description = null;
     }
-
-    _description = null;
   }
 
   Expense({
@@ -26,4 +26,11 @@ class Expense {
   }) {
     this.description = description;
   }
+
+  Expense copy() => Expense(
+        transaction: transaction,
+        money: money,
+        category: category,
+        description: description,
+      );
 }

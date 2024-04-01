@@ -27,22 +27,14 @@ class _AttachmentRowState extends State<AttachmentRow> {
       return;
     }
 
-    // final appDir = await getApplicationDocumentsDirectory();
-    // final attachmentsDir =
-    //     await Directory('${appDir.path}/attachments').create();
-
     for (final file in result.files) {
       if (file.path == null) {
         print('File ${file.name} has null path');
         continue;
       }
 
-      final cacheFile = File(file.path!);
-      // final attachmentFile =
-      //     await cacheFile.rename('${attachmentsDir.path}/${file.name}');
-
       setState(() {
-        widget.attachments.add(cacheFile);
+        widget.attachments.add(File(file.path!));
       });
     }
   }
@@ -88,12 +80,10 @@ class _AttachmentRowState extends State<AttachmentRow> {
             for (final attachment in widget.attachments)
               Thumb(
                 attachment: attachment,
-                onRemove: () async {
-                  // TODO only actually delete when saving
+                onRemove: () {
                   setState(() {
                     widget.attachments.remove(attachment);
                   });
-                  await attachment.delete();
                 },
               ),
             Padding(

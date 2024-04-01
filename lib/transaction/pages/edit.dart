@@ -50,8 +50,8 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
     if (isEditing) {
       transaction.account = widget.transaction!.account;
       transaction.dateTime = widget.transaction!.dateTime;
-      expenses = widget.transaction!.expenses;
-      attachments = widget.transaction!.attachments;
+      expenses = widget.transaction!.expenses.map((e) => e.copy()).toList();
+      attachments = widget.transaction!.attachments.toList();
     }
 
     amountCtrl = TextEditingController();
@@ -257,7 +257,6 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
           for (final expense in expenses)
             _ExpenseCard(
               expense: expense,
-              // TODO only actually delete when saving
               onDelete: () async {
                 if (!isEditing) {
                   final money = amountCtrl.text.toMoney('EUR') ?? zeroEur;
@@ -597,7 +596,9 @@ class _ExpenseCardState extends State<_ExpenseCard> {
                       CategoryListPage(CategoryService.instance.root),
                 ),
               );
-              if (selection == null) return;
+              if (selection == null) {
+                return;
+              }
               CategoryService.instance.lastSelection = selection;
               setState(() {
                 widget.expense.category = selection;
