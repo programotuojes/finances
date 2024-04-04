@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:finances/account/models/account.dart';
+import 'package:finances/account/service.dart';
+import 'package:finances/category/service.dart';
+import 'package:finances/extensions/money.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/utils/random_string.dart';
@@ -9,7 +12,41 @@ import 'package:path_provider/path_provider.dart';
 
 class TransactionService with ChangeNotifier {
   static final TransactionService instance = TransactionService._ctor();
-  TransactionService._ctor();
+
+  TransactionService._ctor() {
+    final t1 = Transaction(
+      account: swedbank,
+      dateTime: DateTime.now(),
+    );
+    t1.expenses = [
+      Expense(
+        transaction: t1,
+        money: '2.4'.toMoney('EUR')!,
+        category: food,
+        description: null,
+      ),
+      Expense(
+        transaction: t1,
+        money: '30.4'.toMoney('EUR')!,
+        category: other,
+        description: 'idk',
+      ),
+    ];
+    final t2 = Transaction(
+      account: revolut,
+      dateTime: DateTime.now().subtract(const Duration(days: 3)),
+    );
+    t2.expenses = [
+      Expense(
+        transaction: t2,
+        money: '150'.toMoney('EUR')!,
+        category: transport,
+        description: null,
+      ),
+    ];
+
+    transactions = [t1, t2];
+  }
 
   List<Transaction> transactions = List.empty(growable: true);
   Iterable<Expense> get expenses sync* {

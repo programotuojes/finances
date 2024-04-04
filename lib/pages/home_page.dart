@@ -129,7 +129,7 @@ class _HomePageState extends State<HomePage> {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   child: Icon(
-                    Icons.food_bank,
+                    expense.category.icon,
                     color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),

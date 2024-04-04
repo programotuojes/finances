@@ -1,5 +1,6 @@
 import 'package:finances/category/models/category.dart';
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 const double _paddingForFab = 100;
 
@@ -41,7 +42,10 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
 
   void addCategory() {
     setState(() {
-      widget.category.addChild(newChildTextCtrl.text);
+      widget.category.addChild(
+        newChildTextCtrl.text,
+        Symbols.attach_money, // TODO allow selecting the icon
+      );
       newChildTextCtrl.clear();
     });
   }
@@ -104,7 +108,7 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
                         color: Theme.of(context).colorScheme.primary,
                       ),
                       child: Icon(
-                        Icons.food_bank,
+                        i.icon,
                         color: Theme.of(context).colorScheme.onPrimary,
                       ),
                     ),
@@ -120,7 +124,7 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                     child: Icon(
-                      Icons.food_bank,
+                      Symbols.attach_money,
                       color: Theme.of(context).colorScheme.onPrimary,
                     ),
                   ),

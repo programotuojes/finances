@@ -35,7 +35,7 @@ class CategoryListPage extends StatelessWidget {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   child: Icon(
-                    Icons.food_bank,
+                    i.icon,
                     color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),

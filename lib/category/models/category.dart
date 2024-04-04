@@ -1,12 +1,15 @@
 import 'package:finances/category/service.dart';
+import 'package:flutter/widgets.dart';
 
 class CategoryModel {
   String name;
+  IconData icon;
   CategoryModel? parent;
   List<CategoryModel> children = List.empty(growable: true);
 
   CategoryModel({
     required this.name,
+    required this.icon,
     this.parent,
     List<CategoryModel>? children,
   }) {
@@ -15,9 +18,10 @@ class CategoryModel {
     }
   }
 
-  void addChild(String name) {
+  void addChild(String name, IconData icon) {
     children.add(CategoryModel(
       name: name,
+      icon: icon,
       parent: this,
     ));
     CategoryService.instance.notify();
