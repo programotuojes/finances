@@ -101,11 +101,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget home() {
-    return Column(
-      children: [
-        const AccountsCard(),
-        BalanceGraphCard(),
-      ],
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const AccountsCard(),
+          BalanceGraphCard(),
+        ],
+      ),
     );
   }
 
