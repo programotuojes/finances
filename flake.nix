@@ -26,11 +26,13 @@
         emulator
         platform-tools
 
-        build-tools-33-0-1
-        sources-android-33
-        platforms-android-33
-        platforms-android-31
         system-images-android-34-google-apis-x86-64
+
+        build-tools-30-0-3
+
+        platforms-android-31
+        platforms-android-33
+        platforms-android-34
       ]);
     in
     {
@@ -45,6 +47,9 @@
           ${unstable-pkgs.flutter}/bin/flutter --disable-analytics > /dev/null
           source <(${unstable-pkgs.flutter}/bin/flutter bash-completion)
           export PS1='\[\e[1;93m\][Finances]\[\e[m\] \$ '
+
+          # Avoid crashing when opening file picker
+          export XDG_DATA_DIRS=${gtk3}/share/gsettings-schemas/${gtk3.name}:$XDG_DATA_DIRS
         '';
       };
     };

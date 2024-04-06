@@ -1,14 +1,13 @@
-import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:mime/mime.dart';
 import 'package:thumbnailer/thumbnailer.dart';
 
 class AttachmentRow extends StatefulWidget {
-  final List<File> attachments;
+  final List<XFile> attachments;
   const AttachmentRow({super.key, required this.attachments});
 
   @override
@@ -17,26 +16,26 @@ class AttachmentRow extends StatefulWidget {
 
 class _AttachmentRowState extends State<AttachmentRow> {
   Future<void> selectFile() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg'],
-      allowMultiple: true,
+    const jpgsTypeGroup = XTypeGroup(
+      label: 'Images',
+      extensions: ['jpg', 'jpeg', 'png'],
     );
+    const pdfTypeGroup = XTypeGroup(
+      label: 'PDFs',
+      extensions: ['pdf'],
+    );
+    final files = await openFiles(acceptedTypeGroups: [
+      jpgsTypeGroup,
+      pdfTypeGroup,
+    ]);
 
-    if (result == null) {
+    if (files.isEmpty) {
       return;
     }
 
-    for (final file in result.files) {
-      if (file.path == null) {
-        print('File ${file.name} has null path');
-        continue;
-      }
-
-      setState(() {
-        widget.attachments.add(File(file.path!));
-      });
-    }
+    setState(() {
+      widget.attachments.addAll(files);
+    });
   }
 
   @override
@@ -124,7 +123,7 @@ class _AttachmentRowState extends State<AttachmentRow> {
 }
 
 class Thumb extends StatelessWidget {
-  final File attachment;
+  final XFile attachment;
   final VoidCallback? onRemove;
 
   const Thumb({
@@ -147,7 +146,9 @@ class Thumb extends StatelessWidget {
           ),
           child: Thumbnail(
             key: Key(attachment.path),
-            mimeType: lookupMimeType(attachment.path)!,
+            mimeType: lookupMimeType(attachment.path) ??
+                attachment.mimeType ?? // For web (probably)
+                'default',
             widgetSize: 100,
             dataResolver: attachment.readAsBytes,
           ),

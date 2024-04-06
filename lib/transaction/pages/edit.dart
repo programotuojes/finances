@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:file_selector/file_selector.dart';
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/category/models/category.dart';
@@ -34,7 +33,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
   var category = CategoryService.instance.lastSelection;
   var dialogCategory = CategoryService.instance.lastSelection;
   var expenses = List<Expense>.empty(growable: true);
-  var attachments = List<File>.empty(growable: true);
+  var attachments = List<XFile>.empty(growable: true);
 
   late TextEditingController amountCtrl;
   late TextEditingController descriptionCtrl;

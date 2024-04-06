@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:file_selector/file_selector.dart';
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/category/service.dart';
@@ -60,11 +61,12 @@ class TransactionService with ChangeNotifier {
   Future<void> add(
     Transaction transaction, {
     required List<Expense> expenses,
-    required List<File> attachments,
+    required List<XFile> attachments,
   }) async {
-    transaction.attachments = await moveAttachmentsFromCache(
-      attachments,
-    ).toList();
+    // transaction.attachments = await moveAttachmentsFromCache(
+    //   attachments,
+    // ).toList();
+    transaction.attachments = attachments;
     transaction.expenses = expenses;
     transactions.add(transaction);
 
@@ -84,12 +86,13 @@ class TransactionService with ChangeNotifier {
     required Account account,
     required DateTime dateTime,
     required List<Expense> expenses,
-    required List<File> attachments,
+    required List<XFile> attachments,
   }) async {
     final previousDateTime = target.dateTime;
 
-    await removeUnusedFiles(attachments, target.attachments);
-    target.attachments = await moveAttachmentsFromCache(attachments).toList();
+    // await removeUnusedFiles(attachments, target.attachments);
+    // target.attachments = await moveAttachmentsFromCache(attachments).toList();
+    target.attachments = attachments;
 
     target.account = account;
     target.dateTime = dateTime;
@@ -104,6 +107,7 @@ class TransactionService with ChangeNotifier {
 
   Stream<File> moveAttachmentsFromCache(List<File> attachments) async* {
     final appDir = await getApplicationDocumentsDirectory();
+    print('App data dir = ${appDir.path}');
     final attachmentsDir = await Directory(
       '${appDir.path}/attachments',
     ).create();
