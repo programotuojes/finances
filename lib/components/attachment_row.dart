@@ -52,17 +52,22 @@ class _AttachmentRowState extends State<AttachmentRow> {
           double widgetSize,
           WidgetDecoration? widgetDecoration,
         ) async {
-          final Uint8List resolvedData = await getData();
-          return Center(
-            child: Image.memory(
-              resolvedData,
-              fit: BoxFit.cover,
-              semanticLabel: name,
-              width: widgetSize,
-              height: widgetSize,
-              filterQuality: FilterQuality.none,
-            ),
-          );
+          try {
+            final Uint8List resolvedData = await getData();
+            return Center(
+              child: Image.memory(
+                resolvedData,
+                errorBuilder: (context, obj, stacktrace) => const Placeholder(),
+                fit: BoxFit.cover,
+                semanticLabel: name,
+                width: widgetSize,
+                height: widgetSize,
+                filterQuality: FilterQuality.none,
+              ),
+            );
+          } catch (e) {
+            return const Placeholder();
+          }
         },
       },
     );
