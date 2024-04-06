@@ -6,6 +6,9 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:mime/mime.dart';
 import 'package:thumbnailer/thumbnailer.dart';
 
+const _thumbnailHeight = 100.0;
+const _deleteButtonOffset = 16.0;
+
 class AttachmentRow extends StatefulWidget {
   final List<XFile> attachments;
   const AttachmentRow({super.key, required this.attachments});
@@ -91,7 +94,7 @@ class _AttachmentRowState extends State<AttachmentRow> {
                 },
               ),
             Padding(
-              padding: const EdgeInsets.only(top: 25),
+              padding: const EdgeInsets.only(top: _deleteButtonOffset),
               child: InkWell(
                 onTap: () {
                   selectFile();
@@ -137,7 +140,10 @@ class Thumb extends StatelessWidget {
     return Stack(
       alignment: Alignment.bottomLeft,
       children: [
-        const SizedBox(width: 136, height: 125),
+        const SizedBox(
+          width: 136,
+          height: _thumbnailHeight + _deleteButtonOffset,
+        ),
         Container(
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
