@@ -23,15 +23,14 @@ class AccountsCard extends StatelessWidget {
             ListenableBuilder(
               listenable: AccountService.instance,
               builder: (context, child) {
-                return GridView.count(
-                  crossAxisCount: 2,
-                  childAspectRatio: 3,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    for (var i in AccountService.instance.accounts)
-                      smallCard(context, i),
-                  ],
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (var i in AccountService.instance.accounts)
+                        smallCard(context, i),
+                    ],
+                  ),
                 );
               },
             ),
@@ -55,16 +54,20 @@ class AccountsCard extends StatelessWidget {
         ),
       ),
       color: Theme.of(context).colorScheme.surfaceVariant,
-      child: InkWell(
-        onTap: () {
-          AccountService.instance.filterBy(account);
-        },
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(account.name),
-            Text(account.balance.toString()),
-          ],
+      child: SizedBox(
+        height: 60,
+        width: 120,
+        child: InkWell(
+          onTap: () {
+            AccountService.instance.filterBy(account);
+          },
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(account.name),
+              Text(account.balance.toString()),
+            ],
+          ),
         ),
       ),
     );

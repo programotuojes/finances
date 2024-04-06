@@ -3,6 +3,8 @@ import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/components/accounts_card.dart';
 import 'package:finances/components/balance_history.dart';
+import 'package:finances/components/recurring_transaction_card.dart';
+import 'package:finances/recurring/pages/list.dart';
 import 'package:finances/transaction/pages/edit.dart';
 import 'package:finances/transaction/service.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +27,10 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: [
-        home(),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: home(),
+        ),
         history(),
       ][index],
       bottomNavigationBar: NavigationBar(
@@ -94,6 +99,17 @@ class _HomePageState extends State<HomePage> {
                 );
               },
             ),
+            ListTile(
+              title: const Text('Recurring transactions'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RecurringListPage(),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -103,8 +119,10 @@ class _HomePageState extends State<HomePage> {
   Widget home() {
     return SingleChildScrollView(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const AccountsCard(),
+          const RecurringTransactionCard(),
           BalanceGraphCard(),
         ],
       ),
