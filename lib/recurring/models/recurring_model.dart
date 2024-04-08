@@ -18,8 +18,8 @@ class RecurringModel {
   String? _description;
   Periodicity periodicity;
   int interval;
-  DateTime from;
-  DateTime? until;
+  DateTime _from;
+  DateTime? _until;
   int timesConfirmed = 0;
 
   RecurringModel({
@@ -31,8 +31,8 @@ class RecurringModel {
     required this.interval,
     required DateTime from,
     required DateTime? until,
-  })  : from = DateUtils.dateOnly(from),
-        until = until != null ? DateUtils.dateOnly(until) : null {
+  })  : _from = DateUtils.dateOnly(from),
+        _until = until != null ? DateUtils.dateOnly(until) : null {
     this.description = description;
   }
 
@@ -44,6 +44,12 @@ class RecurringModel {
     } else {
       _description = null;
     }
+  }
+
+  DateTime get from => _from;
+
+  set from(DateTime value) {
+    _from = DateUtils.dateOnly(value);
   }
 
   String get humanReadablePeriod {
@@ -76,6 +82,16 @@ class RecurringModel {
           ),
       };
     } while (until == null || !point.isAfter(until!));
+  }
+
+  DateTime? get until => _until;
+
+  set until(DateTime? value) {
+    if (value != null) {
+      _until = DateUtils.dateOnly(value);
+    } else {
+      _until = value;
+    }
   }
 
   DateTime? nextDate(DateTime now) {

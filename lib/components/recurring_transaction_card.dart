@@ -32,7 +32,7 @@ class RecurringTransactionCard extends StatelessWidget {
                   ],
                 ),
               ),
-              for (final i in RecurringService.instance.transactions)
+              for (final i in RecurringService.instance.activeTransactions)
                 _RecurringListItem(recurringModel: i),
             ],
           ),
@@ -89,7 +89,9 @@ class _RecurringListItem extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const RecurringEditPage(),
+            builder: (context) => RecurringEditPage(
+              model: recurringModel,
+            ),
           ),
         );
       },
@@ -110,8 +112,9 @@ class _NextTransactionDate extends StatelessWidget {
     final nextDate = recurringModel.nextDate(now);
 
     if (nextDate == null) {
-      print('Recurring transaction has ended');
-      return const Placeholder();
+      final name = recurringModel.category.name;
+      print('Recurring for $name has ended, but was displayed in the list');
+      return const Text('Ended');
     }
 
     String durationText;

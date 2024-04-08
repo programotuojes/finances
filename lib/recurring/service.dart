@@ -50,24 +50,35 @@ final _r4 = RecurringModel(
 
 class RecurringService with ChangeNotifier {
   static final instance = RecurringService._ctor();
+
   final List<RecurringModel> transactions;
 
   RecurringService._ctor() : transactions = [_r1, _r2, _r3, _r4] {
     confirm(_r1);
     confirm(_r2);
+    _sort();
+  }
+
+  Iterable<RecurringModel> get activeTransactions =>
+      transactions.where((x) => x.nextDate(DateTime.now()) != null);
+
+  void add(RecurringModel model) {
+    transactions.add(model);
+    _sort();
+    notifyListeners();
   }
 
   void confirm(RecurringModel model) {
-    final dateTime = model.nextDate(DateTime.now());
+    final nextDate = model.nextDate(DateTime.now());
 
-    if (dateTime == null) {
+    if (nextDate == null) {
       print('Tried to confirm an already ended recurring transaction');
       return;
     }
 
     final transaction = Transaction(
       account: model.account,
-      dateTime: dateTime,
+      dateTime: nextDate,
     );
 
     final expense = Expense(
@@ -84,24 +95,43 @@ class RecurringService with ChangeNotifier {
     );
 
     model.timesConfirmed++;
-    transactions.sort((a, b) {
-      final aDate = a.nextDate(dateTime);
-      final bDate = b.nextDate(dateTime);
-
-      if (aDate == null) {
-        return -1;
-      } else if (bDate == null) {
-        return 1;
-      }
-
-      if (aDate.isBefore(bDate)) {
-        return -1;
-      } else if (aDate.isAfter(bDate)) {
-        return 1;
-      } else {
-        return 0;
-      }
-    });
+    _sort(basedOn: nextDate);
     notifyListeners();
+  }
+
+  void delete(RecurringModel model) {
+    transactions.remove(model);
+    notifyListeners();
+  }
+
+  void update(RecurringModel model, RecurringModel newValues) {
+    model.account = newValues.account;
+    model.category = newValues.category;
+    model.money = newValues.money;
+    model.description = newValues.description;
+    model.periodicity = newValues.periodicity;
+    model.interval = newValues.interval;
+    model.from = newValues.from;
+    model.until = newValues.until;
+    _sort();
+    notifyListeners();
+  }
+
+  void _sort({DateTime? basedOn}) {
+    final now = basedOn ?? DateTime.now();
+    transactions.sort((a, b) {
+      final aDate = a.nextDate(now);
+      final bDate = b.nextDate(now);
+
+      if (aDate == null && bDate == null) {
+        return 0;
+      } else if (aDate == null) {
+        return 1;
+      } else if (bDate == null) {
+        return -1;
+      }
+
+      return aDate.compareTo(bDate);
+    });
   }
 }

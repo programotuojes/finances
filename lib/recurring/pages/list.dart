@@ -1,6 +1,8 @@
+import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/recurring/pages/edit.dart';
 import 'package:finances/recurring/service.dart';
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 class RecurringListPage extends StatelessWidget {
   const RecurringListPage({super.key});
@@ -43,17 +45,14 @@ class RecurringListPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(i.humanReadablePeriod),
-                    if (i.until != null)
-                      Text(
-                        'Until ${i.until!.toIso8601String().substring(0, 10)}',
-                      ),
+                    if (i.until != null) untilString(i),
                   ],
                 ),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const RecurringEditPage(),
+                      builder: (context) => RecurringEditPage(model: i),
                     ),
                   );
                 },
@@ -61,6 +60,28 @@ class RecurringListPage extends StatelessWidget {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const RecurringEditPage(),
+            ),
+          );
+        },
+        child: const Icon(Symbols.add),
+      ),
     );
+  }
+
+  Widget untilString(RecurringModel model) {
+    var text = 'Until ${model.until!.toIso8601String().substring(0, 10)}';
+    final nextDate = model.nextDate(DateUtils.dateOnly(DateTime.now()));
+
+    if (nextDate == null) {
+      text += ' (ended)';
+    }
+
+    return Text(text);
   }
 }
