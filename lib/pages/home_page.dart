@@ -27,10 +27,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: home(),
-        ),
+        home(),
         history(),
       ][index],
       bottomNavigationBar: NavigationBar(
@@ -118,13 +115,17 @@ class _HomePageState extends State<HomePage> {
 
   Widget home() {
     return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const AccountsCard(),
-          const RecurringTransactionCard(),
-          BalanceGraphCard(),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const AccountsCard(),
+            const RecurringTransactionCard(),
+            BalanceGraphCard(),
+            const SizedBox(height: 56 + 16),
+          ],
+        ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:finances/components/home_card.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -16,32 +17,18 @@ class BalanceGraphCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                'Balance',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            SizedBox(
-              height: 200,
-              child: SfCartesianChart(
-                primaryXAxis: const DateTimeAxis(),
-                series: <SplineSeries<ChartData, DateTime>>[
-                  SplineSeries<ChartData, DateTime>(
-                    dataSource: data,
-                    xValueMapper: (ChartData data, _) => data.x,
-                    yValueMapper: (ChartData data, _) => data.y,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ],
-              ),
+    return HomeCard(
+      title: 'Balance',
+      child: SizedBox(
+        height: 200,
+        child: SfCartesianChart(
+          primaryXAxis: const DateTimeAxis(),
+          series: <SplineSeries<ChartData, DateTime>>[
+            SplineSeries<ChartData, DateTime>(
+              dataSource: data,
+              xValueMapper: (ChartData data, _) => data.x,
+              yValueMapper: (ChartData data, _) => data.y,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ],
         ),

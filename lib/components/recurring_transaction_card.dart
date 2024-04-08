@@ -1,3 +1,4 @@
+import 'package:finances/components/home_card.dart';
 import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/recurring/pages/edit.dart';
 import 'package:finances/recurring/service.dart';
@@ -8,35 +9,18 @@ class RecurringTransactionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListenableBuilder(
-          listenable: RecurringService.instance,
-          builder: (context, child) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return HomeCard(
+      title: 'Recurring transactions',
+      child: ListenableBuilder(
+        listenable: RecurringService.instance,
+        builder: (context, child) {
+          return Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Row(
-                  children: [
-                    const Expanded(child: Divider()),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'Recurring transactions',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                    const Expanded(child: Divider()),
-                  ],
-                ),
-              ),
               for (final i in RecurringService.instance.activeTransactions)
                 _RecurringListItem(recurringModel: i),
             ],
-          ),
-        ),
+          );
+        },
       ),
     );
   }

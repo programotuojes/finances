@@ -1,5 +1,6 @@
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
+import 'package:finances/components/home_card.dart';
 import 'package:flutter/material.dart';
 
 class AccountsCard extends StatelessWidget {
@@ -7,35 +8,22 @@ class AccountsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                'Accounts',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+    return HomeCard(
+      title: 'Accounts',
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: ListenableBuilder(
+        listenable: AccountService.instance,
+        builder: (context, child) {
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (var i in AccountService.instance.accounts)
+                  smallCard(context, i),
+              ],
             ),
-            ListenableBuilder(
-              listenable: AccountService.instance,
-              builder: (context, child) {
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      for (var i in AccountService.instance.accounts)
-                        smallCard(context, i),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
