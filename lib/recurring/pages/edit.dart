@@ -79,14 +79,46 @@ class _RecurringEditPageState extends State<RecurringEditPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Recurring payments'),
+        title: const Text('Recurring transaction'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: isEditing
             ? [
                 IconButton(
-                  onPressed: () {
-                    RecurringService.instance.delete(widget.model!);
-                    Navigator.of(context).pop();
+                  onPressed: () async {
+                    final accepted = await showDialog<bool>(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title:
+                              const Text('Delete this recurring transaction?'),
+                          content: const Text(
+                              'All of the confirmed transactions will be kept.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop(false);
+                              },
+                              child: const Text(
+                                'Cancel',
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop(true);
+                              },
+                              child: const Text(
+                                'Delete',
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+
+                    if (accepted == true && context.mounted) {
+                      RecurringService.instance.delete(widget.model!);
+                      Navigator.of(context).pop();
+                    }
                   },
                   icon: const Icon(
                     Symbols.delete,
