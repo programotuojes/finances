@@ -3,6 +3,7 @@ import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/recurring/pages/edit.dart';
 import 'package:finances/recurring/service.dart';
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 class RecurringTransactionCard extends StatelessWidget {
   const RecurringTransactionCard({super.key});
@@ -11,6 +12,7 @@ class RecurringTransactionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return HomeCard(
       title: 'Recurring transactions',
+      withoutChildPadding: true,
       child: ListenableBuilder(
         listenable: RecurringService.instance,
         builder: (context, child) {
@@ -57,15 +59,20 @@ class _RecurringListItem extends StatelessWidget {
             Text(recurringModel.description!),
         ],
       ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      contentPadding: const EdgeInsets.only(
+        left: 16,
+        right: 12, // Otherwise `trailing` is too far from the edge
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           _NextTransactionDate(recurringModel: recurringModel),
-          TextButton(
+          IconButton(
             onPressed: () {
               RecurringService.instance.confirm(recurringModel);
             },
-            child: const Text('Confirm'),
+            tooltip: 'Confirm',
+            icon: const Icon(Symbols.post_add),
           ),
         ],
       ),
