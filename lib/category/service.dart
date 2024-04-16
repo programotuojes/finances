@@ -26,6 +26,15 @@ class CategoryService with ChangeNotifier {
   void notify() => notifyListeners();
 }
 
+final nuts = CategoryModel(
+  name: 'Nuts',
+  icon: Symbols.nutrition,
+);
+final sports = CategoryModel(
+  name: 'Sport related',
+  icon: Symbols.exercise,
+);
+
 final food = CategoryModel(
   name: 'Food',
   icon: Symbols.restaurant,
@@ -38,6 +47,8 @@ final food = CategoryModel(
       name: 'Restaurant',
       icon: Symbols.restaurant,
     ),
+    nuts,
+    sports,
   ],
 );
 

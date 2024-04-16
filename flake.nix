@@ -30,6 +30,7 @@
 
         build-tools-30-0-3
 
+        platforms-android-28
         platforms-android-31
         platforms-android-33
         platforms-android-34

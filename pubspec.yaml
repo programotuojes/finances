@@ -17,6 +17,8 @@ dependencies:
   mime: ^1.0.5
   material_symbols_icons: ^4.2719.3
   collection: ^1.18.0
+  uri_to_file: ^1.0.0
+  flutter_tesseract_ocr: ^0.4.24
 
 dev_dependencies:
   flutter_test:
@@ -26,3 +28,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/
+    - assets/tessdata/

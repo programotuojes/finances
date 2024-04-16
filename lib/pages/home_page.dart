@@ -1,4 +1,5 @@
 import 'package:finances/account/pages/list.dart';
+import 'package:finances/automation/pages/list.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/components/accounts_card.dart';
@@ -103,6 +104,17 @@ class _HomePageState extends State<HomePage> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const RecurringListPage(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              title: const Text('Automation'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AutomationListPage(),
                   ),
                 );
               },

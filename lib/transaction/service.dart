@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:file_selector/file_selector.dart';
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/extensions/money.dart';
+import 'package:finances/transaction/models/attachment.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/utils/random_string.dart';
@@ -61,12 +61,12 @@ class TransactionService with ChangeNotifier {
   Future<void> add(
     Transaction transaction, {
     required List<Expense> expenses,
-    required List<XFile> attachments,
+    required List<Attachment> attachments,
   }) async {
     // transaction.attachments = await moveAttachmentsFromCache(
     //   attachments,
     // ).toList();
-    transaction.attachments = attachments;
+    transaction.attachments = attachments.toList();
     transaction.expenses = expenses;
     transactions.add(transaction);
 
@@ -86,13 +86,13 @@ class TransactionService with ChangeNotifier {
     required Account account,
     required DateTime dateTime,
     required List<Expense> expenses,
-    required List<XFile> attachments,
+    required List<Attachment> attachments,
   }) async {
     final previousDateTime = target.dateTime;
 
     // await removeUnusedFiles(attachments, target.attachments);
     // target.attachments = await moveAttachmentsFromCache(attachments).toList();
-    target.attachments = attachments;
+    target.attachments = attachments.toList();
 
     target.account = account;
     target.dateTime = dateTime;
