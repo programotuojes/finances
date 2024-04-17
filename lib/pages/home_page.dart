@@ -4,6 +4,7 @@ import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/components/accounts_card.dart';
 import 'package:finances/components/balance_history.dart';
+import 'package:finances/components/common_values.dart';
 import 'package:finances/components/recurring_transaction_card.dart';
 import 'package:finances/recurring/pages/list.dart';
 import 'package:finances/transaction/pages/edit.dart';
@@ -127,17 +128,15 @@ class _HomePageState extends State<HomePage> {
 
   Widget home() {
     return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const AccountsCard(),
-            const RecurringTransactionCard(),
-            BalanceGraphCard(),
-            const SizedBox(height: 56 + 16),
-          ],
-        ),
+      padding: scaffoldPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const AccountsCard(),
+          const RecurringTransactionCard(),
+          BalanceGraphCard(),
+          const SizedBox(height: 56 + 16),
+        ],
       ),
     );
   }

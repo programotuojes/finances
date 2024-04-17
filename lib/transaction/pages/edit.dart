@@ -6,6 +6,7 @@ import 'package:finances/category/models/category.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/components/attachment_row.dart';
+import 'package:finances/components/common_values.dart';
 import 'package:finances/components/square_button.dart';
 import 'package:finances/extensions/money.dart';
 import 'package:finances/transaction/models/attachment.dart';
@@ -142,6 +143,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: SingleChildScrollView(
+        padding: scaffoldPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -258,25 +260,22 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                 Visibility(
                   visible: !isEditing,
                   child: Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(0),
-                      child: SquareButton(
-                        onPressed: () async {
-                          var selection = await Navigator.push<CategoryModel>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CategoryListPage(
-                                  CategoryService.instance.root),
-                            ),
-                          );
-                          if (selection == null) return;
-                          CategoryService.instance.lastSelection = selection;
-                          setState(() {
-                            category = selection;
-                          });
-                        },
-                        child: Text(category.name),
-                      ),
+                    child: SquareButton(
+                      onPressed: () async {
+                        var selection = await Navigator.push<CategoryModel>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                CategoryListPage(CategoryService.instance.root),
+                          ),
+                        );
+                        if (selection == null) return;
+                        CategoryService.instance.lastSelection = selection;
+                        setState(() {
+                          category = selection;
+                        });
+                      },
+                      child: Text(category.name),
                     ),
                   ),
                 ),
@@ -625,7 +624,8 @@ class _ExpenseCardState extends State<_ExpenseCard> {
   @override
   void initState() {
     super.initState();
-    amountCtrl = TextEditingController(text: widget.expense.money.amount.toString());
+    amountCtrl =
+        TextEditingController(text: widget.expense.money.amount.toString());
     descriptionCtrl = TextEditingController(text: widget.expense.description);
 
     amountCtrl.addListener(() {

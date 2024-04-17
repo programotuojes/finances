@@ -1,5 +1,6 @@
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
+import 'package:finances/components/common_values.dart';
 import 'package:finances/extensions/money.dart';
 import 'package:flutter/material.dart';
 
@@ -26,61 +27,52 @@ class _AccountEditPageState extends State<AccountEditPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: 20,
-        ),
+        padding: scaffoldPadding,
         child: Form(
           key: formKey,
           autovalidateMode: autovalidateMode,
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: TextFormField(
-                  onSaved: (value) => formAccountName = value!,
-                  initialValue: widget.account?.name,
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    helperText: '', // Prevents layout jumping on error
-                  ),
-                  textCapitalization: TextCapitalization.sentences,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter a name';
-                    }
-                    return null;
-                  },
-                  onTapOutside: (event) {
-                    FocusManager.instance.primaryFocus?.unfocus();
-                  },
+              TextFormField(
+                onSaved: (value) => formAccountName = value!,
+                initialValue: widget.account?.name,
+                decoration: const InputDecoration(
+                  labelText: 'Name',
+                  helperText: '', // Prevents layout jumping on error
                 ),
+                textCapitalization: TextCapitalization.sentences,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter a name';
+                  }
+                  return null;
+                },
+                onTapOutside: (event) {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
               ),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: TextFormField(
-                  onSaved: (value) => formBalance = value!,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  initialValue: widget.account?.balance.amount.toString(),
-                  decoration: const InputDecoration(
-                    labelText: 'Amount',
-                    helperText: '',
-                    prefixText: '€ ',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter an amount';
-                    }
-                    if (!amountValidator.hasMatch(value)) {
-                      return 'Must be a number';
-                    }
-                    return null;
-                  },
-                  onTapOutside: (event) {
-                    FocusManager.instance.primaryFocus?.unfocus();
-                  },
+              TextFormField(
+                onSaved: (value) => formBalance = value!,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                initialValue: widget.account?.balance.amount.toString(),
+                decoration: const InputDecoration(
+                  labelText: 'Amount',
+                  helperText: '',
+                  prefixText: '€ ',
                 ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter an amount';
+                  }
+                  if (!amountValidator.hasMatch(value)) {
+                    return 'Must be a number';
+                  }
+                  return null;
+                },
+                onTapOutside: (event) {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
               ),
             ],
           ),

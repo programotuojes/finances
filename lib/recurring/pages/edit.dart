@@ -3,6 +3,7 @@ import 'package:finances/account/service.dart';
 import 'package:finances/category/models/category.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
+import 'package:finances/components/common_values.dart';
 import 'package:finances/components/square_button.dart';
 import 'package:finances/extensions/money.dart';
 import 'package:finances/recurring/models/recurring_model.dart';
@@ -128,150 +129,148 @@ class _RecurringEditPageState extends State<RecurringEditPage> {
             : null,
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              DropdownMenu<Account>(
-                expandedInsets: const EdgeInsets.all(0),
-                initialSelection: tempModel.account,
-                label: const Text('Account'),
-                onSelected: (selected) {
-                  if (selected == null) return;
-                  setState(() {
-                    tempModel.account = selected;
-                  });
-                },
-                dropdownMenuEntries: [
-                  for (final x in AccountService.instance.accounts)
-                    DropdownMenuEntry(value: x, label: x.name)
-                ],
-              ),
-              const SizedBox(height: 16),
-              SquareButton(
-                onPressed: () async {
-                  var selected = await showDatePicker(
-                    context: context,
-                    initialDate: tempModel.from,
-                    firstDate: DateTime(0),
-                    lastDate: DateTime(9999),
-                  );
-                  if (selected == null) {
-                    return;
+        padding: scaffoldPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            DropdownMenu<Account>(
+              expandedInsets: const EdgeInsets.all(0),
+              initialSelection: tempModel.account,
+              label: const Text('Account'),
+              onSelected: (selected) {
+                if (selected == null) return;
+                setState(() {
+                  tempModel.account = selected;
+                });
+              },
+              dropdownMenuEntries: [
+                for (final x in AccountService.instance.accounts)
+                  DropdownMenuEntry(value: x, label: x.name)
+              ],
+            ),
+            const SizedBox(height: 16),
+            SquareButton(
+              onPressed: () async {
+                var selected = await showDatePicker(
+                  context: context,
+                  initialDate: tempModel.from,
+                  firstDate: DateTime(0),
+                  lastDate: DateTime(9999),
+                );
+                if (selected == null) {
+                  return;
+                }
+                setState(() {
+                  tempModel.from = selected;
+                });
+              },
+              child: Text(dateFromString),
+            ),
+            const SizedBox(height: 16),
+            SwitchListTile(
+              title: const Text('Has end date'),
+              value: tempModel.until != null,
+              onChanged: (value) {
+                setState(() {
+                  if (value) {
+                    tempModel.until = DateTime.now();
+                  } else {
+                    tempModel.until = null;
                   }
-                  setState(() {
-                    tempModel.from = selected;
-                  });
-                },
-                child: Text(dateFromString),
-              ),
-              const SizedBox(height: 16),
-              SwitchListTile(
-                title: const Text('Has end date'),
-                value: tempModel.until != null,
-                onChanged: (value) {
-                  setState(() {
-                    if (value) {
-                      tempModel.until = DateTime.now();
-                    } else {
-                      tempModel.until = null;
-                    }
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              SquareButton(
-                onPressed: tempModel.until != null
-                    ? () async {
-                        var selected = await showDatePicker(
-                          context: context,
-                          initialDate: tempModel.until,
-                          firstDate: tempModel.from,
-                          lastDate: DateTime(9999),
-                        );
-                        if (selected == null) {
-                          return;
-                        }
-                        setState(() {
-                          tempModel.until = selected;
-                        });
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+            SquareButton(
+              onPressed: tempModel.until != null
+                  ? () async {
+                      var selected = await showDatePicker(
+                        context: context,
+                        initialDate: tempModel.until,
+                        firstDate: tempModel.from,
+                        lastDate: DateTime(9999),
+                      );
+                      if (selected == null) {
+                        return;
                       }
-                    : null,
-                child: Text(dateUntilString),
+                      setState(() {
+                        tempModel.until = selected;
+                      });
+                    }
+                  : null,
+              child: Text(dateUntilString),
+            ),
+            const SizedBox(height: 16),
+            SquareButton(
+              onPressed: () async {
+                var selection = await Navigator.push<CategoryModel>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        CategoryListPage(CategoryService.instance.root),
+                  ),
+                );
+                if (selection == null) {
+                  return;
+                }
+                CategoryService.instance.lastSelection = selection;
+                setState(() {
+                  tempModel.category = selection;
+                });
+              },
+              child: Text(tempModel.category.name),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: amountCtrl,
+              inputFormatters: amountFormatter,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
               ),
-              const SizedBox(height: 16),
-              SquareButton(
-                onPressed: () async {
-                  var selection = await Navigator.push<CategoryModel>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          CategoryListPage(CategoryService.instance.root),
-                    ),
-                  );
-                  if (selection == null) {
-                    return;
-                  }
-                  CategoryService.instance.lastSelection = selection;
-                  setState(() {
-                    tempModel.category = selection;
-                  });
-                },
-                child: Text(tempModel.category.name),
+              decoration: const InputDecoration(
+                labelText: 'Amount',
+                prefixText: '€ ',
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: amountCtrl,
-                inputFormatters: amountFormatter,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: const InputDecoration(
-                  labelText: 'Amount',
-                  prefixText: '€ ',
-                ),
+            ),
+            const SizedBox(height: 16),
+            DropdownMenu<Periodicity>(
+              expandedInsets: const EdgeInsets.all(0),
+              initialSelection: tempModel.periodicity,
+              label: const Text('Periodicity'),
+              onSelected: (selected) {
+                if (selected == null) {
+                  return;
+                }
+                setState(() {
+                  tempModel.periodicity = selected;
+                });
+              },
+              dropdownMenuEntries: [
+                for (final x in Periodicity.values)
+                  DropdownMenuEntry(value: x, label: x.toLy())
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: intervalCtrl,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+              ],
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Interval',
               ),
-              const SizedBox(height: 16),
-              DropdownMenu<Periodicity>(
-                expandedInsets: const EdgeInsets.all(0),
-                initialSelection: tempModel.periodicity,
-                label: const Text('Periodicity'),
-                onSelected: (selected) {
-                  if (selected == null) {
-                    return;
-                  }
-                  setState(() {
-                    tempModel.periodicity = selected;
-                  });
-                },
-                dropdownMenuEntries: [
-                  for (final x in Periodicity.values)
-                    DropdownMenuEntry(value: x, label: x.toLy())
-                ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: descriptionCtrl,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: const InputDecoration(
+                labelText: 'Description',
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: intervalCtrl,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
-                ],
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Interval',
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: descriptionCtrl,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                ),
-              ),
-              const SizedBox(height: 56 + 16),
-            ],
-          ),
+            ),
+            const SizedBox(height: 56 + 16),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(

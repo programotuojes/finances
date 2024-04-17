@@ -3,6 +3,7 @@ import 'package:finances/automation/service.dart';
 import 'package:finances/category/models/category.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
+import 'package:finances/components/common_values.dart';
 import 'package:finances/components/square_button.dart';
 import 'package:finances/utils/app_bar_delete.dart';
 import 'package:flutter/material.dart';
@@ -85,7 +86,7 @@ class _AutomationEditPageState extends State<AutomationEditPage> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: scaffoldPadding,
         controller: scrollCtrl,
         child: Form(
           key: formKey,
