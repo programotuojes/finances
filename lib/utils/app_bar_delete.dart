@@ -20,6 +20,7 @@ class AppBarDelete extends StatelessWidget {
     return Visibility(
       visible: visible,
       child: IconButton(
+        tooltip: 'Delete',
         onPressed: () {
           showDialog<bool>(
             context: context,
