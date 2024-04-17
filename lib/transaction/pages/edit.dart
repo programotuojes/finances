@@ -625,7 +625,7 @@ class _ExpenseCardState extends State<_ExpenseCard> {
   @override
   void initState() {
     super.initState();
-    amountCtrl = TextEditingController(text: widget.expense.money.toString());
+    amountCtrl = TextEditingController(text: widget.expense.money.amount.toString());
     descriptionCtrl = TextEditingController(text: widget.expense.description);
 
     amountCtrl.addListener(() {
