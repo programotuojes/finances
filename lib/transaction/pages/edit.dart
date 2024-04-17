@@ -14,6 +14,7 @@ import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/amount_input_formatter.dart';
+import 'package:finances/utils/app_bar_delete.dart';
 import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -98,46 +99,15 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
             tooltip: 'Open automations',
             icon: const Icon(Symbols.manufacturing),
           ),
-          Visibility(
+          AppBarDelete(
             visible: isEditing,
-            child: IconButton(
-              onPressed: () async {
-                final accepted = await showDialog<bool>(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: const Text('Delete this transaction?'),
-                      content: const Text(
-                          'Deleting a transaction also removes all expenses associated with it.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(false);
-                          },
-                          child: const Text(
-                            'Cancel',
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(true);
-                          },
-                          child: const Text(
-                            'Delete',
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                );
-
-                if (accepted == true && context.mounted) {
-                  TransactionService.instance.delete(widget.transaction!);
-                  Navigator.of(context).pop();
-                }
-              },
-              icon: const Icon(Icons.delete),
-            ),
+            title: 'Delete this transaction?',
+            description:
+                'Deleting a transaction also removes all expenses associated with it.',
+            onDelete: () {
+              TransactionService.instance.delete(widget.transaction!);
+              Navigator.of(context).pop();
+            },
           ),
         ],
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,

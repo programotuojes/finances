@@ -9,6 +9,7 @@ import 'package:finances/extensions/money.dart';
 import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/recurring/service.dart';
 import 'package:finances/utils/amount_input_formatter.dart';
+import 'package:finances/utils/app_bar_delete.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -82,51 +83,17 @@ class _RecurringEditPageState extends State<RecurringEditPage> {
       appBar: AppBar(
         title: const Text('Recurring transaction'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: isEditing
-            ? [
-                IconButton(
-                  onPressed: () async {
-                    final accepted = await showDialog<bool>(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title:
-                              const Text('Delete this recurring transaction?'),
-                          content: const Text(
-                              'All of the confirmed transactions will be kept.'),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop(false);
-                              },
-                              child: const Text(
-                                'Cancel',
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop(true);
-                              },
-                              child: const Text(
-                                'Delete',
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-
-                    if (accepted == true && context.mounted) {
-                      RecurringService.instance.delete(widget.model!);
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  icon: const Icon(
-                    Symbols.delete,
-                  ),
-                )
-              ]
-            : null,
+        actions: [
+          AppBarDelete(
+            visible: isEditing,
+            title: 'Delete this recurring transaction?',
+            description: 'All of the confirmed transactions will be kept.',
+            onDelete: () {
+              RecurringService.instance.delete(widget.model!);
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: scaffoldPadding,
