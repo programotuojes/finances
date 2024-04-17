@@ -19,6 +19,7 @@ dependencies:
   collection: ^1.18.0
   uri_to_file: ^1.0.0
   flutter_tesseract_ocr: ^0.4.24
+  pdfx: ^2.6.0
 
 dev_dependencies:
   flutter_test:

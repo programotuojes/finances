@@ -505,7 +505,7 @@ packages:
     source: hosted
     version: "2.2.1"
   pdfx:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: pdfx
       sha256: c0f70ab6691b7cde02c0c204763a1edb2689ce245ac34eb629c66273a6aa1caf

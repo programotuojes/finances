@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:mime/mime.dart';
+import 'package:pdfx/pdfx.dart';
 import 'package:thumbnailer/thumbnailer.dart';
 
 const _thumbnailHeight = 100.0;
@@ -61,6 +62,7 @@ class _AttachmentRowState extends State<AttachmentRow> {
     super.initState();
     Thumbnailer.addCustomGenerationStrategies(
       <String, GenerationStrategyFunction>{
+        // Overriding to change fit
         'image': (
           String? name,
           String mimeType,
@@ -82,6 +84,36 @@ class _AttachmentRowState extends State<AttachmentRow> {
             return const Placeholder();
           }
         },
+        // Overriding to get a white background
+        'application/pdf': (
+          String? name,
+          String mimeType,
+          int? dataSize,
+          DataResolvingFunction getData,
+          double widgetSize,
+          WidgetDecoration? widgetDecoration,
+        ) async {
+          var resolvedData = await getData();
+          var document = await PdfDocument.openData(resolvedData);
+          var page = await document.getPage(1);
+          var pageImage = (await page.render(
+            width: page.width,
+            height: page.height,
+            backgroundColor: '#FFFFFF',
+          ))!;
+          // ignore: unawaited_futures
+          Future.wait<void>(<Future<void>>[
+            page.close(),
+            document.close(),
+          ]);
+          return Image.memory(
+            pageImage.bytes,
+            fit: BoxFit.fitWidth,
+            semanticLabel: name,
+            width: widgetSize,
+            filterQuality: FilterQuality.none,
+          );
+        },
       },
     );
   }
@@ -97,6 +129,7 @@ class _AttachmentRowState extends State<AttachmentRow> {
             const SizedBox(width: 24),
             for (final attachment in widget.attachments)
               Thumb(
+                key: ObjectKey(attachment),
                 attachment: attachment,
                 onTap: widget.onTap != null
                     ? () {
@@ -199,10 +232,9 @@ class _ThumbState extends State<Thumb> {
           height: _thumbnailHeight + _deleteButtonOffset,
         ),
         Container(
-          clipBehavior: Clip.hardEdge,
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: Colors.white,
           ),
           child: Stack(
             alignment: AlignmentDirectional.center,
@@ -218,7 +250,14 @@ class _ThumbState extends State<Thumb> {
               ),
               Visibility(
                 visible: _processing,
-                child: const CircularProgressIndicator(),
+                child: Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withOpacity(0.4),
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                ),
               ),
               Positioned.fill(
                 child: Material(
@@ -241,23 +280,26 @@ class _ThumbState extends State<Thumb> {
                             onPressed: _isOcrAvailable()
                                 ? () async {
                                     var allowed = widget.allowOcr?.call();
-                                    if (allowed != null && !allowed) {
+                                    if (allowed == false) {
                                       return;
                                     }
 
                                     var text = widget.attachment.text;
                                     if (text == null) {
-                                      setState(() {
-                                        _processing = true;
-                                      });
-                                      var extracted =
-                                          await extractText(widget.attachment);
-                                      setState(() {
-                                        _processing = false;
-                                      });
-                                      text = extracted;
-                                      widget.attachment.text = extracted;
+                                      try {
+                                        setState(() {
+                                          _processing = true;
+                                        });
+                                        var extracted = await extractText(
+                                            widget.attachment);
+                                        widget.attachment.text = extracted;
+                                      } finally {
+                                        setState(() {
+                                          _processing = false;
+                                        });
+                                      }
                                     }
+
                                     widget.onOcr?.call();
                                   }
                                 : null,
@@ -271,15 +313,18 @@ class _ThumbState extends State<Thumb> {
                             leadingIcon: const Icon(Symbols.document_scanner),
                             onPressed: _isOcrAvailable()
                                 ? () async {
-                                    setState(() {
-                                      _processing = true;
-                                    });
-                                    var text =
-                                        await extractText(widget.attachment);
-                                    widget.attachment.text = text;
-                                    setState(() {
-                                      _processing = false;
-                                    });
+                                    try {
+                                      setState(() {
+                                        _processing = true;
+                                      });
+                                      var extracted =
+                                          await extractText(widget.attachment);
+                                      widget.attachment.text = extracted;
+                                    } finally {
+                                      setState(() {
+                                        _processing = false;
+                                      });
+                                    }
                                   }
                                 : null,
                             child: const Text('Extract text'),
@@ -385,15 +430,25 @@ class _ThumbState extends State<Thumb> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Attachment text'),
-          content: SizedBox(
-            height: 400,
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minWidth: 400,
+              maxWidth: 700,
+              maxHeight: 400,
+            ),
             child: TextField(
               controller: _parsedCtrl,
               expands: true,
               maxLines: null,
+              textAlignVertical: TextAlignVertical.top,
+              decoration: const InputDecoration(
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 10,
+                ),
+              ),
               style: const TextStyle(
                 fontFamily: 'monospace',
-                fontSize: 12,
               ),
             ),
           ),
