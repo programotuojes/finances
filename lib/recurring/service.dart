@@ -10,7 +10,7 @@ import 'package:flutter/foundation.dart';
 final _r1 = RecurringModel(
   account: swedbank,
   category: spotify,
-  money: '2.2'.toMoney('EUR')!,
+  money: '2.2'.toMoney()!,
   description: null,
   periodicity: Periodicity.month,
   interval: 1,
@@ -20,7 +20,7 @@ final _r1 = RecurringModel(
 final _r2 = RecurringModel(
   account: revolut,
   category: transport,
-  money: '120'.toMoney('EUR')!,
+  money: '120'.toMoney()!,
   description: 'Insurance',
   periodicity: Periodicity.year,
   interval: 1,
@@ -30,7 +30,7 @@ final _r2 = RecurringModel(
 final _r3 = RecurringModel(
   account: swedbank,
   category: food,
-  money: '6'.toMoney('EUR')!,
+  money: '6'.toMoney()!,
   description: 'Lunch delivery',
   periodicity: Periodicity.day,
   interval: 2,
@@ -40,7 +40,7 @@ final _r3 = RecurringModel(
 final _r4 = RecurringModel(
   account: swedbank,
   category: entertainment,
-  money: '10'.toMoney('EUR')!,
+  money: '10'.toMoney()!,
   description: 'Netfilx',
   periodicity: Periodicity.month,
   interval: 1,

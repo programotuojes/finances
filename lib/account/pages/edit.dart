@@ -90,7 +90,7 @@ class _AccountEditPageState extends State<AccountEditPage> {
           }
 
           formKey.currentState!.save();
-          var balance = formBalance.toMoney('EUR')!; // TODO check if valid
+          var balance = formBalance.toMoney()!; // TODO check if valid
 
           if (widget.account == null) {
             AccountService.instance.add(

@@ -115,12 +115,12 @@ Stream<({String text, Money money})> extractLineItems(String? text) async* {
     return null;
   }
 
-  var money = match.group(2)?.toMoney('EUR');
+  var money = match.group(2)?.toMoney();
   if (money == null) {
     return null;
   }
 
-  var discount = match.group(3)?.toMoney('EUR');
+  var discount = match.group(3)?.toMoney();
   if (discount != null) {
     money -= discount;
   }

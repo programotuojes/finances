@@ -17,7 +17,7 @@ final _category = CategoryModel(
 final _sut = RecurringModel(
   account: _account,
   category: _category,
-  money: '10'.toMoney('EUR')!,
+  money: '10'.toMoney()!,
   description: null,
   periodicity: Periodicity.day,
   interval: 1,

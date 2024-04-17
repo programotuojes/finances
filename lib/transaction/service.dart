@@ -22,13 +22,13 @@ class TransactionService with ChangeNotifier {
     t1.expenses = [
       Expense(
         transaction: t1,
-        money: '2.4'.toMoney('EUR')!,
+        money: '2.4'.toMoney()!,
         category: food,
         description: null,
       ),
       Expense(
         transaction: t1,
-        money: '30.4'.toMoney('EUR')!,
+        money: '30.4'.toMoney()!,
         category: other,
         description: 'idk',
       ),
@@ -40,7 +40,7 @@ class TransactionService with ChangeNotifier {
     t2.expenses = [
       Expense(
         transaction: t2,
-        money: '150'.toMoney('EUR')!,
+        money: '150'.toMoney()!,
         category: transport,
         description: null,
       ),

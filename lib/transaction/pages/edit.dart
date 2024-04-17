@@ -173,7 +173,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                   return false;
                 }
 
-                var money = amountCtrl.text.toMoney('EUR');
+                var money = amountCtrl.text.toMoney();
                 if (money == null || money == zeroEur) {
                   setState(() {
                     _amountError = 'Please enter the total amount';
@@ -197,7 +197,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                     .map((e) => e.money)
                     .reduce((total, expense) => total + expense);
                 var existingMoney =
-                    amountCtrl.text.toMoney('EUR')!; // Checked in `allowOcr`
+                    amountCtrl.text.toMoney()!; // Checked in `allowOcr`
 
                 setState(() {
                   expenses.addAll(auto);
@@ -289,7 +289,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                 expense: expense,
                 onDelete: () async {
                   if (!isEditing) {
-                    final money = amountCtrl.text.toMoney('EUR') ?? zeroEur;
+                    final money = amountCtrl.text.toMoney() ?? zeroEur;
                     final moneySplitOff = expense.money;
                     setState(() {
                       expenses.remove(expense);
@@ -373,7 +373,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
       floatingActionButton: ListenableBuilder(
         listenable: amountCtrl,
         builder: (context, _) {
-          final mainMoney = amountCtrl.text.toMoney('EUR');
+          final mainMoney = amountCtrl.text.toMoney();
           return Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -527,8 +527,8 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
             ListenableBuilder(
               listenable: dialogAmountCtrl,
               builder: (context, setState) {
-                final money = amountCtrl.text.toMoney('EUR');
-                final moneyToSplit = dialogAmountCtrl.text.toMoney('EUR');
+                final money = amountCtrl.text.toMoney();
+                final moneyToSplit = dialogAmountCtrl.text.toMoney();
 
                 final isValid = money != null &&
                     moneyToSplit != null &&
@@ -558,7 +558,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
       return false;
     }
 
-    final money = amountCtrl.text.toMoney('EUR');
+    final money = amountCtrl.text.toMoney();
     final moneySplitOff = result.money;
 
     if (money == null) {
@@ -599,7 +599,7 @@ class _ExpenseCardState extends State<_ExpenseCard> {
     descriptionCtrl = TextEditingController(text: widget.expense.description);
 
     amountCtrl.addListener(() {
-      widget.expense.money = amountCtrl.text.toMoney('EUR') ?? zeroEur;
+      widget.expense.money = amountCtrl.text.toMoney() ?? zeroEur;
     });
 
     descriptionCtrl.addListener(() {

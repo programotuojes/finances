@@ -27,7 +27,7 @@ class _RecurringEditPageState extends State<RecurringEditPage> {
   final tempModel = RecurringModel(
     account: AccountService.instance.lastSelection,
     category: CategoryService.instance.lastSelection,
-    money: '0'.toMoney('EUR')!,
+    money: '0'.toMoney()!,
     description: null,
     periodicity: Periodicity.month,
     interval: 1,
@@ -242,7 +242,7 @@ class _RecurringEditPageState extends State<RecurringEditPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          final money = amountCtrl.text.toMoney('EUR');
+          final money = amountCtrl.text.toMoney();
           if (money == null) {
             print('Invalid amount (${amountCtrl.text})');
             return;
