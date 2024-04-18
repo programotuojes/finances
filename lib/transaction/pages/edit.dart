@@ -19,7 +19,6 @@ import 'package:finances/utils/app_bar_delete.dart';
 import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
-import 'package:money2/money2.dart';
 
 class EditTransactionPage extends StatefulWidget {
   final Transaction? transaction;
@@ -36,18 +35,22 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
     dateTime: DateTime.now(),
   );
 
+  var _mainExpenseKey = UniqueKey();
+  late Expense mainExpense = Expense(
+    transaction: transaction,
+    money: '0'.toMoney()!,
+    category: category,
+    description: null,
+  );
+
   var category = CategoryService.instance.lastSelection;
   var dialogCategory = CategoryService.instance.lastSelection;
   var expenses = List<Expense>.empty(growable: true);
   var attachments = List<Attachment>.empty(growable: true);
 
-  late TextEditingController amountCtrl;
-  late TextEditingController descriptionCtrl;
   late TextEditingController dialogAmountCtrl;
   late TextEditingController dialogDescriptionCtrl;
   late bool isEditing;
-
-  String? _amountError;
 
   @override
   void initState() {
@@ -61,16 +64,12 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
       attachments = widget.transaction!.attachments.toList();
     }
 
-    amountCtrl = TextEditingController();
-    descriptionCtrl = TextEditingController();
     dialogAmountCtrl = TextEditingController();
     dialogDescriptionCtrl = TextEditingController();
   }
 
   @override
   void dispose() {
-    amountCtrl.dispose();
-    descriptionCtrl.dispose();
     dialogAmountCtrl.dispose();
     dialogDescriptionCtrl.dispose();
     super.dispose();
@@ -118,6 +117,24 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            DropdownMenu<Account>(
+              expandedInsets: const EdgeInsets.all(0),
+              initialSelection: transaction.account,
+              label: const Text('Account'),
+              onSelected: (selected) {
+                if (selected == null) {
+                  return;
+                }
+                setState(() {
+                  transaction.account = selected;
+                });
+              },
+              dropdownMenuEntries: [
+                for (final x in AccountService.instance.accounts)
+                  DropdownMenuEntry(value: x, label: x.name)
+              ],
+            ),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
@@ -141,6 +158,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                     child: Text(date),
                   ),
                 ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: SquareButton(
                     onPressed: () async {
@@ -162,129 +180,68 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
                 ),
               ],
             ),
-            AttachmentRow(
-              attachments: attachments,
-              allowOcr: () {
-                if (isEditing) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Only supported for new transactions'),
-                    ),
-                  );
-                  return false;
-                }
-
-                var money = amountCtrl.text.toMoney();
-                if (money == null || money == zeroEur) {
-                  setState(() {
-                    _amountError = 'Please enter the total amount';
-                  });
-                  return false;
-                }
-
-                return true;
-              },
-              onOcr: (attachment) async {
-                var auto = await _autoExpenses(attachment).toList();
-                if (auto.isEmpty && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('No rules matched'),
-                    ),
-                  );
-                  return;
-                }
-                var combinedMoney = auto
-                    .map((e) => e.money)
-                    .reduce((total, expense) => total + expense);
-                var existingMoney =
-                    amountCtrl.text.toMoney()!; // Checked in `allowOcr`
-
-                setState(() {
-                  expenses.addAll(auto);
-                  amountCtrl.text =
-                      (existingMoney - combinedMoney).amount.toString();
-                });
-              },
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownMenu<Account>(
-                    expandedInsets: const EdgeInsets.all(0),
-                    initialSelection: transaction.account,
-                    label: const Text('Account'),
-                    onSelected: (selected) {
-                      if (selected == null) {
-                        return;
-                      }
-                      setState(() {
-                        transaction.account = selected;
-                      });
-                    },
-                    dropdownMenuEntries: [
-                      for (final x in AccountService.instance.accounts)
-                        DropdownMenuEntry(value: x, label: x.name)
-                    ],
-                  ),
-                ),
-                Visibility(
-                  visible: !isEditing,
-                  child: Expanded(
-                    child: SquareButton(
-                      onPressed: () async {
-                        var selection = await Navigator.push<CategoryModel>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                CategoryListPage(CategoryService.instance.root),
-                          ),
-                        );
-                        if (selection == null) return;
-                        CategoryService.instance.lastSelection = selection;
-                        setState(() {
-                          category = selection;
-                        });
-                      },
-                      child: Text(category.name),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Visibility(
-              visible: !isEditing,
-              child: TextField(
-                controller: amountCtrl,
-                onChanged: (value) {
-                  if (_amountError != null) {
-                    setState(() {
-                      _amountError = null;
-                    });
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              child: AttachmentRow(
+                attachments: attachments,
+                allowOcr: () {
+                  if (isEditing) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Only supported for new transactions'),
+                      ),
+                    );
+                    return false;
                   }
+
+                  var money = mainExpense.money;
+                  if (money == zeroEur) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please enter the total amount'),
+                      ),
+                    );
+                    return false;
+                  }
+
+                  return true;
                 },
-                inputFormatters: amountFormatter,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(
-                  labelText: 'Amount',
-                  prefixText: '€ ',
-                  errorText: _amountError,
-                ),
+                onOcr: (attachment) async {
+                  var auto = await _autoExpenses(attachment).toList();
+                  if (auto.isEmpty && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('No rules matched'),
+                      ),
+                    );
+                    return;
+                  }
+                  var combinedMoney = auto
+                      .map((e) => e.money)
+                      .reduce((total, expense) => total + expense);
+
+                  setState(() {
+                    expenses.addAll(auto);
+                    mainExpense.money -= combinedMoney;
+                    _rerenderMainExpense();
+                  });
+                },
               ),
             ),
             Visibility(
               visible: !isEditing,
-              child: TextField(
-                controller: descriptionCtrl,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                ),
+              child: _ExpenseCard(
+                key: _mainExpenseKey,
+                expense: mainExpense,
               ),
             ),
-            const SizedBox(height: 24),
+            Visibility(
+              visible: !isEditing && expenses.isNotEmpty,
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+                child: Divider(),
+              ),
+            ),
             for (final expense in expenses)
               _ExpenseCard(
                 key: ObjectKey(expense),
@@ -324,47 +281,37 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
         ),
       ),
       // TODO gray out FABs when they are disabled
-      floatingActionButton: ListenableBuilder(
-        listenable: amountCtrl,
-        builder: (context, _) {
-          final mainMoney = amountCtrl.text.toMoney();
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Visibility(
-                visible: !isEditing,
-                child: FloatingActionButton.small(
-                  heroTag: 'split',
-                  onPressed: mainMoney != null
-                      ? () {
-                          split(context);
-                        }
-                      : null,
-                  tooltip: 'Split into a new category',
-                  child: const Icon(Icons.call_split),
-                ),
-              ),
-              const SizedBox(height: 16),
-              FloatingActionButton(
-                heroTag: 'add',
-                onPressed: !isEditing && mainMoney == null
-                    ? null
-                    : () async {
-                        if (isEditing) {
-                          await update();
-                        } else {
-                          await save(mainMoney!);
-                        }
-                        if (context.mounted) {
-                          Navigator.of(context).pop();
-                        }
-                      },
-                tooltip: 'Save',
-                child: const Icon(Icons.save),
-              ),
-            ],
-          );
-        },
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Visibility(
+            visible: !isEditing,
+            child: FloatingActionButton.small(
+              heroTag: 'split',
+              onPressed: () {
+                split(context);
+              },
+              tooltip: 'Split into a new category',
+              child: const Icon(Icons.call_split),
+            ),
+          ),
+          const SizedBox(height: 16),
+          FloatingActionButton(
+            heroTag: 'add',
+            onPressed: () async {
+              if (isEditing) {
+                await update();
+              } else {
+                await save();
+              }
+              if (context.mounted) {
+                Navigator.of(context).pop();
+              }
+            },
+            tooltip: 'Save',
+            child: const Icon(Icons.save),
+          ),
+        ],
       ),
     );
   }
@@ -379,13 +326,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
     );
   }
 
-  Future<void> save(Money money) async {
-    final mainExpense = Expense(
-      transaction: transaction,
-      money: money,
-      category: category,
-      description: descriptionCtrl.text,
-    );
+  Future<void> save() async {
     await TransactionService.instance.add(
       transaction,
       expenses: [mainExpense, ...expenses],
@@ -405,7 +346,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
           transaction: transaction,
           money: lineItem.money,
           category: auto.category,
-          description: null,
+          description: lineItem.text,
         );
       }
     }
@@ -416,11 +357,10 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
     Expense expense,
   ) async {
     if (!isEditing) {
-      var mainMoney = amountCtrl.text.toMoney() ?? zeroEur;
       var moneySplitOff = expense.money;
       setState(() {
         expenses.remove(expense);
-        amountCtrl.text = (mainMoney + moneySplitOff).amount.toString();
+        mainExpense.money += moneySplitOff;
       });
       return;
     }
@@ -480,6 +420,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
             title: const Text('Split the amount into'),
             contentPadding: const EdgeInsets.symmetric(vertical: 24),
             content: _ExpenseColumn(
+              initialCategory: dialogCategory,
               onCategorySelected: (category) {
                 dialogCategory = category;
               },
@@ -497,12 +438,10 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
               ListenableBuilder(
                 listenable: dialogAmountCtrl,
                 builder: (context, setState) {
-                  final money = amountCtrl.text.toMoney();
+                  final money = mainExpense.money;
                   final moneyToSplit = dialogAmountCtrl.text.toMoney();
 
-                  final isValid = money != null &&
-                      moneyToSplit != null &&
-                      moneyToSplit < money;
+                  final isValid = moneyToSplit != null && moneyToSplit < money;
 
                   return TextButton(
                     onPressed: isValid
@@ -529,28 +468,30 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
       return false;
     }
 
-    var money = amountCtrl.text.toMoney();
-    if (money == null) {
-      return false;
-    }
-
     setState(() {
-      amountCtrl.text = (money - newExpense.money).amount.toString();
+      mainExpense.money -= newExpense.money;
       expenses.add(newExpense);
+      _rerenderMainExpense();
     });
 
     return true;
+  }
+
+  /// Needed to update the amount text field inside the card.
+  /// Call inside a `setState()`.
+  void _rerenderMainExpense() {
+    _mainExpenseKey = UniqueKey();
   }
 }
 
 class _ExpenseCard extends StatefulWidget {
   final Expense expense;
-  final VoidCallback onDelete;
+  final VoidCallback? onDelete;
 
   const _ExpenseCard({
     super.key,
     required this.expense,
-    required this.onDelete,
+    this.onDelete,
   });
 
   @override
@@ -564,8 +505,9 @@ class _ExpenseCardState extends State<_ExpenseCard> {
   @override
   void initState() {
     super.initState();
+    var amount = widget.expense.money.amount;
     _amountCtrl =
-        TextEditingController(text: widget.expense.money.amount.toString());
+        TextEditingController(text: amount.isZero ? null : amount.toString());
     _descriptionCtrl = TextEditingController(text: widget.expense.description);
 
     _amountCtrl.addListener(() {
@@ -601,6 +543,7 @@ class _ExpenseCardState extends State<_ExpenseCard> {
           children: [
             Expanded(
               child: _ExpenseColumn(
+                initialCategory: widget.expense.category,
                 onCategorySelected: (category) {
                   setState(() {
                     widget.expense.category = category;
@@ -610,9 +553,12 @@ class _ExpenseCardState extends State<_ExpenseCard> {
                 descriptionCtrl: _descriptionCtrl,
               ),
             ),
-            IconButton(
-              onPressed: widget.onDelete,
-              icon: const Icon(Symbols.close),
+            Visibility(
+              visible: widget.onDelete != null,
+              child: IconButton(
+                onPressed: widget.onDelete,
+                icon: const Icon(Symbols.close),
+              ),
             ),
           ],
         ),
@@ -622,12 +568,14 @@ class _ExpenseCardState extends State<_ExpenseCard> {
 }
 
 class _ExpenseColumn extends StatelessWidget {
+  final CategoryModel initialCategory;
   final void Function(CategoryModel) onCategorySelected;
   final TextEditingController amountCtrl;
   final TextEditingController descriptionCtrl;
   final bool morePadding;
 
   const _ExpenseColumn({
+    required this.initialCategory,
     required this.onCategorySelected,
     required this.amountCtrl,
     required this.descriptionCtrl,
@@ -640,6 +588,7 @@ class _ExpenseColumn extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _CategoryListTile(
+          initialCategory: initialCategory,
           onCategorySelected: onCategorySelected,
           morePadding: morePadding,
         ),
@@ -662,10 +611,12 @@ class _ExpenseColumn extends StatelessWidget {
 }
 
 class _CategoryListTile extends StatefulWidget {
+  final CategoryModel initialCategory;
   final void Function(CategoryModel) onCategorySelected;
   final bool morePadding;
 
   const _CategoryListTile({
+    required this.initialCategory,
     required this.onCategorySelected,
     required this.morePadding,
   });
@@ -675,7 +626,7 @@ class _CategoryListTile extends StatefulWidget {
 }
 
 class __CategoryListTileState extends State<_CategoryListTile> {
-  var category = CategoryService.instance.lastSelection;
+  late CategoryModel category = widget.initialCategory;
 
   @override
   Widget build(BuildContext context) {

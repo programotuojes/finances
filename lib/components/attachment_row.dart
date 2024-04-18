@@ -121,12 +121,11 @@ class _AttachmentRowState extends State<AttachmentRow> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 10, bottom: 35),
+      padding: const EdgeInsets.only(bottom: _deleteButtonOffset),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            const SizedBox(width: 24),
             for (final attachment in widget.attachments)
               Thumb(
                 key: ObjectKey(attachment),
@@ -150,28 +149,29 @@ class _AttachmentRowState extends State<AttachmentRow> {
               ),
             Padding(
               padding: const EdgeInsets.only(top: _deleteButtonOffset),
-              child: InkWell(
-                onTap: () {
-                  selectFile();
-                },
-                borderRadius: BorderRadius.circular(10),
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
+              child: Material(
+                child: InkWell(
+                  onTap: () {
+                    selectFile();
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    child: Icon(
+                      Symbols.attach_file_add,
                       color: Theme.of(context).colorScheme.primary,
                     ),
-                  ),
-                  child: Icon(
-                    Symbols.attach_file_add,
-                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 24),
           ],
         ),
       ),
