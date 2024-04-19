@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
@@ -8,9 +9,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
-import 'package:mime/mime.dart';
-import 'package:pdfx/pdfx.dart';
-import 'package:thumbnailer/thumbnailer.dart';
 
 const _thumbnailHeight = 100.0;
 const _deleteButtonOffset = 16.0;
@@ -35,17 +33,12 @@ class AttachmentRow extends StatefulWidget {
 
 class _AttachmentRowState extends State<AttachmentRow> {
   Future<void> selectFile() async {
-    const jpgsTypeGroup = XTypeGroup(
+    const images = XTypeGroup(
       label: 'Images',
       extensions: ['jpg', 'jpeg', 'png'],
     );
-    const pdfTypeGroup = XTypeGroup(
-      label: 'PDFs',
-      extensions: ['pdf'],
-    );
     final files = await openFiles(acceptedTypeGroups: [
-      jpgsTypeGroup,
-      pdfTypeGroup,
+      images,
     ]);
 
     if (files.isEmpty) {
@@ -55,67 +48,6 @@ class _AttachmentRowState extends State<AttachmentRow> {
     setState(() {
       widget.attachments.addAll(files.map((x) => Attachment(file: x)));
     });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    Thumbnailer.addCustomGenerationStrategies(
-      <String, GenerationStrategyFunction>{
-        // Overriding to change fit
-        'image': (
-          String? name,
-          String mimeType,
-          int? dataSize,
-          DataResolvingFunction getData,
-          double widgetSize,
-          WidgetDecoration? widgetDecoration,
-        ) async {
-          try {
-            return Image.memory(
-              await getData(),
-              fit: BoxFit.cover,
-              semanticLabel: name,
-              width: widgetSize,
-              height: widgetSize,
-              filterQuality: FilterQuality.none,
-            );
-          } catch (e) {
-            return const Placeholder();
-          }
-        },
-        // Overriding to get a white background
-        'application/pdf': (
-          String? name,
-          String mimeType,
-          int? dataSize,
-          DataResolvingFunction getData,
-          double widgetSize,
-          WidgetDecoration? widgetDecoration,
-        ) async {
-          var resolvedData = await getData();
-          var document = await PdfDocument.openData(resolvedData);
-          var page = await document.getPage(1);
-          var pageImage = (await page.render(
-            width: page.width,
-            height: page.height,
-            backgroundColor: '#FFFFFF',
-          ))!;
-          // ignore: unawaited_futures
-          Future.wait<void>(<Future<void>>[
-            page.close(),
-            document.close(),
-          ]);
-          return Image.memory(
-            pageImage.bytes,
-            fit: BoxFit.fitWidth,
-            semanticLabel: name,
-            width: widgetSize,
-            filterQuality: FilterQuality.none,
-          );
-        },
-      },
-    );
   }
 
   @override
@@ -130,11 +62,9 @@ class _AttachmentRowState extends State<AttachmentRow> {
               Thumb(
                 key: ObjectKey(attachment),
                 attachment: attachment,
-                onTap: widget.onTap != null
-                    ? () {
-                        widget.onTap?.call(attachment);
-                      }
-                    : null,
+                onTap: () {
+                  widget.onTap?.call(attachment);
+                },
                 onOcr: widget.onOcr != null
                     ? () {
                         widget.onOcr?.call(attachment);
@@ -203,15 +133,18 @@ class Thumb extends StatefulWidget {
 }
 
 class _ThumbState extends State<Thumb> {
+  final _borderRadius = BorderRadius.circular(10);
   final _menuController = MenuController();
   final _parsedCtrl = TextEditingController();
   var _menuWasEnabled = false;
   var _processing = false;
+  late Future<Uint8List> _bytes;
 
   @override
   void initState() {
     super.initState();
     _disableContextMenu();
+    _bytes = widget.attachment.bytes;
   }
 
   @override
@@ -234,19 +167,36 @@ class _ThumbState extends State<Thumb> {
         Container(
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: _borderRadius,
           ),
           child: Stack(
             alignment: AlignmentDirectional.center,
             children: [
-              Thumbnail(
-                key: Key(widget.attachment.file.path),
-                mimeType: lookupMimeType(
-                        widget.attachment.file.path) ?? // For desktop
-                    widget.attachment.file.mimeType ?? // For mobile and web
-                    'default',
-                widgetSize: 100,
-                dataResolver: widget.attachment.file.readAsBytes,
+              FutureBuilder<Uint8List>(
+                future: _bytes,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    return Hero(
+                      tag: widget.attachment,
+                      child: ClipRRect(
+                        borderRadius: _borderRadius,
+                        child: Image.memory(
+                          snapshot.requireData,
+                          width: _thumbnailHeight,
+                          height: _thumbnailHeight,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox(
+                    width: _thumbnailHeight,
+                    height: _thumbnailHeight,
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                },
               ),
               Visibility(
                 visible: _processing,

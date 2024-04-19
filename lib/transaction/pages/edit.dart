@@ -8,6 +8,7 @@ import 'package:finances/category/service.dart';
 import 'package:finances/components/attachment_row.dart';
 import 'package:finances/components/category_icon.dart';
 import 'package:finances/components/common_values.dart';
+import 'package:finances/components/image_viewer.dart';
 import 'package:finances/components/square_button.dart';
 import 'package:finances/extensions/money.dart';
 import 'package:finances/transaction/models/attachment.dart';
@@ -184,6 +185,23 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
               child: AttachmentRow(
                 attachments: attachments,
+                onTap: (attachment) async {
+                  var bytes = await attachment.bytes;
+
+                  if (!context.mounted) {
+                    return;
+                  }
+
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ImageViewer(
+                        imageProvider: MemoryImage(bytes),
+                        tag: attachment,
+                      ),
+                    ),
+                  );
+                },
                 allowOcr: () {
                   if (isEditing) {
                     ScaffoldMessenger.of(context).showSnackBar(
