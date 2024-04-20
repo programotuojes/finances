@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_view/photo_view.dart';
 
-final _buttonBackground = Colors.black.withOpacity(0.3);
+const _background = Colors.black26;
 
 class ImageViewer extends StatelessWidget {
   const ImageViewer({
@@ -17,8 +17,8 @@ class ImageViewer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion(
-      value: SystemUiOverlayStyle(
-        statusBarColor: _buttonBackground,
+      value: const SystemUiOverlayStyle(
+        statusBarColor: _background,
         statusBarBrightness: Brightness.dark,
         statusBarIconBrightness: Brightness.light,
       ),
@@ -33,14 +33,14 @@ class ImageViewer extends StatelessWidget {
               minScale: PhotoViewComputedScale.contained,
               heroAttributes: PhotoViewHeroAttributes(tag: tag),
             ),
-            SafeArea(
+            const SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(4),
+                padding: EdgeInsets.all(4),
                 child: BackButton(
                   color: Colors.white,
                   style: ButtonStyle(
                     backgroundColor: MaterialStatePropertyAll(
-                      _buttonBackground,
+                      _background,
                     ),
                   ),
                 ),
