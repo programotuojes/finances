@@ -55,7 +55,6 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Edit ${widget.category.name.toLowerCase()}'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Column(
         children: [

@@ -12,7 +12,6 @@ class AutomationListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Automation'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: ListenableBuilder(
         listenable: AutomationService.instance,

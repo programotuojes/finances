@@ -10,7 +10,6 @@ class AccountsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit accounts'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: ListenableBuilder(
         listenable: AccountService.instance,

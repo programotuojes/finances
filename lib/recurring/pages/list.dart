@@ -12,7 +12,6 @@ class RecurringListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Recurring transactions'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: ListenableBuilder(
         listenable: RecurringService.instance,

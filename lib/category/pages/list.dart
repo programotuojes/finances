@@ -18,7 +18,6 @@ class CategoryListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Categories'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: ListenableBuilder(
         listenable: CategoryService.instance,

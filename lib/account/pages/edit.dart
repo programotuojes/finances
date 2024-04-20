@@ -24,7 +24,6 @@ class _AccountEditPageState extends State<AccountEditPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.account?.name ?? 'Create a new account'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Padding(
         padding: scaffoldPadding,
