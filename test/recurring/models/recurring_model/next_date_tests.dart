@@ -2,6 +2,7 @@ import 'package:finances/account/models/account.dart';
 import 'package:finances/category/models/category.dart';
 import 'package:finances/extensions/money.dart';
 import 'package:finances/recurring/models/recurring_model.dart';
+import 'package:finances/transaction/models/transaction.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:money2/money2.dart';
@@ -23,6 +24,7 @@ final _sut = RecurringModel(
   interval: 1,
   from: DateTime.now(),
   until: null,
+  type: TransactionType.expense,
 );
 
 void main() {

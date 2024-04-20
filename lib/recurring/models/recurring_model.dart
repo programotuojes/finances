@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:finances/account/models/account.dart';
 import 'package:finances/category/models/category.dart';
+import 'package:finances/transaction/models/transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:money2/money2.dart';
 
@@ -21,6 +22,7 @@ class RecurringModel {
   DateTime _from;
   DateTime? _until;
   int timesConfirmed = 0;
+  TransactionType type;
 
   RecurringModel({
     required this.account,
@@ -31,6 +33,7 @@ class RecurringModel {
     required this.interval,
     required DateTime from,
     required DateTime? until,
+    required this.type,
   })  : _from = DateUtils.dateOnly(from),
         _until = until != null ? DateUtils.dateOnly(until) : null {
     this.description = description;

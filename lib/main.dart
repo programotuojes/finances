@@ -11,19 +11,22 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(
-        brightness: Brightness.light,
-        inputDecorationTheme:
-            const InputDecorationTheme(border: OutlineInputBorder()),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        inputDecorationTheme:
-            const InputDecorationTheme(border: OutlineInputBorder()),
-        useMaterial3: true,
-      ),
+      theme: _getThemeData(Brightness.light),
+      darkTheme: _getThemeData(Brightness.dark),
       home: const HomePage(),
+    );
+  }
+
+  ThemeData _getThemeData(Brightness brightness) {
+    return ThemeData(
+      brightness: brightness,
+      inputDecorationTheme: const InputDecorationTheme(
+        border: OutlineInputBorder(),
+      ),
+      appBarTheme: const AppBarTheme(
+        shape: RoundedRectangleBorder(),
+      ),
+      useMaterial3: true,
     );
   }
 }

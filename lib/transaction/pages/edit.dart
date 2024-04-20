@@ -18,6 +18,7 @@ import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/amount_input_formatter.dart';
 import 'package:finances/utils/app_bar_delete.dart';
 import 'package:finances/utils/money.dart';
+import 'package:finances/utils/transaction_type.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 
@@ -30,10 +31,12 @@ class EditTransactionPage extends StatefulWidget {
   State<EditTransactionPage> createState() => _EditTransactionPageState();
 }
 
-class _EditTransactionPageState extends State<EditTransactionPage> {
+class _EditTransactionPageState extends State<EditTransactionPage>
+    with SingleTickerProviderStateMixin {
   final transaction = Transaction(
     account: AccountService.instance.lastSelection,
     dateTime: DateTime.now(),
+    type: TransactionType.expense,
   );
 
   var _mainExpenseKey = UniqueKey();
@@ -46,12 +49,12 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
 
   var category = CategoryService.instance.lastSelection;
   var dialogCategory = CategoryService.instance.lastSelection;
-  var expenses = List<Expense>.empty(growable: true);
-  var attachments = List<Attachment>.empty(growable: true);
 
   late TextEditingController dialogAmountCtrl;
   late TextEditingController dialogDescriptionCtrl;
   late bool isEditing;
+  late TabController _tabCtrl;
+  late TransactionTheme _theme;
 
   @override
   void initState() {
@@ -61,18 +64,39 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
     if (isEditing) {
       transaction.account = widget.transaction!.account;
       transaction.dateTime = widget.transaction!.dateTime;
-      expenses = widget.transaction!.expenses.map((e) => e.copy()).toList();
-      attachments = widget.transaction!.attachments.toList();
+      transaction.expenses =
+          widget.transaction!.expenses.map((e) => e.copy()).toList();
+      transaction.attachments = widget.transaction!.attachments.toList();
     }
 
     dialogAmountCtrl = TextEditingController();
     dialogDescriptionCtrl = TextEditingController();
+
+    print('transaction type = ${widget.transaction?.type}');
+    _tabCtrl = TabController(
+      initialIndex:
+          widget.transaction?.type.index ?? TransactionType.expense.index,
+      length: 3,
+      vsync: this,
+    );
+    _tabCtrl.addListener(() {
+      setState(() {
+        transaction.type = TransactionType.values[_tabCtrl.index];
+      });
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _theme = TransactionTheme(context);
   }
 
   @override
   void dispose() {
     dialogAmountCtrl.dispose();
     dialogDescriptionCtrl.dispose();
+    _tabCtrl.dispose();
     super.dispose();
   }
 
@@ -82,254 +106,281 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
     final date = dateTimeParts[0];
     final time = dateTimeParts[1].substring(0, 5);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: !isEditing
-            ? const Text('New transaction')
-            : const Text('Edit a transaction'),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AutomationListPage(),
-                ),
-              );
-            },
-            tooltip: 'Open automations',
-            icon: const Icon(Symbols.manufacturing),
+    return AnimatedTheme(
+      data: _theme.current(_tabCtrl.index),
+      child: Scaffold(
+        appBar: AppBar(
+          title: !isEditing
+              ? const Text('New transaction')
+              : const Text('Edit a transaction'),
+          bottom: TabBar(
+            controller: _tabCtrl,
+            tabs: const [
+              Tab(
+                icon: Icon(Symbols.download),
+                text: 'Income',
+              ),
+              Tab(
+                icon: Icon(Symbols.upload),
+                text: 'Expense',
+              ),
+              Tab(
+                icon: Icon(Symbols.swap_horiz),
+                text: 'Transfer',
+              ),
+            ],
           ),
-          AppBarDelete(
-            visible: isEditing,
-            title: 'Delete this transaction?',
-            description:
-                'Deleting a transaction also removes all expenses associated with it.',
-            onDelete: () {
-              TransactionService.instance.delete(widget.transaction!);
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: SingleChildScrollView(
-        padding: scaffoldPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            DropdownMenu<Account>(
-              expandedInsets: const EdgeInsets.all(0),
-              initialSelection: transaction.account,
-              label: const Text('Account'),
-              onSelected: (selected) {
-                if (selected == null) {
-                  return;
-                }
-                setState(() {
-                  transaction.account = selected;
-                });
+          actions: [
+            IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AutomationListPage(),
+                  ),
+                );
               },
-              dropdownMenuEntries: [
-                for (final x in AccountService.instance.accounts)
-                  DropdownMenuEntry(value: x, label: x.name)
-              ],
+              tooltip: 'Open automations',
+              icon: const Icon(Symbols.manufacturing),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: SquareButton(
-                    onPressed: () async {
-                      var selected = await showDatePicker(
-                        context: context,
-                        initialDate: transaction.dateTime,
-                        firstDate: DateTime(0),
-                        lastDate: DateTime(9999),
-                      );
-                      if (selected == null) return;
-                      setState(() {
-                        transaction.dateTime = transaction.dateTime.copyWith(
-                          year: selected.year,
-                          month: selected.month,
-                          day: selected.day,
-                        );
-                      });
-                    },
-                    child: Text(date),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: SquareButton(
-                    onPressed: () async {
-                      var selected = await showTimePicker(
-                        context: context,
-                        initialTime:
-                            TimeOfDay.fromDateTime(transaction.dateTime),
-                      );
-                      if (selected == null) return;
-                      setState(() {
-                        transaction.dateTime = transaction.dateTime.copyWith(
-                          hour: selected.hour,
-                          minute: selected.minute,
-                        );
-                      });
-                    },
-                    child: Text(time),
-                  ),
-                ),
-              ],
+            AppBarDelete(
+              visible: isEditing,
+              title: 'Delete this transaction?',
+              description:
+                  'Deleting a transaction also removes all expenses associated with it.',
+              onDelete: () {
+                TransactionService.instance.delete(widget.transaction!);
+                Navigator.of(context).pop();
+              },
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-              child: AttachmentRow(
-                attachments: attachments,
-                onTap: (attachment) async {
-                  var bytes = await attachment.bytes;
-
-                  if (!context.mounted) {
-                    return;
-                  }
-
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ImageViewer(
-                        imageProvider: MemoryImage(bytes),
-                        tag: attachment,
-                      ),
-                    ),
-                  );
-                },
-                allowOcr: () {
-                  if (isEditing) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Only supported for new transactions'),
-                      ),
-                    );
-                    return false;
-                  }
-
-                  var money = mainExpense.money;
-                  if (money == zeroEur) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Please enter the total amount'),
-                      ),
-                    );
-                    return false;
-                  }
-
-                  return true;
-                },
-                onOcr: (attachment) async {
-                  var auto = await _autoExpenses(attachment).toList();
-                  if (auto.isEmpty && context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('No rules matched'),
-                      ),
-                    );
-                    return;
-                  }
-                  var combinedMoney = auto
-                      .map((e) => e.money)
-                      .reduce((total, expense) => total + expense);
-
-                  setState(() {
-                    expenses.addAll(auto);
-                    mainExpense.money -= combinedMoney;
-                    _rerenderMainExpense();
-                  });
-                },
-              ),
-            ),
-            Visibility(
-              visible: !isEditing,
-              child: _ExpenseCard(
-                key: _mainExpenseKey,
-                expense: mainExpense,
-              ),
-            ),
-            Visibility(
-              visible: !isEditing && expenses.isNotEmpty,
-              child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24, horizontal: 8),
-                child: Divider(),
-              ),
-            ),
-            for (final expense in expenses)
-              _ExpenseCard(
-                key: ObjectKey(expense),
-                expense: expense,
-                onDelete: () {
-                  _deleteExpense(context, expense);
-                },
-              ),
-            Visibility(
-              visible: !isEditing && transaction.expenses.isEmpty,
-              child: const Center(
-                child: Column(
-                  children: [
-                    SizedBox(height: 24),
-                    Text(
-                      'After entering an amount,',
-                    ),
-                    Text.rich(
-                      TextSpan(
-                        text: 'click the ',
-                        children: [
-                          WidgetSpan(
-                            child: Icon(Icons.call_split),
-                            alignment: PlaceholderAlignment.middle,
-                          ),
-                          TextSpan(text: ' button to'),
-                        ],
-                      ),
-                    ),
-                    Text('split off into a different category'),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 140),
           ],
         ),
-      ),
-      // TODO gray out FABs when they are disabled
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Visibility(
-            visible: !isEditing,
-            child: FloatingActionButton.small(
-              heroTag: 'split',
-              onPressed: () {
-                split(context);
-              },
-              tooltip: 'Split into a new category',
-              child: const Icon(Icons.call_split),
+        body: SingleChildScrollView(
+          padding: scaffoldPadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DropdownMenu<Account>(
+                expandedInsets: const EdgeInsets.all(0),
+                initialSelection: transaction.account,
+                label: const Text('Account'),
+                onSelected: (selected) {
+                  if (selected == null) {
+                    return;
+                  }
+                  setState(() {
+                    transaction.account = selected;
+                  });
+                },
+                dropdownMenuEntries: [
+                  for (final x in AccountService.instance.accounts)
+                    DropdownMenuEntry(value: x, label: x.name)
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: SquareButton(
+                      onPressed: () async {
+                        var selected = await showDatePicker(
+                          context: context,
+                          initialDate: transaction.dateTime,
+                          firstDate: DateTime(0),
+                          lastDate: DateTime(9999),
+                          builder: (context, child) => Theme(
+                            data: _theme.current(_tabCtrl.index),
+                            child: child!,
+                          ),
+                        );
+                        if (selected == null) return;
+                        setState(() {
+                          transaction.dateTime = transaction.dateTime.copyWith(
+                            year: selected.year,
+                            month: selected.month,
+                            day: selected.day,
+                          );
+                        });
+                      },
+                      child: Text(date),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: SquareButton(
+                      onPressed: () async {
+                        var selected = await showTimePicker(
+                          context: context,
+                          initialTime:
+                              TimeOfDay.fromDateTime(transaction.dateTime),
+                          builder: (context, child) => Theme(
+                            data: _theme.current(_tabCtrl.index),
+                            child: child!,
+                          ),
+                        );
+                        if (selected == null) return;
+                        setState(() {
+                          transaction.dateTime = transaction.dateTime.copyWith(
+                            hour: selected.hour,
+                            minute: selected.minute,
+                          );
+                        });
+                      },
+                      child: Text(time),
+                    ),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                child: AttachmentRow(
+                  attachments: transaction.attachments,
+                  onTap: (attachment) async {
+                    var bytes = await attachment.bytes;
+
+                    if (!context.mounted) {
+                      return;
+                    }
+
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ImageViewer(
+                          imageProvider: MemoryImage(bytes),
+                          tag: attachment,
+                        ),
+                      ),
+                    );
+                  },
+                  allowOcr: () {
+                    if (isEditing) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Only supported for new transactions'),
+                        ),
+                      );
+                      return false;
+                    }
+
+                    var money = mainExpense.money;
+                    if (money == zeroEur) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please enter the total amount'),
+                        ),
+                      );
+                      return false;
+                    }
+
+                    return true;
+                  },
+                  onOcr: (attachment) async {
+                    var auto = await _autoExpenses(attachment).toList();
+                    if (auto.isEmpty && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('No rules matched'),
+                        ),
+                      );
+                      return;
+                    }
+                    var combinedMoney = auto
+                        .map((e) => e.money)
+                        .reduce((total, expense) => total + expense);
+
+                    setState(() {
+                      transaction.expenses.addAll(auto);
+                      mainExpense.money -= combinedMoney;
+                      _rerenderMainExpense();
+                    });
+                  },
+                ),
+              ),
+              Visibility(
+                visible: !isEditing,
+                child: _ExpenseCard(
+                  key: _mainExpenseKey,
+                  expense: mainExpense,
+                ),
+              ),
+              Visibility(
+                visible: !isEditing && transaction.expenses.isNotEmpty,
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+                  child: Divider(),
+                ),
+              ),
+              for (final expense in transaction.expenses)
+                _ExpenseCard(
+                  key: ObjectKey(expense),
+                  expense: expense,
+                  onDelete: () {
+                    _deleteExpense(context, expense);
+                  },
+                ),
+              Visibility(
+                visible: !isEditing && transaction.expenses.isEmpty,
+                child: const Center(
+                  child: Column(
+                    children: [
+                      SizedBox(height: 24),
+                      Text(
+                        'After entering an amount,',
+                      ),
+                      Text.rich(
+                        TextSpan(
+                          text: 'click the ',
+                          children: [
+                            WidgetSpan(
+                              child: Icon(Icons.call_split),
+                              alignment: PlaceholderAlignment.middle,
+                            ),
+                            TextSpan(text: ' button to'),
+                          ],
+                        ),
+                      ),
+                      Text('split off into a different category'),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 140),
+            ],
+          ),
+        ),
+        // TODO gray out FABs when they are disabled
+        floatingActionButton: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Visibility(
+              visible: !isEditing,
+              child: FloatingActionButton.small(
+                heroTag: 'split',
+                onPressed: () {
+                  split(context);
+                },
+                tooltip: 'Split into a new category',
+                child: const Icon(Icons.call_split),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          FloatingActionButton(
-            heroTag: 'add',
-            onPressed: () async {
-              if (isEditing) {
-                await update();
-              } else {
-                await save();
-              }
-              if (context.mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-            tooltip: 'Save',
-            child: const Icon(Icons.save),
-          ),
-        ],
+            const SizedBox(height: 16),
+            FloatingActionButton(
+              heroTag: 'add',
+              onPressed: () async {
+                if (isEditing) {
+                  await update();
+                } else {
+                  await save();
+                }
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+              tooltip: 'Save',
+              child: const Icon(Icons.save),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -337,18 +388,14 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
   Future<void> update() async {
     await TransactionService.instance.update(
       target: widget.transaction!,
-      account: transaction.account,
-      dateTime: transaction.dateTime,
-      expenses: expenses,
-      attachments: attachments,
+      newValues: transaction,
     );
   }
 
   Future<void> save() async {
     await TransactionService.instance.add(
       transaction,
-      expenses: [mainExpense, ...expenses],
-      attachments: attachments,
+      expenses: [mainExpense, ...transaction.expenses],
     );
   }
 
@@ -377,15 +424,15 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
     if (!isEditing) {
       var moneySplitOff = expense.money;
       setState(() {
-        expenses.remove(expense);
+        transaction.expenses.remove(expense);
         mainExpense.money += moneySplitOff;
       });
       return;
     }
 
-    if (expenses.length > 1) {
+    if (transaction.expenses.length > 1) {
       setState(() {
-        expenses.remove(expense);
+        transaction.expenses.remove(expense);
       });
       return;
     }
@@ -393,24 +440,27 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
     var acceptedDeletion = await showDialog<bool>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Delete this transaction?'),
-          content: const Text(
-              'Deleting the last expense will also delete this transaction.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-              child: const Text('Delete'),
-            ),
-          ],
+        return Theme(
+          data: _theme.current(_tabCtrl.index),
+          child: AlertDialog(
+            title: const Text('Delete this transaction?'),
+            content: const Text(
+                'Deleting the last expense will also delete this transaction.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -434,49 +484,53 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
             dialogAmountCtrl.clear();
             dialogDescriptionCtrl.clear();
           },
-          child: AlertDialog(
-            title: const Text('Split the amount into'),
-            contentPadding: const EdgeInsets.symmetric(vertical: 24),
-            content: _ExpenseColumn(
-              initialCategory: dialogCategory,
-              onCategorySelected: (category) {
-                dialogCategory = category;
-              },
-              amountCtrl: dialogAmountCtrl,
-              descriptionCtrl: dialogDescriptionCtrl,
-              morePadding: true,
+          child: Theme(
+            data: _theme.current(_tabCtrl.index),
+            child: AlertDialog(
+              title: const Text('Split the amount into'),
+              contentPadding: const EdgeInsets.symmetric(vertical: 24),
+              content: _ExpenseColumn(
+                initialCategory: dialogCategory,
+                onCategorySelected: (category) {
+                  dialogCategory = category;
+                },
+                amountCtrl: dialogAmountCtrl,
+                descriptionCtrl: dialogDescriptionCtrl,
+                morePadding: true,
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ListenableBuilder(
+                  listenable: dialogAmountCtrl,
+                  builder: (context, setState) {
+                    final money = mainExpense.money;
+                    final moneyToSplit = dialogAmountCtrl.text.toMoney();
+
+                    final isValid =
+                        moneyToSplit != null && moneyToSplit < money;
+
+                    return TextButton(
+                      onPressed: isValid
+                          ? () {
+                              Navigator.of(context).pop(Expense(
+                                transaction: transaction,
+                                money: moneyToSplit,
+                                category: dialogCategory,
+                                description: dialogDescriptionCtrl.text,
+                              ));
+                            }
+                          : null,
+                      child: const Text('Save'),
+                    );
+                  },
+                ),
+              ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Cancel'),
-              ),
-              ListenableBuilder(
-                listenable: dialogAmountCtrl,
-                builder: (context, setState) {
-                  final money = mainExpense.money;
-                  final moneyToSplit = dialogAmountCtrl.text.toMoney();
-
-                  final isValid = moneyToSplit != null && moneyToSplit < money;
-
-                  return TextButton(
-                    onPressed: isValid
-                        ? () {
-                            Navigator.of(context).pop(Expense(
-                              transaction: transaction,
-                              money: moneyToSplit,
-                              category: dialogCategory,
-                              description: dialogDescriptionCtrl.text,
-                            ));
-                          }
-                        : null,
-                    child: const Text('Save'),
-                  );
-                },
-              ),
-            ],
           ),
         );
       },
@@ -488,7 +542,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> {
 
     setState(() {
       mainExpense.money -= newExpense.money;
-      expenses.add(newExpense);
+      transaction.expenses.add(newExpense);
       _rerenderMainExpense();
     });
 

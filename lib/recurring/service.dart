@@ -16,6 +16,7 @@ final _r1 = RecurringModel(
   interval: 1,
   from: DateTime.now(),
   until: null,
+  type: TransactionType.expense,
 );
 final _r2 = RecurringModel(
   account: revolut,
@@ -26,6 +27,7 @@ final _r2 = RecurringModel(
   interval: 1,
   from: DateTime.now(),
   until: DateTime.now().add(const Duration(days: 365 * 2)),
+  type: TransactionType.expense,
 );
 final _r3 = RecurringModel(
   account: swedbank,
@@ -36,6 +38,7 @@ final _r3 = RecurringModel(
   interval: 2,
   from: DateTime.now(),
   until: null,
+  type: TransactionType.expense,
 );
 final _r4 = RecurringModel(
   account: swedbank,
@@ -46,6 +49,7 @@ final _r4 = RecurringModel(
   interval: 1,
   from: DateTime.now().subtract(const Duration(days: 10)),
   until: null,
+  type: TransactionType.expense,
 );
 
 class RecurringService with ChangeNotifier {
@@ -79,6 +83,7 @@ class RecurringService with ChangeNotifier {
     final transaction = Transaction(
       account: model.account,
       dateTime: nextDate,
+      type: model.type,
     );
 
     final expense = Expense(
@@ -91,7 +96,6 @@ class RecurringService with ChangeNotifier {
     TransactionService.instance.add(
       transaction,
       expenses: [expense],
-      attachments: [],
     );
 
     model.timesConfirmed++;

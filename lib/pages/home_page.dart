@@ -26,7 +26,6 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Finances'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: [
         home(),

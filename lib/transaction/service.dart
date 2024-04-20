@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/extensions/money.dart';
@@ -18,6 +17,7 @@ class TransactionService with ChangeNotifier {
     final t1 = Transaction(
       account: swedbank,
       dateTime: DateTime.now(),
+      type: TransactionType.expense,
     );
     t1.expenses = [
       Expense(
@@ -36,6 +36,7 @@ class TransactionService with ChangeNotifier {
     final t2 = Transaction(
       account: revolut,
       dateTime: DateTime.now().subtract(const Duration(days: 3)),
+      type: TransactionType.expense,
     );
     t2.expenses = [
       Expense(
@@ -61,12 +62,10 @@ class TransactionService with ChangeNotifier {
   Future<void> add(
     Transaction transaction, {
     required List<Expense> expenses,
-    required List<Attachment> attachments,
   }) async {
     // transaction.attachments = await moveAttachmentsFromCache(
     //   attachments,
     // ).toList();
-    transaction.attachments = attachments.toList();
     transaction.expenses = expenses;
     transactions.add(transaction);
 
@@ -83,20 +82,18 @@ class TransactionService with ChangeNotifier {
 
   Future<void> update({
     required Transaction target,
-    required Account account,
-    required DateTime dateTime,
-    required List<Expense> expenses,
-    required List<Attachment> attachments,
+    required Transaction newValues,
   }) async {
     final previousDateTime = target.dateTime;
 
     // await removeUnusedFiles(attachments, target.attachments);
     // target.attachments = await moveAttachmentsFromCache(attachments).toList();
-    target.attachments = attachments.toList();
+    target.attachments = newValues.attachments;
 
-    target.account = account;
-    target.dateTime = dateTime;
-    target.expenses = expenses;
+    target.account = newValues.account;
+    target.dateTime = newValues.dateTime;
+    target.expenses = newValues.expenses;
+    target.type = newValues.type;
 
     if (previousDateTime != target.dateTime) {
       transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime));
