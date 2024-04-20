@@ -52,6 +52,7 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'home',
         child: const Icon(Icons.add),
         onPressed: () {
           Navigator.push(

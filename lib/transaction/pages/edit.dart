@@ -72,7 +72,6 @@ class _EditTransactionPageState extends State<EditTransactionPage>
     dialogAmountCtrl = TextEditingController();
     dialogDescriptionCtrl = TextEditingController();
 
-    print('transaction type = ${widget.transaction?.type}');
     _tabCtrl = TabController(
       initialIndex:
           widget.transaction?.type.index ?? TransactionType.expense.index,
