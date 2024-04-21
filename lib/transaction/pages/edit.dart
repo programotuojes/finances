@@ -75,7 +75,7 @@ class _EditTransactionPageState extends State<EditTransactionPage>
 
     _tabCtrl = TabController(
       initialIndex: transaction.type.index,
-      length: 3,
+      length: 2,
       vsync: this,
     );
     _tabCtrl.addListener(() {
@@ -123,10 +123,10 @@ class _EditTransactionPageState extends State<EditTransactionPage>
                 icon: Icon(Symbols.upload),
                 text: 'Expense',
               ),
-              Tab(
-                icon: Icon(Symbols.swap_horiz),
-                text: 'Transfer',
-              ),
+              // Tab(
+              //   icon: Icon(Symbols.swap_horiz),
+              //   text: 'Transfer',
+              // ),
             ],
           ),
           actions: [

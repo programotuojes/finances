@@ -71,8 +71,8 @@ class _RecurringEditPageState extends State<RecurringEditPage>
     }
 
     _tabCtrl = TabController(
-      initialIndex: 1,
-      length: 3,
+      initialIndex: TransactionType.expense.index,
+      length: 2,
       vsync: this,
     );
     _tabCtrl.addListener(() {
@@ -117,10 +117,10 @@ class _RecurringEditPageState extends State<RecurringEditPage>
                 icon: Icon(Symbols.upload),
                 text: 'Expense',
               ),
-              Tab(
-                icon: Icon(Symbols.swap_horiz),
-                text: 'Transfer',
-              ),
+              // Tab(
+              //   icon: Icon(Symbols.swap_horiz),
+              //   text: 'Transfer',
+              // ),
             ],
           ),
           actions: [
