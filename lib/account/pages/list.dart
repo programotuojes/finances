@@ -1,5 +1,6 @@
 import 'package:finances/account/pages/edit.dart';
 import 'package:finances/account/service.dart';
+import 'package:finances/components/current_account_money.dart';
 import 'package:flutter/material.dart';
 
 class AccountsPage extends StatelessWidget {
@@ -30,7 +31,7 @@ class AccountsPage extends StatelessWidget {
                     color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
-                subtitle: Text(i.balance.toString()),
+                subtitle: CurrentAccountMoney(account: i),
                 onTap: () {
                   Navigator.push(
                     context,

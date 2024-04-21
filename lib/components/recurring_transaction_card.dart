@@ -12,7 +12,7 @@ class RecurringTransactionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return HomeCard(
       title: 'Recurring transactions',
-      withoutChildPadding: true,
+      padding: const EdgeInsets.all(0),
       child: ListenableBuilder(
         listenable: RecurringService.instance,
         builder: (context, child) {

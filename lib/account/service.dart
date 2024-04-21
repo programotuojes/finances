@@ -13,7 +13,7 @@ class AccountService with ChangeNotifier {
   void add({required String name, required Money balance}) {
     accounts.add(Account(
       name: name,
-      balance: balance,
+      initialMoney: balance,
     ));
 
     notifyListeners();
@@ -35,13 +35,13 @@ class AccountService with ChangeNotifier {
 
 final swedbank = Account(
   name: 'Swedbank',
-  balance: CommonCurrencies().euro.parse('2004,50'),
+  initialMoney: CommonCurrencies().euro.parse('100'),
 );
 final revolut = Account(
   name: 'Revolut',
-  balance: CommonCurrencies().euro.parse('3,50'),
+  initialMoney: CommonCurrencies().euro.parse('3,50'),
 );
 final cash = Account(
   name: 'Cash',
-  balance: CommonCurrencies().euro.parse('99,65'),
+  initialMoney: CommonCurrencies().euro.parse('99,65'),
 );

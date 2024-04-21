@@ -1,5 +1,6 @@
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
+import 'package:finances/components/current_account_money.dart';
 import 'package:finances/components/home_card.dart';
 import 'package:flutter/material.dart';
 
@@ -53,7 +54,7 @@ class AccountsCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(account.name),
-              Text(account.balance.toString()),
+              CurrentAccountMoney(account: account)
             ],
           ),
         ),

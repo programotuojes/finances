@@ -141,15 +141,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget home() {
-    return SingleChildScrollView(
+    return const SingleChildScrollView(
       padding: scaffoldPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const AccountsCard(),
-          const RecurringTransactionCard(),
+          AccountsCard(),
+          RecurringTransactionCard(),
           BalanceGraphCard(),
-          const SizedBox(height: 56 + 16),
+          SizedBox(height: 56 + 16),
         ],
       ),
     );

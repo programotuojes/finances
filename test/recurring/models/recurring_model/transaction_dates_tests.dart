@@ -9,7 +9,7 @@ import 'package:money2/money2.dart';
 
 final _account = Account(
   name: 'Swedbank',
-  balance: Money.fromInt(100000, code: 'EUR'),
+  initialMoney: Money.fromInt(100000, code: 'EUR'),
 );
 final _category = CategoryModel(
   name: 'Food',

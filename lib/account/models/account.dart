@@ -2,10 +2,10 @@ import 'package:money2/money2.dart';
 
 class Account {
   String name;
-  Money balance;
+  Money initialMoney;
 
   Account({
     required this.name,
-    required this.balance,
+    required this.initialMoney,
   });
 }

@@ -6,14 +6,14 @@ class HomeCard extends StatelessWidget {
   final String title;
   final Widget child;
   final CrossAxisAlignment crossAxisAlignment;
-  final bool withoutChildPadding;
+  final EdgeInsets padding;
 
   const HomeCard({
     super.key,
     required this.title,
     required this.child,
     this.crossAxisAlignment = CrossAxisAlignment.center,
-    this.withoutChildPadding = false,
+    this.padding = const EdgeInsets.symmetric(horizontal: _cardPadding),
   });
 
   @override
@@ -39,7 +39,7 @@ class HomeCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: withoutChildPadding ? 0 : _cardPadding),
+            padding: padding,
             child: child,
           ),
           const SizedBox(height: _cardPadding),

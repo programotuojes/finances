@@ -1,5 +1,6 @@
 import 'package:finances/category/models/category.dart';
 import 'package:finances/transaction/models/transaction.dart';
+import 'package:finances/utils/money.dart';
 import 'package:money2/money2.dart';
 
 class Expense {
@@ -33,4 +34,12 @@ class Expense {
         category: category,
         description: description,
       );
+
+  Money get signedMoney {
+    return switch (transaction.type) {
+      TransactionType.income => money,
+      TransactionType.expense => -money,
+      TransactionType.transfer => zeroEur,
+    };
+  }
 }

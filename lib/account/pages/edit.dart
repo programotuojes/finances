@@ -54,9 +54,9 @@ class _AccountEditPageState extends State<AccountEditPage> {
                 onSaved: (value) => formBalance = value!,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
-                initialValue: widget.account?.balance.amount.toString(),
+                initialValue: widget.account?.initialMoney.amount.toString(),
                 decoration: const InputDecoration(
-                  labelText: 'Amount',
+                  labelText: 'Initial amount',
                   helperText: '',
                   prefixText: '€ ',
                 ),
@@ -98,7 +98,7 @@ class _AccountEditPageState extends State<AccountEditPage> {
             );
           } else {
             widget.account!.name = formAccountName;
-            widget.account!.balance = balance;
+            widget.account!.initialMoney = balance;
             AccountService.instance.update();
           }
 
