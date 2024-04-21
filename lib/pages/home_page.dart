@@ -7,8 +7,10 @@ import 'package:finances/components/balance_history.dart';
 import 'package:finances/components/common_values.dart';
 import 'package:finances/components/recurring_transaction_card.dart';
 import 'package:finances/recurring/pages/list.dart';
+import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/pages/edit.dart';
 import 'package:finances/transaction/service.dart';
+import 'package:finances/utils/transaction_theme.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -20,6 +22,18 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   var index = 0;
+  late TextStyle? _incomeStyle;
+  late TextStyle? _expenseStyle;
+  late TextStyle? _transferStyle;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    var theme = TransactionTheme(context);
+    _incomeStyle = theme.createTextStyle(context, TransactionType.income);
+    _expenseStyle = theme.createTextStyle(context, TransactionType.expense);
+    _transferStyle = theme.createTextStyle(context, TransactionType.transfer);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -169,8 +183,23 @@ class _HomePageState extends State<HomePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
+                    Text.rich(
+                      style: _textStyle(expense.transaction.type),
+                      TextSpan(
+                        children: [
+                          WidgetSpan(
+                            child: Icon(
+                              _amountSymbol(expense.transaction.type),
+                              color:
+                                  _textStyle(expense.transaction.type)?.color,
+                            ),
+                            alignment: PlaceholderAlignment.middle,
+                          ),
+                          TextSpan(text: expense.money.toString()),
+                        ],
+                      ),
+                    ),
                     Text(expense.transaction.account.name),
-                    Text(expense.money.toString()),
                   ],
                 ),
                 subtitle: Column(
@@ -197,5 +226,21 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+  }
+
+  TextStyle? _textStyle(TransactionType type) {
+    return switch (type) {
+      TransactionType.income => _incomeStyle,
+      TransactionType.expense => _expenseStyle,
+      TransactionType.transfer => _transferStyle,
+    };
+  }
+
+  IconData? _amountSymbol(TransactionType type) {
+    return switch (type) {
+      TransactionType.income => Icons.arrow_drop_up_rounded,
+      TransactionType.expense => Icons.arrow_drop_down_rounded,
+      TransactionType.transfer => null,
+    };
   }
 }

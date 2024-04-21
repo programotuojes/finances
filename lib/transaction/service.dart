@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:finances/account/service.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/extensions/money.dart';
-import 'package:finances/transaction/models/attachment.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/utils/random_string.dart';
@@ -17,7 +16,7 @@ class TransactionService with ChangeNotifier {
     final t1 = Transaction(
       account: swedbank,
       dateTime: DateTime.now(),
-      type: TransactionType.expense,
+      type: TransactionType.income,
     );
     t1.expenses = [
       Expense(

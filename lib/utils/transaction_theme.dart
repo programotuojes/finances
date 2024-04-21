@@ -35,4 +35,9 @@ class TransactionTheme {
         2 => _transfer,
         _ => throw ArgumentError(),
       };
+
+  TextStyle? createTextStyle(BuildContext context, TransactionType type) =>
+      Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: current(type.index).colorScheme.primary,
+          );
 }

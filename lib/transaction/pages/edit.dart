@@ -18,7 +18,7 @@ import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/amount_input_formatter.dart';
 import 'package:finances/utils/app_bar_delete.dart';
 import 'package:finances/utils/money.dart';
-import 'package:finances/utils/transaction_type.dart';
+import 'package:finances/utils/transaction_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 
