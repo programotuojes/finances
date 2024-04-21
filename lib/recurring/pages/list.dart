@@ -1,3 +1,4 @@
+import 'package:finances/components/category_icon.dart';
 import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/recurring/pages/edit.dart';
 import 'package:finances/recurring/service.dart';
@@ -20,18 +21,7 @@ class RecurringListPage extends StatelessWidget {
             for (var i in RecurringService.instance.transactions)
               ListTile(
                 title: Text(i.category.name),
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  child: Icon(
-                    i.category.icon,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                ),
+                leading: CategoryIcon(icon: i.category.icon),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

@@ -1,7 +1,9 @@
 import 'package:finances/account/pages/edit.dart';
 import 'package:finances/account/service.dart';
+import 'package:finances/components/category_icon.dart';
 import 'package:finances/components/current_account_money.dart';
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 class AccountsPage extends StatelessWidget {
   const AccountsPage({super.key});
@@ -19,18 +21,7 @@ class AccountsPage extends StatelessWidget {
             for (var i in AccountService.instance.accounts)
               ListTile(
                 title: Text(i.name),
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  child: Icon(
-                    Icons.account_balance,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                ),
+                leading: const CategoryIcon(icon: Symbols.account_balance),
                 subtitle: CurrentAccountMoney(account: i),
                 onTap: () {
                   Navigator.push(

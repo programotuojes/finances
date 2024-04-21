@@ -1,6 +1,7 @@
 import 'package:finances/category/models/category.dart';
 import 'package:finances/category/pages/edit.dart';
 import 'package:finances/category/service.dart';
+import 'package:finances/components/category_icon.dart';
 import 'package:flutter/material.dart';
 
 class CategoryListPage extends StatelessWidget {
@@ -26,18 +27,7 @@ class CategoryListPage extends StatelessWidget {
             for (var i in category.children)
               ListTile(
                 title: Text(i.name),
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  child: Icon(
-                    i.icon,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                ),
+                leading: CategoryIcon(icon: i.icon),
                 contentPadding: const EdgeInsets.only(
                   left: 16,
                   right: 12, // Otherwise `trailing` is too far from the edge

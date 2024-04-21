@@ -4,6 +4,7 @@ import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/components/accounts_card.dart';
 import 'package:finances/components/balance_graph_card.dart';
+import 'package:finances/components/category_icon.dart';
 import 'package:finances/components/common_values.dart';
 import 'package:finances/components/recurring_transaction_card.dart';
 import 'package:finances/recurring/pages/list.dart';
@@ -167,18 +168,7 @@ class _HomePageState extends State<HomePage> {
             for (var expense in TransactionService.instance.expenses)
               ListTile(
                 title: Text(expense.category.name),
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  child: Icon(
-                    expense.category.icon,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                ),
+                leading: CategoryIcon(icon: expense.category.icon),
                 trailing: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,

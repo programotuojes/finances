@@ -14,7 +14,7 @@ class CategoryIcon extends StatelessWidget {
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
         color: Theme.of(context).colorScheme.primary,
       ),
       child: Icon(

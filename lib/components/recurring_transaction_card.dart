@@ -1,3 +1,4 @@
+import 'package:finances/components/category_icon.dart';
 import 'package:finances/components/home_card.dart';
 import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/recurring/pages/edit.dart';
@@ -38,18 +39,7 @@ class _RecurringListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        child: Icon(
-          recurringModel.category.icon,
-          color: Theme.of(context).colorScheme.onPrimary,
-        ),
-      ),
+      leading: CategoryIcon(icon: recurringModel.category.icon),
       title: Text(recurringModel.category.name),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

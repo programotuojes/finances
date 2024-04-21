@@ -1,6 +1,7 @@
 import 'package:finances/automation/models/automation.dart';
 import 'package:finances/automation/pages/edit.dart';
 import 'package:finances/automation/service.dart';
+import 'package:finances/components/category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -27,18 +28,7 @@ class AutomationListPage extends StatelessWidget {
             itemBuilder: (context, index) {
               var automation = automations[index];
               return ListTile(
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  child: Icon(
-                    automation.category.icon,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                ),
+                leading: CategoryIcon(icon: automation.category.icon),
                 title: Text(automation.name),
                 subtitle: Text(_subtitle(automation)),
                 onTap: () {

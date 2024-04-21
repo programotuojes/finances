@@ -1,4 +1,5 @@
 import 'package:finances/category/models/category.dart';
+import 'package:finances/components/category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -99,34 +100,12 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
                 for (var i in widget.category.children)
                   ListTile(
                     title: Text(i.name),
-                    leading: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      child: Icon(
-                        i.icon,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
-                    ),
+                    leading: CategoryIcon(icon: i.icon),
                     onTap: () {},
                   ),
                 const Divider(),
                 ListTile(
-                  leading: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    child: Icon(
-                      Symbols.attach_money,
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
-                  ),
+                  leading: const CategoryIcon(icon: Symbols.question_mark),
                   title: TextField(
                     controller: newChildTextCtrl,
                     decoration: const InputDecoration(
