@@ -68,15 +68,18 @@ class _RecurringEditPageState extends State<RecurringEditPage>
       tempModel.interval = widget.model!.interval;
       tempModel.from = widget.model!.from;
       tempModel.until = widget.model!.until;
+      tempModel.type = widget.model!.type;
     }
 
     _tabCtrl = TabController(
-      initialIndex: TransactionType.expense.index,
+      initialIndex: tempModel.type.index,
       length: 2,
       vsync: this,
     );
     _tabCtrl.addListener(() {
-      setState(() {});
+      setState(() {
+        tempModel.type = TransactionType.values[_tabCtrl.index];
+      });
     });
   }
 

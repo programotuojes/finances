@@ -117,6 +117,7 @@ class RecurringService with ChangeNotifier {
     model.interval = newValues.interval;
     model.from = newValues.from;
     model.until = newValues.until;
+    model.type = newValues.type;
     _sort();
     notifyListeners();
   }
