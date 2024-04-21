@@ -3,7 +3,7 @@ import 'package:finances/automation/pages/list.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/components/accounts_card.dart';
-import 'package:finances/components/balance_history.dart';
+import 'package:finances/components/balance_graph_card.dart';
 import 'package:finances/components/common_values.dart';
 import 'package:finances/components/recurring_transaction_card.dart';
 import 'package:finances/recurring/pages/list.dart';
