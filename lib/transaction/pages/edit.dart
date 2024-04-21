@@ -67,14 +67,14 @@ class _EditTransactionPageState extends State<EditTransactionPage>
       transaction.expenses =
           widget.transaction!.expenses.map((e) => e.copy()).toList();
       transaction.attachments = widget.transaction!.attachments.toList();
+      transaction.type = widget.transaction!.type;
     }
 
     dialogAmountCtrl = TextEditingController();
     dialogDescriptionCtrl = TextEditingController();
 
     _tabCtrl = TabController(
-      initialIndex:
-          widget.transaction?.type.index ?? TransactionType.expense.index,
+      initialIndex: transaction.type.index,
       length: 3,
       vsync: this,
     );
