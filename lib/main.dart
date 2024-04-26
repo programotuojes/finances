@@ -1,8 +1,12 @@
+import 'package:finances/bank_sync/models/go_cardless_token.dart';
+import 'package:finances/bank_sync/service.dart';
 import 'package:finances/pages/home_page.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+Future<void> main() async {
   runApp(const MainApp());
+  await GoCardlessSerivce.instance.initialize();
+  await GoCardlessToken.instance.initialize();
 }
 
 class MainApp extends StatelessWidget {

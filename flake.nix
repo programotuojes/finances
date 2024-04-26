@@ -44,6 +44,16 @@
           androidStudioPackages.stable
         ];
 
+        nativeBuildInputs = [
+          pkg-config
+        ];
+
+        buildInputs = [
+          libsecret
+        ];
+
+        FLUTTER_SDK = unstable-pkgs.flutter;
+
         shellHook = ''
           ${unstable-pkgs.flutter}/bin/flutter --disable-analytics > /dev/null
           source <(${unstable-pkgs.flutter}/bin/flutter bash-completion)

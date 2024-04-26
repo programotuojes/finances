@@ -1,5 +1,7 @@
 import 'package:finances/account/pages/list.dart';
 import 'package:finances/automation/pages/list.dart';
+import 'package:finances/bank_sync/pages/bank_setup.dart';
+import 'package:finances/bank_sync/pages/transaction_list.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/components/accounts_card.dart';
@@ -13,6 +15,7 @@ import 'package:finances/transaction/pages/edit.dart';
 import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/transaction_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -131,6 +134,35 @@ class _HomePageState extends State<HomePage> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const AutomationListPage(),
+                  ),
+                );
+              },
+            ),
+            const Divider(),
+            const ListTile(
+              subtitle: Text('Bank sync'),
+              dense: true,
+            ),
+            ListTile(
+              leading: const Icon(Symbols.settings_rounded),
+              title: const Text('Setup'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const BankSetupPage(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Symbols.contract_rounded),
+              title: const Text('Transactions'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const BankTransactionList(),
                   ),
                 );
               },

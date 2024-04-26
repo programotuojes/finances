@@ -58,8 +58,8 @@ class RecurringService with ChangeNotifier {
   final List<RecurringModel> transactions;
 
   RecurringService._ctor() : transactions = [_r1, _r2, _r3, _r4] {
-    confirm(_r1);
-    confirm(_r2);
+    // confirm(_r1);
+    // confirm(_r2);
     _sort();
   }
 
