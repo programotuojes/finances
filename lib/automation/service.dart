@@ -12,8 +12,8 @@ List<Automation> _seedData() {
     name: 'Deserts',
     category: food,
     rules: [
-      Rule(regex: RegExp('bandelė')),
-      Rule(regex: RegExp('Kibin')),
+      Rule(remittanceInfo: RegExp('bandelė')),
+      Rule(remittanceInfo: RegExp('Kibin')),
     ],
   );
 
@@ -21,15 +21,15 @@ List<Automation> _seedData() {
     name: 'Nuts',
     category: nuts,
     rules: [
-      Rule(regex: RegExp('pistacijos')),
-      Rule(regex: RegExp('Anakard')),
+      Rule(remittanceInfo: RegExp('pistacijos')),
+      Rule(remittanceInfo: RegExp('Anakard')),
     ],
   );
   var auto3 = Automation(
     name: 'Bars',
     category: sports,
     rules: [
-      Rule(regex: RegExp('Batonėlis')),
+      Rule(remittanceInfo: RegExp('Batonėlis')),
     ],
   );
 
@@ -49,11 +49,13 @@ class AutomationService with ChangeNotifier {
   }
 
   Automation? getAutomationForLineItem(String lineItem) {
-    for (final auto in automations) {
-      for (final rule in auto.rules) {
-        final result = lineItem.contains(rule.regex);
-        if (result ^ rule.invert) {
-          return auto;
+    for (final automation in automations) {
+      for (final rule in automation.rules) {
+        if (rule.remittanceInfo != null) {
+          final contains = lineItem.contains(rule.remittanceInfo!);
+          if (contains) {
+            return automation;
+          }
         }
       }
     }

@@ -24,6 +24,7 @@ class AutomationEditPage extends StatefulWidget {
 class _AutomationEditPageState extends State<AutomationEditPage> {
   final scrollCtrl = ScrollController();
   final formKey = GlobalKey<FormState>();
+  final _newRuleFormKey = GlobalKey<FormState>();
   final tempModel = Automation(
     name: '',
     category: CategoryService.instance.lastSelection,
@@ -71,13 +72,11 @@ class _AutomationEditPageState extends State<AutomationEditPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(isEditing ? 'Edit automation' : 'New automation'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           AppBarDelete(
             visible: isEditing,
             title: 'Delete this automation?',
-            description:
-                'Expenses categorized by this automation will be kept.',
+            description: 'Expenses categorized by this automation will be kept.',
             onDelete: () {
               AutomationService.instance.delete(widget.model!);
               Navigator.of(context).pop();
@@ -92,7 +91,7 @@ class _AutomationEditPageState extends State<AutomationEditPage> {
           key: formKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            // crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextFormField(
                 validator: (value) {
@@ -113,8 +112,7 @@ class _AutomationEditPageState extends State<AutomationEditPage> {
                   var selected = await Navigator.push<CategoryModel>(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          CategoryListPage(CategoryService.instance.root),
+                      builder: (context) => CategoryListPage(CategoryService.instance.root),
                     ),
                   );
                   if (selected == null) {
@@ -140,7 +138,9 @@ class _AutomationEditPageState extends State<AutomationEditPage> {
                 ),
               const Divider(),
               Form(
+                key: _newRuleFormKey,
                 child: _RuleListItem(
+                  formKey: _newRuleFormKey,
                   onAction: (rule) {
                     setState(() {
                       tempModel.rules.add(rule);
@@ -179,11 +179,13 @@ class _AutomationEditPageState extends State<AutomationEditPage> {
 class _RuleListItem extends StatefulWidget {
   final void Function(Rule) onAction;
   final Rule? rule;
+  final GlobalKey<FormState>? formKey;
 
   const _RuleListItem({
     super.key,
     required this.onAction,
     this.rule,
+    this.formKey,
   });
 
   @override
@@ -191,111 +193,151 @@ class _RuleListItem extends StatefulWidget {
 }
 
 class _RuleListItemState extends State<_RuleListItem> {
-  final formKey = GlobalKey<FormFieldState>();
-  final patternCtrl = TextEditingController();
-  var invert = false;
-  late bool isEditing;
+  late final _remittanceInfoCtrl = TextEditingController(text: widget.rule?.remittanceInfo?.pattern);
+  late final _creditorNameCtrl = TextEditingController(text: widget.rule?.creditorName?.pattern);
+  late final _creditorIbanCtrl = TextEditingController(text: widget.rule?.creditorIban?.pattern);
+  late final _isEditing = widget.rule != null;
+  bool _showBottomError = false;
 
   @override
   void initState() {
     super.initState();
-
-    isEditing = widget.rule != null;
-
-    if (isEditing) {
-      patternCtrl.text = widget.rule!.regex.pattern;
-      invert = widget.rule!.invert;
-    }
+    Listenable.merge([
+      _remittanceInfoCtrl,
+      _creditorNameCtrl,
+      _creditorIbanCtrl,
+    ]).addListener(() {
+      if (_showBottomError) {
+        setState(() {
+          _showBottomError = false;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
-    patternCtrl.dispose();
+    _remittanceInfoCtrl.dispose();
+    _creditorNameCtrl.dispose();
+    _creditorIbanCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextFormField(
-              key: formKey,
-              onSaved: (value) {
-                if (isEditing) {
-                  widget.rule!.regex = RegExp(patternCtrl.text);
-                }
-              },
-              // autovalidateMode: autovalidateMode,
-              scrollPadding: const EdgeInsets.only(bottom: double.maxFinite),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter a pattern';
-                }
-
-                try {
-                  RegExp(value);
-                } catch (e) {
-                  return 'Please enter a valid regex';
-                }
-
-                return null;
-              },
-              controller: patternCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Pattern',
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                const Text('Invert'),
-                FormField<bool>(
-                  onSaved: (value) {
-                    if (isEditing) {
-                      widget.rule!.invert = invert;
-                    }
-                  },
-                  builder: (state) => Switch(
-                    value: invert,
-                    onChanged: (value) {
-                      setState(() {
-                        invert = value;
-                      });
-                    },
-                  ),
+    return SizedBox(
+      width: 400,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                onSaved: (value) {
+                  if (_isEditing && _remittanceInfoCtrl.text.isNotEmpty) {
+                    widget.rule!.remittanceInfo = RegExp(_remittanceInfoCtrl.text);
+                  }
+                },
+                validator: _isValidRegex,
+                controller: _remittanceInfoCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Remittance info',
                 ),
-              ],
-            ),
-          ),
-          IconButton(
-            onPressed: () {
-              if (isEditing) {
-                // Don't validate when deleting
-                widget.onAction(widget.rule!);
-                return;
-              }
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                onSaved: (value) {
+                  if (_isEditing && _creditorNameCtrl.text.isNotEmpty) {
+                    widget.rule!.creditorName = RegExp(_creditorNameCtrl.text);
+                  }
+                },
+                validator: _isValidRegex,
+                controller: _creditorNameCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Creditor name',
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                onSaved: (value) {
+                  if (_isEditing && _creditorIbanCtrl.text.isNotEmpty) {
+                    widget.rule!.creditorIban = RegExp(_creditorIbanCtrl.text);
+                  }
+                },
+                validator: _isValidRegex,
+                controller: _creditorIbanCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Creditor IBAN',
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  FilledButton.icon(
+                    onPressed: () {
+                      if (_isEditing) {
+                        // When editing, the `onAction` is for deleting
+                        // Don't validate when deleting
+                        widget.onAction(widget.rule!);
+                        return;
+                      }
 
-              if (formKey.currentState!.validate()) {
-                widget.onAction(Rule(
-                  regex: RegExp(patternCtrl.text),
-                  invert: invert,
-                ));
-                setState(() {
-                  patternCtrl.clear();
-                  invert = false;
-                });
-              }
-            },
-            padding: const EdgeInsets.all(16),
-            icon: Icon(isEditing ? Symbols.delete : Symbols.add),
+                      if (_remittanceInfoCtrl.text.isEmpty &&
+                          _creditorNameCtrl.text.isEmpty &&
+                          _creditorIbanCtrl.text.isEmpty) {
+                        setState(() {
+                          _showBottomError = true;
+                        });
+                        return;
+                      }
+
+                      if (widget.formKey?.currentState!.validate() == true) {
+                        widget.onAction(Rule.fromStrings(
+                          remittanceInfo: _remittanceInfoCtrl.text,
+                          creditorName: _creditorNameCtrl.text,
+                          creditorIban: _creditorIbanCtrl.text,
+                        ));
+                        setState(() {
+                          _remittanceInfoCtrl.clear();
+                          _creditorNameCtrl.clear();
+                          _creditorIbanCtrl.clear();
+                        });
+                      }
+                    },
+                    label: Text(_isEditing ? 'Delete' : 'Add'),
+                    icon: Icon(_isEditing ? Symbols.delete : Symbols.add),
+                  ),
+                  const SizedBox(width: 16),
+                  Visibility(
+                    visible: _showBottomError,
+                    child: Text(
+                      'Enter at least one field',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
+  }
+
+  String? _isValidRegex(String? value) {
+    if (value == null) {
+      return null;
+    }
+
+    try {
+      RegExp(value);
+    } catch (e) {
+      return 'Please enter a valid regex';
+    }
+
+    return null;
   }
 }

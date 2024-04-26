@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 
 class Automation with ChangeNotifier {
   /// All rules are ORed together
-  List<Rule> rules = List.empty(growable: true);
+  List<Rule> rules = [];
   CategoryModel category;
   String name;
 
@@ -19,11 +19,31 @@ class Automation with ChangeNotifier {
 }
 
 class Rule {
-  RegExp regex;
-  bool invert;
+  RegExp? remittanceInfo;
+  RegExp? creditorName;
+  RegExp? creditorIban;
 
   Rule({
-    required this.regex,
-    this.invert = false,
+    this.remittanceInfo,
+    this.creditorName,
+    this.creditorIban,
   });
+
+  factory Rule.fromStrings({
+    required String remittanceInfo,
+    required String creditorName,
+    required String creditorIban,
+  }) {
+    var a = remittanceInfo.isNotEmpty;
+    var b = creditorName.isNotEmpty;
+    var c = creditorIban.isNotEmpty;
+
+    assert(a || b || c, 'At least one field must be provided');
+
+    return Rule(
+      remittanceInfo: a ? RegExp(remittanceInfo) : null,
+      creditorName: b ? RegExp(creditorName) : null,
+      creditorIban: c ? RegExp(creditorIban) : null,
+    );
+  }
 }
