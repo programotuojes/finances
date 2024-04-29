@@ -1,4 +1,5 @@
 import 'package:finances/automation/models/automation.dart';
+import 'package:finances/category/models/category.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/extensions/money.dart';
 import 'package:finances/transaction/models/attachment.dart';
@@ -48,19 +49,32 @@ class AutomationService with ChangeNotifier {
     notifyListeners();
   }
 
-  Automation? getAutomationForLineItem(String lineItem) {
+  CategoryModel? getCategory({
+    String? remittanceInfo,
+    String? creditorName,
+    String? creditorIban,
+  }) {
     for (final automation in automations) {
       for (final rule in automation.rules) {
-        if (rule.remittanceInfo != null) {
-          final contains = lineItem.contains(rule.remittanceInfo!);
-          if (contains) {
-            return automation;
-          }
+        if (_ruleMatches(rule.remittanceInfo, remittanceInfo)) {
+          return automation.category;
+        }
+
+        if (_ruleMatches(rule.creditorName, creditorName)) {
+          return automation.category;
+        }
+
+        if (_ruleMatches(rule.creditorIban, creditorIban)) {
+          return automation.category;
         }
       }
     }
 
     return null;
+  }
+
+  bool _ruleMatches(RegExp? regex, String? target) {
+    return regex != null && target != null && target.contains(regex);
   }
 
   void save(Automation model) {

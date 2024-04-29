@@ -11,15 +11,15 @@ class BankTransactions {
 }
 
 class BankTransaction {
-  String? transactionId;
+  String transactionId;
   String? entryReference;
   String? endToEndId;
   String? mandateId;
   String? checkId;
   String? creditorId;
-  String? bookingDate;
+  String bookingDate;
+  DateTime bookingDateTime;
   String? valueDate;
-  String? bookingDateTime;
   String? valueDateTime;
   BankTransactionAmount? transactionAmount;
   CurrencyExchange? currencyExchange;
@@ -40,15 +40,15 @@ class BankTransaction {
   String? internalTransactionId;
 
   BankTransaction({
-    this.transactionId,
+    required this.transactionId,
     this.entryReference,
     this.endToEndId,
     this.mandateId,
     this.checkId,
     this.creditorId,
-    this.bookingDate,
+    required this.bookingDate,
+    required this.bookingDateTime,
     this.valueDate,
-    this.bookingDateTime,
     this.valueDateTime,
     this.transactionAmount,
     this.currencyExchange,
@@ -74,10 +74,8 @@ class BankTransaction {
     var currencyExchange = json['currencyExchange'];
     var creditorAccount = json['creditorAccount'];
     var debtorAccount = json['debtorAccount'];
-    var remittanceInformationUnstructuredArray =
-        json['remittanceInformationUnstructuredArray'];
-    var remittanceInformationStructuredArray =
-        json['remittanceInformationStructuredArray'];
+    var remittanceInformationUnstructuredArray = json['remittanceInformationUnstructuredArray'];
+    var remittanceInformationStructuredArray = json['remittanceInformationStructuredArray'];
 
     return BankTransaction(
       transactionId: json['transactionId'],
@@ -87,8 +85,8 @@ class BankTransaction {
       checkId: json['checkId'],
       creditorId: json['creditorId'],
       bookingDate: json['bookingDate'],
+      bookingDateTime: DateTime.parse(json['bookingDate']),
       valueDate: json['valueDate'],
-      bookingDateTime: json['bookingDateTime'],
       valueDateTime: json['valueDateTime'],
       transactionAmount: BankTransactionAmount.fromJson(transactionAmount),
       currencyExchange: CurrencyExchange.fromJson(currencyExchange),
@@ -98,13 +96,10 @@ class BankTransaction {
       debtorName: json['debtorName'],
       debtorAccount: BankAccount.fromJson(debtorAccount),
       ultimateDebtor: json['ultimateDebtor'],
-      remittanceInformationUnstructured:
-          json['remittanceInformationUnstructured'],
-      remittanceInformationUnstructuredArray:
-          remittanceInformationUnstructuredArray,
+      remittanceInformationUnstructured: json['remittanceInformationUnstructured'],
+      remittanceInformationUnstructuredArray: remittanceInformationUnstructuredArray,
       remittanceInformationStructured: json['remittanceInformationStructured'],
-      remittanceInformationStructuredArray:
-          remittanceInformationStructuredArray,
+      remittanceInformationStructuredArray: remittanceInformationStructuredArray,
       additionalInformation: json['additionalInformation'],
       purposeCode: json['purposeCode'],
       bankTransactionCode: json['bankTransactionCode'],

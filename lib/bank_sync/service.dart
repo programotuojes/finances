@@ -1,13 +1,23 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:collection/collection.dart';
+import 'package:finances/account/models/account.dart';
+import 'package:finances/automation/service.dart';
 import 'package:finances/bank_sync/go_cardless_http_client.dart';
+import 'package:finances/bank_sync/models/bank_transaction.dart';
 import 'package:finances/bank_sync/models/end_user_agreement.dart';
 import 'package:finances/bank_sync/models/go_cardless_token.dart';
 import 'package:finances/bank_sync/models/institution.dart';
 import 'package:finances/bank_sync/models/requisition.dart';
+import 'package:finances/category/models/category.dart';
+import 'package:finances/extensions/money.dart';
+import 'package:finances/transaction/models/expense.dart';
+import 'package:finances/transaction/models/transaction.dart';
+import 'package:finances/transaction/service.dart';
+import 'package:finances/utils/money.dart';
 import 'package:finances/utils/shared_prefs.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -253,4 +263,123 @@ class GoCardlessSerivce with ChangeNotifier {
       await server.close();
     }
   }
+
+  Future<void> importTransactions({
+    required Account account,
+    required bool remittanceInfoAsDescription,
+    required CategoryModel defaultCategory,
+  }) async {
+    var accountId = requisition?.accounts.first;
+    if (accountId == null) {
+      print('No account');
+      return;
+    }
+
+    var transactions = await GoCardlessHttpClient.getTransactions(accountId);
+    transactions.match((error) {
+      print('Failed to get transactions - ${error.detail}');
+    }, (list) {
+      for (var bankTr in list.booked) {
+        var amount = bankTr.transactionAmount!.amount;
+        var money = amount!.replaceFirst('-', '').toMoney();
+        if (money == null) {
+          print('Failed to parse amount for ${bankTr.transactionId}');
+          continue;
+        }
+
+        var bankInfo = BankSyncInfo(
+          transactionId: bankTr.transactionId,
+          receiverName: bankTr.creditorName,
+          receiverIban: bankTr.creditorAccount?.iban,
+          remittanceInfo: bankTr.remittanceInformationUnstructured,
+        );
+
+        var manualTransaction = _manualTransaction(bankTr, account);
+        if (manualTransaction != null) {
+          manualTransaction.bankInfo = bankInfo;
+          continue;
+        }
+
+        var type = amount[0] == '-' ? TransactionType.expense : TransactionType.income;
+        var category = AutomationService.instance.getCategory(
+              remittanceInfo: bankTr.remittanceInformationUnstructured,
+              creditorName: bankTr.creditorName,
+              creditorIban: bankTr.creditorAccount?.iban,
+            ) ??
+            defaultCategory;
+
+        var previousImport = TransactionService.instance.transactions
+            .firstWhereOrNull((x) => x.bankInfo?.transactionId == bankTr.transactionId);
+
+        if (previousImport != null) {
+          if (previousImport.mainExpense.category == category) {
+            continue;
+          }
+          TransactionService.instance.delete(previousImport);
+        }
+
+        var transaction = Transaction(
+          account: account,
+          dateTime: _getDateTime(bankTr),
+          type: type,
+          bankInfo: bankInfo,
+        );
+        var expense = Expense(
+          transaction: transaction,
+          money: money,
+          category: category,
+          description: remittanceInfoAsDescription ? bankTr.remittanceInformationUnstructured : null,
+        );
+        TransactionService.instance.add(
+          transaction,
+          expenses: [expense],
+        );
+      }
+    });
+  }
+
+  Transaction? _manualTransaction(BankTransaction bankTransaction, Account targetAccount) {
+    for (var transaction in TransactionService.instance.transactions) {
+      var sameAccount = targetAccount == transaction.account;
+      if (!sameAccount) {
+        continue;
+      }
+
+      var sameDay = DateUtils.isSameDay(bankTransaction.bookingDateTime, transaction.dateTime);
+      if (!sameDay) {
+        continue;
+      }
+
+      var total = transaction.expenses.fold(zeroEur, (acc, x) => acc + x.signedMoney).amount.toString();
+      var sameMoney = bankTransaction.transactionAmount?.amount == total;
+      if (!sameMoney) {
+        continue;
+      }
+
+      if (sameAccount && sameDay && sameMoney) {
+        return transaction;
+      }
+    }
+
+    return null;
+  }
+
+  DateTime _getDateTime(BankTransaction transaction) {
+    if (transaction.remittanceInformationUnstructured == null) {
+      return transaction.bookingDateTime;
+    }
+
+    var match = _remittanceDateRegex.firstMatch(transaction.remittanceInformationUnstructured!);
+    if (match == null) {
+      return transaction.bookingDateTime;
+    }
+
+    return DateTime(
+      int.parse(match[1]!),
+      int.parse(match[2]!),
+      int.parse(match[3]!),
+    );
+  }
 }
+
+final _remittanceDateRegex = RegExp(r'\W(\d{4})\.(\d{2})\.(\d{2})\W');

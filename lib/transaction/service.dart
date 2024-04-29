@@ -93,6 +93,7 @@ class TransactionService with ChangeNotifier {
     target.dateTime = newValues.dateTime;
     target.expenses = newValues.expenses;
     target.type = newValues.type;
+    target.bankInfo = newValues.bankInfo;
 
     if (previousDateTime != target.dateTime) {
       transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime));

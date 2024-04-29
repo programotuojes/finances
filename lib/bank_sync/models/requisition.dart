@@ -41,8 +41,8 @@ class Requisition {
       'reference': reference,
       'accounts': accounts,
       'link': link,
-      'accountSelection': accountSelection,
-      'redirectImmediate': redirectImmediate,
+      'account_selection': accountSelection,
+      'redirect_immediate': redirectImmediate,
     };
     return jsonEncode(map);
   }

@@ -1,6 +1,12 @@
+import 'package:finances/account/models/account.dart';
+import 'package:finances/account/service.dart';
 import 'package:finances/bank_sync/go_cardless_http_client.dart';
 import 'package:finances/bank_sync/models/bank_transaction.dart';
 import 'package:finances/bank_sync/service.dart';
+import 'package:finances/category/models/category.dart';
+import 'package:finances/category/pages/list.dart';
+import 'package:finances/category/service.dart';
+import 'package:finances/components/category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 
@@ -17,6 +23,10 @@ class _BankTransactionListState extends State<BankTransactionList> {
     booked: [],
     pending: [],
   );
+  var _account = AccountService.instance.lastSelection;
+  var _importing = false;
+  var _remittanceInfoAsDescription = false;
+  var _importCategory = other;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +65,39 @@ class _BankTransactionListState extends State<BankTransactionList> {
           )
         ],
       ),
+      floatingActionButton: Visibility(
+        visible: _index == 0,
+        child: FloatingActionButton.extended(
+          onPressed: () async {
+            var importing = await _setImportOptions();
+            if (importing != true) {
+              return;
+            }
+
+            try {
+              setState(() {
+                _importing = true;
+              });
+              await GoCardlessSerivce.instance.importTransactions(
+                account: _account,
+                remittanceInfoAsDescription: _remittanceInfoAsDescription,
+                defaultCategory: _importCategory,
+              );
+            } finally {
+              setState(() {
+                _importing = false;
+              });
+            }
+          },
+          label: const Text('Import'),
+          icon: _importing
+              ? const Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: CircularProgressIndicator(),
+                )
+              : const Icon(Symbols.download_rounded),
+        ),
+      ),
     );
   }
 
@@ -80,7 +123,7 @@ class _BankTransactionListState extends State<BankTransactionList> {
             _BankTransactionProp('creditorId', tr[index].creditorId),
             _BankTransactionProp('bookingDate', tr[index].bookingDate),
             _BankTransactionProp('valueDate', tr[index].valueDate),
-            _BankTransactionProp('bookingDateTime', tr[index].bookingDateTime),
+            _BankTransactionProp('bookingDateTime', tr[index].bookingDateTime.toString()),
             _BankTransactionProp('valueDateTime', tr[index].valueDateTime),
             _BankTransactionProp(
               'transactionAmount.amount',
@@ -122,8 +165,7 @@ class _BankTransactionListState extends State<BankTransactionList> {
               'remittanceInformationUnstructured',
               tr[index].remittanceInformationUnstructured,
             ),
-            for (var i
-                in tr[index].remittanceInformationUnstructuredArray ?? [])
+            for (var i in tr[index].remittanceInformationUnstructuredArray ?? [])
               _BankTransactionProp('remittanceInformationUnstructuredArray', i),
             _BankTransactionProp(
               'remittanceInformationStructured',
@@ -169,17 +211,108 @@ class _BankTransactionListState extends State<BankTransactionList> {
     }
 
     var result = await GoCardlessHttpClient.getTransactions(accountId);
-    result.match((error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Requisition not found'),
-        ),
-      );
-    }, (transactions) {
-      setState(() {
-        _transactions = transactions;
-      });
-    });
+    result.match(
+      (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Requisition not found'),
+          ),
+        );
+      },
+      (transactions) {
+        setState(() {
+          _transactions = transactions;
+        });
+      },
+    );
+  }
+
+  Future<bool?> _setImportOptions() {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Import options'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownMenu<Account>(
+                expandedInsets: const EdgeInsets.all(0),
+                initialSelection: _account,
+                label: const Text('Account'),
+                onSelected: (selected) {
+                  if (selected == null) {
+                    return;
+                  }
+                  _account = selected;
+                },
+                dropdownMenuEntries: [
+                  for (final x in AccountService.instance.accounts) DropdownMenuEntry(value: x, label: x.name)
+                ],
+              ),
+              StatefulBuilder(
+                builder: (context, setter) {
+                  return SwitchListTile(
+                    title: const Text('Set description'),
+                    subtitle: const Text('Use the remittance info field as the expense description'),
+                    value: _remittanceInfoAsDescription,
+                    onChanged: (value) {
+                      setter(() {
+                        _remittanceInfoAsDescription = value;
+                      });
+                    },
+                  );
+                },
+              ),
+              StatefulBuilder(
+                builder: (context, setter) {
+                  return ListTile(
+                    onTap: () async {
+                      var selectedCategory = await Navigator.push<CategoryModel>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CategoryListPage(CategoryService.instance.root),
+                        ),
+                      );
+
+                      if (selectedCategory == null) {
+                        return;
+                      }
+
+                      CategoryService.instance.lastSelection = selectedCategory;
+                      setter(() {
+                        _importCategory = selectedCategory;
+                      });
+                    },
+                    title: const Text('Default category'),
+                    subtitle: Text(
+                        '"${_importCategory.name}" will be used for expenses that did not match any automation rules'),
+                    trailing: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: CategoryIcon(icon: _importCategory.icon),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: const Text('Import'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 
@@ -195,6 +328,6 @@ class _BankTransactionProp extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return Text('$_name = $_text');
+    return SelectableText('$_name = $_text');
   }
 }

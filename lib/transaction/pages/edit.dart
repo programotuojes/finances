@@ -31,8 +31,7 @@ class EditTransactionPage extends StatefulWidget {
   State<EditTransactionPage> createState() => _EditTransactionPageState();
 }
 
-class _EditTransactionPageState extends State<EditTransactionPage>
-    with SingleTickerProviderStateMixin {
+class _EditTransactionPageState extends State<EditTransactionPage> with SingleTickerProviderStateMixin {
   final transaction = Transaction(
     account: AccountService.instance.lastSelection,
     dateTime: DateTime.now(),
@@ -64,10 +63,10 @@ class _EditTransactionPageState extends State<EditTransactionPage>
     if (isEditing) {
       transaction.account = widget.transaction!.account;
       transaction.dateTime = widget.transaction!.dateTime;
-      transaction.expenses =
-          widget.transaction!.expenses.map((e) => e.copy()).toList();
+      transaction.expenses = widget.transaction!.expenses.map((e) => e.copy()).toList();
       transaction.attachments = widget.transaction!.attachments.toList();
       transaction.type = widget.transaction!.type;
+      transaction.bankInfo = widget.transaction!.bankInfo;
     }
 
     dialogAmountCtrl = TextEditingController();
@@ -109,9 +108,7 @@ class _EditTransactionPageState extends State<EditTransactionPage>
       data: _theme.current(_tabCtrl.index),
       child: Scaffold(
         appBar: AppBar(
-          title: !isEditing
-              ? const Text('New transaction')
-              : const Text('Edit a transaction'),
+          title: !isEditing ? const Text('New transaction') : const Text('Edit a transaction'),
           bottom: TabBar(
             controller: _tabCtrl,
             tabs: const [
@@ -145,8 +142,7 @@ class _EditTransactionPageState extends State<EditTransactionPage>
             AppBarDelete(
               visible: isEditing,
               title: 'Delete this transaction?',
-              description:
-                  'Deleting a transaction also removes all expenses associated with it.',
+              description: 'Deleting a transaction also removes all expenses associated with it.',
               onDelete: () {
                 TransactionService.instance.delete(widget.transaction!);
                 Navigator.of(context).pop();
@@ -172,8 +168,7 @@ class _EditTransactionPageState extends State<EditTransactionPage>
                   });
                 },
                 dropdownMenuEntries: [
-                  for (final x in AccountService.instance.accounts)
-                    DropdownMenuEntry(value: x, label: x.name)
+                  for (final x in AccountService.instance.accounts) DropdownMenuEntry(value: x, label: x.name)
                 ],
               ),
               const SizedBox(height: 16),
@@ -210,8 +205,7 @@ class _EditTransactionPageState extends State<EditTransactionPage>
                       onPressed: () async {
                         var selected = await showTimePicker(
                           context: context,
-                          initialTime:
-                              TimeOfDay.fromDateTime(transaction.dateTime),
+                          initialTime: TimeOfDay.fromDateTime(transaction.dateTime),
                           builder: (context, child) => Theme(
                             data: _theme.current(_tabCtrl.index),
                             child: child!,
@@ -283,9 +277,7 @@ class _EditTransactionPageState extends State<EditTransactionPage>
                       );
                       return;
                     }
-                    var combinedMoney = auto
-                        .map((e) => e.money)
-                        .reduce((total, expense) => total + expense);
+                    var combinedMoney = auto.map((e) => e.money).reduce((total, expense) => total + expense);
 
                     setState(() {
                       transaction.expenses.addAll(auto);
@@ -343,7 +335,7 @@ class _EditTransactionPageState extends State<EditTransactionPage>
                   ),
                 ),
               ),
-              const SizedBox(height: 140),
+              const SizedBox(height: 120),
             ],
           ),
         ),
@@ -402,14 +394,13 @@ class _EditTransactionPageState extends State<EditTransactionPage>
     var lineItems = extractLineItems(attachment.text);
 
     await for (var lineItem in lineItems) {
-      var auto =
-          AutomationService.instance.getAutomationForLineItem(lineItem.text);
+      var category = AutomationService.instance.getCategory(remittanceInfo: lineItem.text);
 
-      if (auto != null) {
+      if (category != null) {
         yield Expense(
           transaction: transaction,
           money: lineItem.money,
-          category: auto.category,
+          category: category,
           description: lineItem.text,
         );
       }
@@ -443,8 +434,7 @@ class _EditTransactionPageState extends State<EditTransactionPage>
           data: _theme.current(_tabCtrl.index),
           child: AlertDialog(
             title: const Text('Delete this transaction?'),
-            content: const Text(
-                'Deleting the last expense will also delete this transaction.'),
+            content: const Text('Deleting the last expense will also delete this transaction.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -510,8 +500,7 @@ class _EditTransactionPageState extends State<EditTransactionPage>
                     final money = mainExpense.money;
                     final moneyToSplit = dialogAmountCtrl.text.toMoney();
 
-                    final isValid =
-                        moneyToSplit != null && moneyToSplit < money;
+                    final isValid = moneyToSplit != null && moneyToSplit < money;
 
                     return TextButton(
                       onPressed: isValid
@@ -577,8 +566,7 @@ class _ExpenseCardState extends State<_ExpenseCard> {
   void initState() {
     super.initState();
     var amount = widget.expense.money.amount;
-    _amountCtrl =
-        TextEditingController(text: amount.isZero ? null : amount.toString());
+    _amountCtrl = TextEditingController(text: amount.isZero ? null : amount.toString());
     _descriptionCtrl = TextEditingController(text: widget.expense.description);
 
     _amountCtrl.addListener(() {
@@ -604,11 +592,7 @@ class _ExpenseCardState extends State<_ExpenseCard> {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.only(
-          top: 8,
-          bottom: 8,
-          right: 8,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -624,16 +608,87 @@ class _ExpenseCardState extends State<_ExpenseCard> {
                 descriptionCtrl: _descriptionCtrl,
               ),
             ),
-            Visibility(
-              visible: widget.onDelete != null,
-              child: IconButton(
-                onPressed: widget.onDelete,
-                icon: const Icon(Symbols.close),
-              ),
+            Column(
+              children: [
+                Visibility(
+                  visible: widget.onDelete != null,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: IconButton(
+                      onPressed: widget.onDelete,
+                      icon: const Icon(Symbols.close),
+                    ),
+                  ),
+                ),
+                Visibility(
+                  visible: widget.expense.transaction.bankInfo != null,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: IconButton(
+                      onPressed: () {
+                        _showBankInfo(context);
+                      },
+                      tooltip: 'Bank info',
+                      icon: const Icon(Symbols.info),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _showBankInfo(BuildContext context) {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Bank info'),
+        content: SingleChildScrollView(
+          child: SelectionArea(
+            child: DataTable(
+              dataRowMinHeight: 50,
+              dataRowMaxHeight: double.infinity,
+              clipBehavior: Clip.hardEdge,
+              headingTextStyle: const TextStyle(fontWeight: FontWeight.w600),
+              horizontalMargin: 0,
+              columns: const [
+                DataColumn(label: Text('Field')),
+                DataColumn(label: Text('Value')),
+              ],
+              rows: [
+                if (widget.expense.transaction.bankInfo?.transactionId != null)
+                  _fieldRow('Transaction ID', widget.expense.transaction.bankInfo!.transactionId),
+                if (widget.expense.transaction.bankInfo?.receiverName != null)
+                  _fieldRow('Receiver name', widget.expense.transaction.bankInfo!.receiverName!),
+                if (widget.expense.transaction.bankInfo?.receiverIban != null)
+                  _fieldRow('Receiver IBAN', widget.expense.transaction.bankInfo!.receiverIban!),
+                if (widget.expense.transaction.bankInfo?.remittanceInfo != null)
+                  _fieldRow('Remittance info', widget.expense.transaction.bankInfo!.remittanceInfo!),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  DataRow _fieldRow(String name, String value) {
+    return DataRow(
+      cells: [
+        DataCell(Text(name)),
+        DataCell(Text(value)),
+      ],
     );
   }
 }
@@ -706,8 +761,7 @@ class __CategoryListTileState extends State<_CategoryListTile> {
         var selectedCategory = await Navigator.push<CategoryModel>(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                CategoryListPage(CategoryService.instance.root),
+            builder: (context) => CategoryListPage(CategoryService.instance.root),
           ),
         );
 
@@ -721,9 +775,7 @@ class __CategoryListTileState extends State<_CategoryListTile> {
           category = selectedCategory;
         });
       },
-      contentPadding: widget.morePadding
-          ? const EdgeInsets.symmetric(horizontal: 24)
-          : null,
+      contentPadding: widget.morePadding ? const EdgeInsets.symmetric(horizontal: 24) : null,
       leading: CategoryIcon(icon: category.icon),
       title: Text(category.name),
     );
@@ -749,8 +801,7 @@ class _TextFieldListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       minVerticalPadding: 0,
-      contentPadding:
-          morePadding ? const EdgeInsets.symmetric(horizontal: 24) : null,
+      contentPadding: morePadding ? const EdgeInsets.symmetric(horizontal: 24) : null,
       leading: SizedBox(
         width: 40,
         height: 40,
@@ -758,8 +809,7 @@ class _TextFieldListTile extends StatelessWidget {
       ),
       title: TextField(
         controller: controller,
-        keyboardType:
-            money ? const TextInputType.numberWithOptions(decimal: true) : null,
+        keyboardType: money ? const TextInputType.numberWithOptions(decimal: true) : null,
         textCapitalization: TextCapitalization.sentences,
         inputFormatters: money ? amountFormatter : null,
         decoration: InputDecoration(
