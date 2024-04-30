@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:finances/bank_sync/go_cardless_http_client.dart';
+import 'package:finances/main.dart';
 import 'package:finances/utils/shared_prefs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +29,7 @@ class GoCardlessToken {
 
   Future<String> get accessToken async {
     if (_now.isAfter(_accessExpires)) {
-      print('Access token expired. Refreshing');
+      logger.i('Refreshing an expired assess token');
       await _refreshToken();
     }
 
@@ -113,6 +114,7 @@ class GoCardlessToken {
         _ => GoCardlessError.fromJson(json),
       };
       this.error.value = error;
+      logger.e('Failed to get a new token', error: error);
       throw error;
     }
 
@@ -126,7 +128,7 @@ class GoCardlessToken {
 
   Future<void> _refreshToken() async {
     if (_now.isAfter(_refreshExpires)) {
-      print('Refresh token expired. Requesting a new one');
+      logger.i('Regenerating an expired refresh token');
       await _getNewToken();
       return;
     }
@@ -157,6 +159,7 @@ class GoCardlessToken {
         _ => GoCardlessError.fromJson(json),
       };
       this.error.value = error;
+      logger.e('Failed to refresh access token', error: error);
       throw error;
     }
 

@@ -12,6 +12,7 @@ import 'package:finances/bank_sync/models/institution.dart';
 import 'package:finances/bank_sync/models/requisition.dart';
 import 'package:finances/category/models/category.dart';
 import 'package:finances/extensions/money.dart';
+import 'package:finances/main.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/service.dart';
@@ -33,7 +34,7 @@ final sandboxFinance = Institution(
 
 final _goCardressUri = Uri.https('bankaccountdata.gocardless.com');
 
-// TODO disable auto backups of these sharedprefs in Android
+// TODO disable auto backups of these shared preferences in Android
 // https://github.com/mogol/flutter_secure_storage/issues/43#issuecomment-674412687
 // And in higher Android versions https://github.com/mogol/flutter_secure_storage/issues/43#issuecomment-1326487020
 class GoCardlessSerivce with ChangeNotifier {
@@ -58,7 +59,6 @@ class GoCardlessSerivce with ChangeNotifier {
 
   Future<void> createEndUserAgreement() async {
     if (institution == null) {
-      print('Select the institution first');
       return;
     }
 
@@ -78,8 +78,6 @@ class GoCardlessSerivce with ChangeNotifier {
       }),
     );
     if (response.statusCode != 201) {
-      print('Failed to create end user agreement');
-      print(response.body);
       return;
     }
     var json = jsonDecode(response.body) as Map<String, dynamic>;
@@ -127,8 +125,8 @@ class GoCardlessSerivce with ChangeNotifier {
     var result = await GoCardlessHttpClient.deleteRequisition(requisition!.id);
     await result.match(
       (error) {
-        // TODO handle error
-        print('Failed to delete requisition - ${error.detail}');
+        // TODO notify the user
+        logger.e('Failed to delete requisition', error: error);
       },
       (result) async {
         requisition = null;
@@ -187,23 +185,20 @@ class GoCardlessSerivce with ChangeNotifier {
 
   Future<void> getRequisition() async {
     if (institution == null) {
-      print('institution is null');
       return;
     }
     if (endUserAgreement == null) {
-      print('endUserAgreement is null');
       return;
     }
     if (requisition == null) {
-      print('requisition is null');
       return;
     }
 
     var result = await GoCardlessHttpClient.getRequisition(requisition!.id);
     await result.match(
       (error) {
-        // TODO handle error
-        print('Error while gettting requisition - ${error.detail}');
+        // TODO notify the user
+        logger.e('Failed to get requisition', error: error);
       },
       (requisition) async {
         this.requisition = requisition;
@@ -231,15 +226,16 @@ class GoCardlessSerivce with ChangeNotifier {
 
   Future<void> linkWithBank() async {
     var server = await HttpServer.bind('127.0.0.1', 0);
-    print('Listening on port ${server.port}');
+    logger.i('HTTP server listening on port ${server.port}');
 
     try {
       await createRequisition('http://127.0.0.1:${server.port}');
       await launchUrlString(requisition!.link);
 
-      await for (var request in server) {
-        request.response.headers.add('Content-Type', 'text/html');
-        request.response.write('''
+      var request = await server.first;
+      request.response.headers.add('Content-Type', 'text/html');
+      // TODO browsers forbid scripts from closing the tab when there are history items
+      request.response.write('''
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -253,13 +249,12 @@ class GoCardlessSerivce with ChangeNotifier {
   </body>
 </html>
         ''');
-        await request.response.flush();
-        await request.response.close();
-        await server.close();
-      }
+      await request.response.flush();
+      await request.response.close();
+
       await getRequisition();
     } finally {
-      print('Closing server');
+      logger.i('Closing HTTP server');
       await server.close();
     }
   }
@@ -271,19 +266,19 @@ class GoCardlessSerivce with ChangeNotifier {
   }) async {
     var accountId = requisition?.accounts.first;
     if (accountId == null) {
-      print('No account');
       return;
     }
 
     var transactions = await GoCardlessHttpClient.getTransactions(accountId);
     transactions.match((error) {
-      print('Failed to get transactions - ${error.detail}');
+      // TODO notify the user
+      logger.e('Failed to get transactions', error: error);
     }, (list) {
       for (var bankTr in list.booked) {
         var amount = bankTr.transactionAmount!.amount;
         var money = amount!.replaceFirst('-', '').toMoney();
         if (money == null) {
-          print('Failed to parse amount for ${bankTr.transactionId}');
+          logger.e('Failed to parse amount ($amount) for transaction ${bankTr.transactionId}');
           continue;
         }
 

@@ -142,7 +142,6 @@ class BankTransactionAmount {
       );
     }
 
-    print('! Failed to parse transaction amount');
     return null;
   }
 
@@ -196,7 +195,6 @@ class CurrencyExchange {
       );
     }
 
-    print('! Failed to parse currency exchange');
     return null;
   }
 

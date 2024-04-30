@@ -117,4 +117,9 @@ class GoCardlessError {
       detail: json['detail'],
     );
   }
+
+  @override
+  String toString() {
+    return '$summary\n$detail';
+  }
 }

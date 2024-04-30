@@ -56,7 +56,6 @@ class EndUserAgreement {
       );
     }
 
-    print('Failed to parse end user agreement: $json');
     return null;
   }
 

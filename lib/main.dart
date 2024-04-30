@@ -2,6 +2,14 @@ import 'package:finances/bank_sync/models/go_cardless_token.dart';
 import 'package:finances/bank_sync/service.dart';
 import 'package:finances/pages/home_page.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
+
+final logger = Logger(
+  printer: PrettyPrinter(
+    colors: false,
+    printTime: true,
+  ),
+);
 
 Future<void> main() async {
   runApp(const MainApp());

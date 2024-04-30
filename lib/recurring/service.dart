@@ -1,6 +1,7 @@
 import 'package:finances/account/service.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/extensions/money.dart';
+import 'package:finances/main.dart';
 import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
@@ -44,7 +45,7 @@ final _r4 = RecurringModel(
   account: swedbank,
   category: entertainment,
   money: '10'.toMoney()!,
-  description: 'Netfilx',
+  description: 'Netflix',
   periodicity: Periodicity.month,
   interval: 1,
   from: DateTime.now().subtract(const Duration(days: 10)),
@@ -61,8 +62,7 @@ class RecurringService with ChangeNotifier {
     _sort();
   }
 
-  Iterable<RecurringModel> get activeTransactions =>
-      transactions.where((x) => x.nextDate(DateTime.now()) != null);
+  Iterable<RecurringModel> get activeTransactions => transactions.where((x) => x.nextDate(DateTime.now()) != null);
 
   void add(RecurringModel model) {
     transactions.add(model);
@@ -74,7 +74,7 @@ class RecurringService with ChangeNotifier {
     final nextDate = model.nextDate(DateTime.now());
 
     if (nextDate == null) {
-      print('Tried to confirm an already ended recurring transaction');
+      logger.w('Tried to confirm an already ended recurring transaction');
       return;
     }
 

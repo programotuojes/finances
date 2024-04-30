@@ -41,7 +41,6 @@ class Institution {
       );
     }
 
-    print('Failed to parse institution');
     return null;
   }
 

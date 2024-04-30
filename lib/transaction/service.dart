@@ -104,7 +104,6 @@ class TransactionService with ChangeNotifier {
 
   Stream<File> moveAttachmentsFromCache(List<File> attachments) async* {
     final appDir = await getApplicationDocumentsDirectory();
-    print('App data dir = ${appDir.path}');
     final attachmentsDir = await Directory(
       '${appDir.path}/attachments',
     ).create();

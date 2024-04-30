@@ -19,8 +19,7 @@ class RecurringTransactionCard extends StatelessWidget {
         builder: (context, child) {
           return Column(
             children: [
-              for (final i in RecurringService.instance.activeTransactions)
-                _RecurringListItem(recurringModel: i),
+              for (final i in RecurringService.instance.activeTransactions) _RecurringListItem(recurringModel: i),
             ],
           );
         },
@@ -45,8 +44,7 @@ class _RecurringListItem extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(recurringModel.money.toString()),
-          if (recurringModel.description != null)
-            Text(recurringModel.description!),
+          if (recurringModel.description != null) Text(recurringModel.description!),
         ],
       ),
       contentPadding: const EdgeInsets.only(
@@ -92,16 +90,12 @@ class _NextTransactionDate extends StatelessWidget {
     final now = DateUtils.dateOnly(DateTime.now());
     final nextDate = recurringModel.nextDate(now);
 
-    if (nextDate == null) {
-      final name = recurringModel.category.name;
-      print('Recurring for $name has ended, but was displayed in the list');
-      return const Text('Ended');
-    }
+    assert(nextDate != null, 'Recurring transaction has ended, but was displayed in the list');
 
     String durationText;
     Color? color;
 
-    if (now.isAfter(nextDate)) {
+    if (now.isAfter(nextDate!)) {
       final duration = DateTimeRange(start: nextDate, end: now).duration.inDays;
       final days = duration != 1 ? 'days' : 'day';
       durationText = '$duration $days ago';

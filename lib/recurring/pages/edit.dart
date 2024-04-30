@@ -25,8 +25,7 @@ class RecurringEditPage extends StatefulWidget {
   State<RecurringEditPage> createState() => _RecurringEditPageState();
 }
 
-class _RecurringEditPageState extends State<RecurringEditPage>
-    with SingleTickerProviderStateMixin {
+class _RecurringEditPageState extends State<RecurringEditPage> with SingleTickerProviderStateMixin {
   final tempModel = RecurringModel(
     account: AccountService.instance.lastSelection,
     category: CategoryService.instance.lastSelection,
@@ -101,8 +100,7 @@ class _RecurringEditPageState extends State<RecurringEditPage>
   @override
   Widget build(BuildContext context) {
     final dateFromString = tempModel.from.toIso8601String().substring(0, 10);
-    final dateUntilString =
-        (tempModel.until ?? DateTime.now()).toIso8601String().substring(0, 10);
+    final dateUntilString = (tempModel.until ?? DateTime.now()).toIso8601String().substring(0, 10);
 
     return AnimatedTheme(
       data: _theme.current(_tabCtrl.index),
@@ -154,8 +152,7 @@ class _RecurringEditPageState extends State<RecurringEditPage>
                   });
                 },
                 dropdownMenuEntries: [
-                  for (final x in AccountService.instance.accounts)
-                    DropdownMenuEntry(value: x, label: x.name)
+                  for (final x in AccountService.instance.accounts) DropdownMenuEntry(value: x, label: x.name)
                 ],
               ),
               const SizedBox(height: 16),
@@ -220,8 +217,7 @@ class _RecurringEditPageState extends State<RecurringEditPage>
                   var selection = await Navigator.push<CategoryModel>(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          CategoryListPage(CategoryService.instance.root),
+                      builder: (context) => CategoryListPage(CategoryService.instance.root),
                     ),
                   );
                   if (selection == null) {
@@ -259,10 +255,7 @@ class _RecurringEditPageState extends State<RecurringEditPage>
                     tempModel.periodicity = selected;
                   });
                 },
-                dropdownMenuEntries: [
-                  for (final x in Periodicity.values)
-                    DropdownMenuEntry(value: x, label: x.toLy())
-                ],
+                dropdownMenuEntries: [for (final x in Periodicity.values) DropdownMenuEntry(value: x, label: x.toLy())],
               ),
               const SizedBox(height: 16),
               TextField(
@@ -289,19 +282,12 @@ class _RecurringEditPageState extends State<RecurringEditPage>
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            final money = amountCtrl.text.toMoney();
-            if (money == null) {
-              print('Invalid amount (${amountCtrl.text})');
-              return;
-            }
+            var money = amountCtrl.text.toMoney();
+            assert(money != null, 'Should have been checked with the amountFormatter');
 
-            final interval = int.tryParse(intervalCtrl.text);
-            if (interval == null) {
-              print('Invalid interval (${intervalCtrl.text})');
-              return;
-            }
+            var interval = int.parse(intervalCtrl.text);
 
-            tempModel.money = money;
+            tempModel.money = money!;
             tempModel.interval = interval;
             tempModel.description = descriptionCtrl.text;
 
