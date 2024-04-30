@@ -424,8 +424,8 @@ class _BankCard extends StatelessWidget {
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () {
-                      GoCardlessSerivce.instance.institution = institution;
+                    onTap: () async {
+                      await GoCardlessSerivce.instance.setInstitution(institution);
                       onTap();
                     },
                   ),

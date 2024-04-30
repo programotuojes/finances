@@ -1,16 +1,12 @@
 import 'dart:convert';
-import 'dart:ui';
 
 class Institution {
   String id;
   String name;
   String? bic;
-  int? transactionDays;
+  int transactionDays;
   List<String> countries;
   String logo;
-
-  Color? backgroundColor;
-  Color? textColor;
 
   Institution({
     required this.id,
@@ -18,7 +14,7 @@ class Institution {
     required this.countries,
     required this.logo,
     this.bic,
-    this.transactionDays,
+    required this.transactionDays,
   });
 
   static Institution? fromJson(Map<String, dynamic> json) {
@@ -27,7 +23,7 @@ class Institution {
           'id': String id,
           'name': String name,
           'bic': String? bic,
-          'transaction_total_days': String? days,
+          'transaction_total_days': String days,
           'countries': List<dynamic> countries,
           'logo': String logo,
         }) {
@@ -37,11 +33,24 @@ class Institution {
         countries: countries.cast<String>(),
         logo: logo,
         bic: bic,
-        transactionDays: int.tryParse(days ?? ''),
+        transactionDays: int.parse(days),
       );
     }
 
     return null;
+  }
+
+  String toJson() {
+    var map = {
+      'id': id,
+      'name': name,
+      'bic': bic,
+      'transaction_total_days': transactionDays.toString(),
+      'countries': countries,
+      'logo': logo,
+    };
+
+    return jsonEncode(map);
   }
 
   static Institution? fromString(String? json) {

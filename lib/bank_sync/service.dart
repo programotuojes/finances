@@ -17,9 +17,9 @@ import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/money.dart';
-import 'package:finances/utils/shared_prefs.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 const _endUserAgreementKey = 'endUserAgreement';
@@ -30,6 +30,7 @@ final sandboxFinance = Institution(
   name: 'Sandbox Finance (test)',
   countries: ['lt'],
   logo: 'https://cdn-icons-png.flaticon.com/512/8943/8943102.png',
+  transactionDays: 90,
 );
 
 final _goCardressUri = Uri.https('bankaccountdata.gocardless.com');
@@ -52,8 +53,10 @@ class GoCardlessSerivce with ChangeNotifier {
 
   Institution? get institution => _institution;
 
-  set institution(Institution? value) {
-    _institution = value;
+  Future<void> setInstitution(Institution bank) async {
+    _institution = bank;
+    var storage = await SharedPreferences.getInstance();
+    await storage.setString(_institutionKey, bank.toJson());
     notifyListeners();
   }
 
@@ -72,8 +75,7 @@ class GoCardlessSerivce with ChangeNotifier {
       },
       body: jsonEncode({
         'institution_id': institution!.id,
-        'max_historical_days': 90,
-        // 'max_historical_days': institution!.transactionDays.toString(),
+        'max_historical_days': institution!.transactionDays.toString(),
         'access_valid_for_days': 180,
       }),
     );
@@ -82,7 +84,10 @@ class GoCardlessSerivce with ChangeNotifier {
     }
     var json = jsonDecode(response.body) as Map<String, dynamic>;
     endUserAgreement = EndUserAgreement.fromJson(json);
-    await secureStorage.write(key: _endUserAgreementKey, value: response.body);
+
+    var storage = await SharedPreferences.getInstance();
+    await storage.setString(_endUserAgreementKey, response.body);
+
     notifyListeners();
   }
 
@@ -113,7 +118,8 @@ class GoCardlessSerivce with ChangeNotifier {
     }
 
     requisition = Requisition.fromJson(json);
-    await secureStorage.write(key: _requisitionKey, value: response.body);
+    var storage = await SharedPreferences.getInstance();
+    await storage.setString(_requisitionKey, response.body);
     notifyListeners();
   }
 
@@ -131,8 +137,9 @@ class GoCardlessSerivce with ChangeNotifier {
       (result) async {
         requisition = null;
         endUserAgreement = null;
-        await secureStorage.delete(key: _requisitionKey);
-        await secureStorage.delete(key: _endUserAgreementKey);
+        var storage = await SharedPreferences.getInstance();
+        await storage.remove(_requisitionKey);
+        await storage.remove(_endUserAgreementKey);
         notifyListeners();
       },
     );
@@ -173,6 +180,7 @@ class GoCardlessSerivce with ChangeNotifier {
         _ => GoCardlessError.fromJson(json),
       };
       bankError.value = error;
+      logger.e('Failed to get banks', error: error);
       throw error;
     }
 
@@ -202,25 +210,20 @@ class GoCardlessSerivce with ChangeNotifier {
       },
       (requisition) async {
         this.requisition = requisition;
-        await secureStorage.write(
-          key: _requisitionKey,
-          value: requisition.toJson(),
-        );
+        var storage = await SharedPreferences.getInstance();
+        await storage.setString(_requisitionKey, requisition.toJson());
         notifyListeners();
       },
     );
   }
 
   Future<void> initialize() async {
-    _institution = Institution.fromString(
-      await secureStorage.read(key: _institutionKey),
-    );
-    endUserAgreement = EndUserAgreement.fromString(
-      await secureStorage.read(key: _endUserAgreementKey),
-    );
-    requisition = Requisition.fromString(
-      await secureStorage.read(key: _requisitionKey),
-    );
+    var storage = await SharedPreferences.getInstance();
+
+    _institution = Institution.fromString(storage.getString(_institutionKey));
+    endUserAgreement = EndUserAgreement.fromString(storage.getString(_endUserAgreementKey));
+    requisition = Requisition.fromString(storage.getString(_requisitionKey));
+
     notifyListeners();
   }
 

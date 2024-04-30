@@ -7,6 +7,7 @@ import 'package:finances/utils/shared_prefs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 final _missingSecretsError = GoCardlessError(
   summary: 'Missing secrets',
@@ -61,14 +62,14 @@ class GoCardlessToken {
       _refresh = refreshToken;
     }
 
-    var s = await storage;
+    var storage = await SharedPreferences.getInstance();
 
-    var accessMs = s.getInt(StorageKeys.accessTimestamp);
+    var accessMs = storage.getInt(StorageKeys.accessTimestamp);
     if (accessMs != null) {
       _accessExpires = DateTime.fromMillisecondsSinceEpoch(accessMs);
     }
 
-    var refreshMs = s.getInt(StorageKeys.refreshTimestamp);
+    var refreshMs = storage.getInt(StorageKeys.refreshTimestamp);
     if (refreshMs != null) {
       _refreshExpires = DateTime.fromMillisecondsSinceEpoch(refreshMs);
     }
@@ -173,13 +174,13 @@ class GoCardlessToken {
     await secureStorage.write(key: StorageKeys.accessToken, value: _access);
     await secureStorage.write(key: StorageKeys.refreshToken, value: _refresh);
 
-    var s = await storage;
+    var storage = await SharedPreferences.getInstance();
 
-    await s.setInt(
+    await storage.setInt(
       StorageKeys.accessTimestamp,
       _accessExpires.millisecondsSinceEpoch,
     );
-    await s.setInt(
+    await storage.setInt(
       StorageKeys.refreshTimestamp,
       _refreshExpires.millisecondsSinceEpoch,
     );
