@@ -1,6 +1,7 @@
 import 'package:finances/account/pages/list.dart';
 import 'package:finances/automation/pages/list.dart';
 import 'package:finances/bank_sync/pages/bank_setup.dart';
+import 'package:finances/bank_sync/pages/settings.dart';
 import 'package:finances/bank_sync/pages/transaction_list.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
@@ -15,7 +16,6 @@ import 'package:finances/transaction/pages/edit.dart';
 import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/transaction_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -144,8 +144,8 @@ class _HomePageState extends State<HomePage> {
               dense: true,
             ),
             ListTile(
-              leading: const Icon(Symbols.settings_rounded),
-              title: const Text('Setup'),
+              leading: const Icon(Icons.admin_panel_settings_rounded),
+              title: const Text('Secrets'),
               onTap: () {
                 Navigator.push(
                   context,
@@ -156,13 +156,25 @@ class _HomePageState extends State<HomePage> {
               },
             ),
             ListTile(
-              leading: const Icon(Symbols.contract_rounded),
+              leading: const Icon(Icons.receipt_long_rounded),
               title: const Text('Transactions'),
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const BankTransactionList(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const BankSyncSettings(),
                   ),
                 );
               },
@@ -212,8 +224,7 @@ class _HomePageState extends State<HomePage> {
                           WidgetSpan(
                             child: Icon(
                               _amountSymbol(expense.transaction.type),
-                              color:
-                                  _textStyle(expense.transaction.type)?.color,
+                              color: _textStyle(expense.transaction.type)?.color,
                             ),
                             alignment: PlaceholderAlignment.middle,
                           ),
@@ -227,9 +238,7 @@ class _HomePageState extends State<HomePage> {
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(expense.transaction.dateTime
-                        .toString()
-                        .substring(0, 16)),
+                    Text(expense.transaction.dateTime.toString().substring(0, 16)),
                     if (expense.description != null) Text(expense.description!),
                   ],
                 ),

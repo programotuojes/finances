@@ -8,10 +8,12 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:money2/money2.dart';
 
 final _account = Account(
+  id: 0,
   name: 'Swedbank',
   initialMoney: Money.fromInt(100000, code: 'EUR'),
 );
 final _category = CategoryModel(
+  id: 0,
   name: 'Food',
   icon: Symbols.restaurant,
 );

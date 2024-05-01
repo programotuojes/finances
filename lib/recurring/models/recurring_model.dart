@@ -12,6 +12,17 @@ enum Periodicity {
   year,
 }
 
+extension LyNaming on Periodicity {
+  String toLy() {
+    return switch (this) {
+      Periodicity.day => 'Daily',
+      Periodicity.week => 'Weekly',
+      Periodicity.month => 'Monthly',
+      Periodicity.year => 'Yearly',
+    };
+  }
+}
+
 class RecurringModel {
   Account account;
   CategoryModel category;
@@ -66,7 +77,7 @@ class RecurringModel {
   }
 
   Iterable<DateTime> get transactionDates sync* {
-    var point = from;
+    DateTime point = from;
 
     do {
       yield point;

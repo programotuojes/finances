@@ -1,6 +1,6 @@
 import 'package:finances/bank_sync/models/go_cardless_token.dart';
 import 'package:finances/bank_sync/models/institution.dart';
-import 'package:finances/bank_sync/service.dart';
+import 'package:finances/bank_sync/services/go_cardless_service.dart';
 import 'package:finances/components/go_cardless_error_container.dart';
 import 'package:finances/components/hidden_text_field.dart';
 import 'package:flutter/material.dart';

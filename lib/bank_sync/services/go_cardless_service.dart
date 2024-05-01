@@ -218,6 +218,8 @@ class GoCardlessSerivce with ChangeNotifier {
   }
 
   Future<void> initialize() async {
+    await GoCardlessToken.instance.initialize();
+
     var storage = await SharedPreferences.getInstance();
 
     _institution = Institution.fromString(storage.getString(_institutionKey));

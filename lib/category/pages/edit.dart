@@ -1,4 +1,5 @@
 import 'package:finances/category/models/category.dart';
+import 'package:finances/category/service.dart';
 import 'package:finances/components/category_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -43,9 +44,13 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
 
   void addCategory() {
     setState(() {
-      widget.category.addChild(
-        newChildTextCtrl.text,
-        Symbols.attach_money, // TODO allow selecting the icon
+      CategoryService.instance.addChild(
+        widget.category,
+        CategoryModel(
+          id: 0,
+          name: newChildTextCtrl.text,
+          icon: Symbols.attach_money, // TODO allow selecting the icon
+        ),
       );
       newChildTextCtrl.clear();
     });
@@ -140,7 +145,7 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
                     return;
                   }
 
-                  widget.category.update(nameTextCtrl.text);
+                  CategoryService.instance.update(widget.category, nameTextCtrl.text);
                 },
               ),
       ),

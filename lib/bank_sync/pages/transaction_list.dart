@@ -2,7 +2,7 @@ import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/bank_sync/go_cardless_http_client.dart';
 import 'package:finances/bank_sync/models/bank_transaction.dart';
-import 'package:finances/bank_sync/service.dart';
+import 'package:finances/bank_sync/services/go_cardless_service.dart';
 import 'package:finances/category/models/category.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
