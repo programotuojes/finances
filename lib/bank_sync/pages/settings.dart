@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:workmanager/workmanager.dart';
 
 const _uniqueTaskName = backgroundBankSyncTaskName;
-const backgroundBankSyncTaskName = 'backgroundBankSyncTaskName';
+const backgroundBankSyncTaskName = 'bank sync';
 
 class BankSyncSettings extends StatefulWidget {
   const BankSyncSettings({super.key});

@@ -156,6 +156,8 @@ class _ThumbState extends State<Thumb> {
 
   @override
   Widget build(BuildContext context) {
+    var brightness = Theme.of(context).brightness;
+
     return Stack(
       alignment: Alignment.bottomLeft,
       children: [
@@ -202,7 +204,7 @@ class _ThumbState extends State<Thumb> {
                 visible: _processing,
                 child: Positioned.fill(
                   child: Container(
-                    color: Colors.black.withOpacity(0.4),
+                    color: brightness == Brightness.dark ? Colors.black38 : Colors.white38,
                     child: const Center(
                       child: CircularProgressIndicator(),
                     ),
@@ -213,12 +215,12 @@ class _ThumbState extends State<Thumb> {
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: widget.onTap,
-                    onLongPress: () {
+                    onTap: !_processing ? widget.onTap : null,
+                    onLongPress: !_processing ? () {
                       _menuController.open();
-                    },
-                    onTapDown: _handleTapDown,
-                    onSecondaryTapDown: _handleSecondaryTapDown,
+                    } : null,
+                    onTapDown: _processing ? _handleTapDown : null,
+                    onSecondaryTapDown: _processing ? _handleSecondaryTapDown : null,
                     child: MenuAnchor(
                       controller: _menuController,
                       menuChildren: [
@@ -240,8 +242,7 @@ class _ThumbState extends State<Thumb> {
                                         setState(() {
                                           _processing = true;
                                         });
-                                        var extracted = await extractText(
-                                            widget.attachment);
+                                        var extracted = await extractTextMlKit(widget.attachment);
                                         widget.attachment.text = extracted;
                                       } finally {
                                         setState(() {
@@ -267,8 +268,7 @@ class _ThumbState extends State<Thumb> {
                                       setState(() {
                                         _processing = true;
                                       });
-                                      var extracted =
-                                          await extractText(widget.attachment);
+                                      var extracted = await extractTextMlKit(widget.attachment);
                                       widget.attachment.text = extracted;
                                     } finally {
                                       setState(() {

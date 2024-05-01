@@ -1,3 +1,4 @@
+import 'package:finances/automation/service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_view/photo_view.dart';
@@ -16,6 +17,8 @@ class ImageViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var screenSize = MediaQuery.of(context).size;
+
     return AnnotatedRegion(
       value: const SystemUiOverlayStyle(
         statusBarColor: _background,
@@ -46,9 +49,31 @@ class ImageViewer extends StatelessWidget {
                 ),
               ),
             ),
+            for (var i in boundingBoxes)
+              Positioned.fromRect(
+                rect: i.scale(screenSize.width / 550),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.red.withOpacity(0.8),
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
     );
+  }
+}
+
+extension RectExtension on Rect {
+  Rect scale(double scale) {
+    double left = this.left * scale;
+    double top = this.top * scale;
+    double right = this.right * scale;
+    double bottom = this.bottom * scale;
+    return Rect.fromLTRB(left, top, right, bottom);
   }
 }

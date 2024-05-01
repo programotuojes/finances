@@ -271,6 +271,7 @@ class GoCardlessSerivce with ChangeNotifier {
   }) async {
     var accountId = requisition?.accounts.first;
     if (accountId == null) {
+      logger.w('Requisition is null or it does not have accounts');
       return;
     }
 
