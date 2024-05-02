@@ -29,6 +29,7 @@ dependencies:
   google_mlkit_text_recognition: ^0.13.0
   path: ^1.9.0
   fc_native_image_resize: ^0.7.0
+  grouped_list: ^5.1.2
 
 dev_dependencies:
   flutter_test:

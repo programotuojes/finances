@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:finances/account/pages/list.dart';
 import 'package:finances/automation/pages/list.dart';
 import 'package:finances/bank_sync/pages/bank_setup.dart';
@@ -10,12 +11,16 @@ import 'package:finances/components/balance_graph_card.dart';
 import 'package:finances/components/category_icon.dart';
 import 'package:finances/components/common_values.dart';
 import 'package:finances/components/recurring_transaction_card.dart';
+import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/recurring/pages/list.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/pages/edit.dart';
 import 'package:finances/transaction/service.dart';
+import 'package:finances/utils/money.dart';
 import 'package:finances/utils/transaction_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:grouped_list/sliver_grouped_list.dart';
+import 'package:money2/money2.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -26,6 +31,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final _searchCtrl = TextEditingController();
+  var _periodicity = Periodicity.week;
   var index = 0;
   late TextStyle? _incomeStyle;
   late TextStyle? _expenseStyle;
@@ -51,6 +57,19 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Finances'),
+        actions: [
+          Builder(
+            builder: (context) {
+              return IconButton(
+                onPressed: () {
+                  Scaffold.of(context).openEndDrawer();
+                },
+                tooltip: 'Open grouping options',
+                icon: const Icon(Icons.filter_list_rounded),
+              );
+            },
+          ),
+        ],
       ),
       body: [
         home(),
@@ -189,6 +208,57 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+      endDrawer: Drawer(
+        width: 400,
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(
+                  'Options',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              const Text('Group by'),
+              const SizedBox(height: 8),
+              SegmentedButton(
+                style: const ButtonStyle(
+                  visualDensity: VisualDensity(horizontal: -3, vertical: -3),
+                ),
+                segments: const [
+                  ButtonSegment(
+                    value: Periodicity.day,
+                    label: Text('Day'),
+                    icon: Icon(Icons.calendar_view_day),
+                  ),
+                  ButtonSegment(
+                    value: Periodicity.week,
+                    label: Text('Week'),
+                    icon: Icon(Icons.calendar_view_week),
+                  ),
+                  ButtonSegment(
+                    value: Periodicity.month,
+                    label: Text('Month'),
+                    icon: Icon(Icons.calendar_view_month),
+                  ),
+                  ButtonSegment(
+                    value: Periodicity.year,
+                    label: Text('Year'),
+                    icon: Icon(Icons.calendar_today),
+                  ),
+                ],
+                selected: {_periodicity},
+                onSelectionChanged: (newSelection) {
+                  setState(() {
+                    _periodicity = newSelection.first;
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -219,6 +289,11 @@ class _HomePageState extends State<HomePage> {
                 expense.transaction.attachments.any((attachment) => attachment.text?.contains(regex) == true))
             .toList();
 
+        var moneyPerPeriod = expenses.groupFoldBy<String, Money>(
+          (expense) => expense.groupingKey(_periodicity),
+          (acc, expense) => (acc ?? zeroEur) + expense.signedMoney,
+        );
+
         return CustomScrollView(
           slivers: [
             SliverPersistentHeader(
@@ -234,12 +309,34 @@ class _HomePageState extends State<HomePage> {
                 child: Center(child: Text('No expenses found')),
               ),
             ),
-            SliverList.builder(
-              itemCount: expenses.length,
-              itemBuilder: (context, index) {
-                var expense = expenses[index];
+            SliverGroupedListView(
+              elements: expenses,
+              order: GroupedListOrder.DESC,
+              itemComparator: (a, b) => a.transaction.dateTime.compareTo(b.transaction.dateTime),
+              groupBy: (expense) => expense.groupingKey(_periodicity),
+              groupSeparatorBuilder: (format) {
+                return Container(
+                  color: Theme.of(context).colorScheme.surfaceVariant,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: DefaultTextStyle.merge(
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(format),
+                          Text(moneyPerPeriod[format].toString()),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+              itemBuilder: (context, expense) {
                 return Padding(
-                  padding: EdgeInsets.only(bottom: expenses.length - 1 == index ? 88 : 0),
+                  padding: EdgeInsets.only(bottom: expenses.last == expense ? 88 : 0),
                   child: ListTile(
                     title: Text(expense.category.name),
                     leading: Padding(
@@ -318,7 +415,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-const _searchPadding = 8.0;
+const _searchPadding = 16.0;
 
 class _SliverSearch extends SliverPersistentHeaderDelegate {
   final TextEditingController textController;
