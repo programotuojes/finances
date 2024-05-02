@@ -25,10 +25,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final _searchCtrl = TextEditingController();
   var index = 0;
   late TextStyle? _incomeStyle;
   late TextStyle? _expenseStyle;
   late TextStyle? _transferStyle;
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -192,9 +199,9 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AccountsCard(),
-          RecurringTransactionCard(),
           BalanceGraphCard(),
-          SizedBox(height: 56 + 16),
+          RecurringTransactionCard(),
+          SizedBox(height: 88),
         ],
       ),
     );
@@ -202,57 +209,92 @@ class _HomePageState extends State<HomePage> {
 
   Widget history() {
     return ListenableBuilder(
-      listenable: TransactionService.instance,
-      builder: (context, _) {
-        if (TransactionService.instance.transactions.isEmpty) {
-          return const Center(child: Text('There are no transactions'));
-        }
-        return ListView(
-          children: [
-            for (var expense in TransactionService.instance.expenses)
-              ListTile(
-                title: Text(expense.category.name),
-                leading: CategoryIcon(icon: expense.category.icon),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text.rich(
-                      style: _textStyle(expense.transaction.type),
-                      TextSpan(
-                        children: [
-                          WidgetSpan(
-                            child: Icon(
-                              _amountSymbol(expense.transaction.type),
-                              color: _textStyle(expense.transaction.type)?.color,
-                            ),
-                            alignment: PlaceholderAlignment.middle,
-                          ),
-                          TextSpan(text: expense.money.toString()),
-                        ],
-                      ),
-                    ),
-                    Text(expense.transaction.account.name),
-                  ],
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(expense.transaction.dateTime.toString().substring(0, 16)),
-                    if (expense.description != null) Text(expense.description!),
-                  ],
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditTransactionPage(
-                        transaction: expense.transaction,
-                      ),
-                    ),
-                  );
-                },
+      listenable: Listenable.merge([TransactionService.instance, _searchCtrl]),
+      builder: (context, child) {
+        var regex = RegExp(_searchCtrl.text, caseSensitive: false);
+        var expenses = TransactionService.instance.expenses
+            .where((expense) =>
+                expense.description?.contains(regex) == true ||
+                expense.category.name.contains(regex) ||
+                expense.transaction.attachments.any((attachment) => attachment.text?.contains(regex) == true))
+            .toList();
+
+        return CustomScrollView(
+          slivers: [
+            SliverPersistentHeader(
+              delegate: _SliverSearch(
+                textController: _searchCtrl,
               ),
+              floating: true,
+            ),
+            SliverVisibility(
+              visible: expenses.isEmpty,
+              sliver: const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: Text('No expenses found')),
+              ),
+            ),
+            SliverList.builder(
+              itemCount: expenses.length,
+              itemBuilder: (context, index) {
+                var expense = expenses[index];
+                return Padding(
+                  padding: EdgeInsets.only(bottom: expenses.length - 1 == index ? 88 : 0),
+                  child: ListTile(
+                    title: Text(expense.category.name),
+                    leading: Padding(
+                      padding: const EdgeInsets.only(top: 0),
+                      child: CategoryIcon(icon: expense.category.icon),
+                    ),
+                    trailing: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text.rich(
+                          style: _textStyle(expense.transaction.type),
+                          TextSpan(
+                            children: [
+                              WidgetSpan(
+                                child: Icon(
+                                  _amountSymbol(expense.transaction.type),
+                                  color: _textStyle(expense.transaction.type)?.color,
+                                ),
+                                alignment: PlaceholderAlignment.middle,
+                              ),
+                              TextSpan(text: expense.money.toString()),
+                            ],
+                          ),
+                        ),
+                        Text(expense.transaction.account.name),
+                      ],
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(expense.transaction.dateTime.toString().substring(0, 16)),
+                        if (expense.description != null)
+                          Text(
+                            expense.description!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                      ],
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditTransactionPage(
+                            transaction: expense.transaction,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
           ],
         );
       },
@@ -273,5 +315,70 @@ class _HomePageState extends State<HomePage> {
       TransactionType.expense => Icons.arrow_drop_down_rounded,
       TransactionType.transfer => null,
     };
+  }
+}
+
+const _searchPadding = 8.0;
+
+class _SliverSearch extends SliverPersistentHeaderDelegate {
+  final TextEditingController textController;
+
+  const _SliverSearch({
+    required this.textController,
+  });
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return _MySearch(
+      textController: textController,
+    );
+  }
+
+  @override
+  double get maxExtent => 56 + _searchPadding * 2;
+
+  @override
+  double get minExtent => 56 + _searchPadding * 2;
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
+    return false;
+  }
+}
+
+class _MySearch extends StatelessWidget {
+  final TextEditingController textController;
+
+  const _MySearch({required this.textController});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(_searchPadding),
+      child: SearchBar(
+        controller: textController,
+        padding: const MaterialStatePropertyAll(
+          EdgeInsets.symmetric(horizontal: 16),
+        ),
+        leading: const Icon(Icons.search),
+        trailing: [
+          ListenableBuilder(
+            listenable: textController,
+            child: IconButton(
+              onPressed: () {
+                textController.clear();
+              },
+              icon: const Icon(Icons.close),
+            ),
+            builder: (context, child) {
+              return Visibility(
+                visible: textController.text.isNotEmpty,
+                child: child!,
+              );
+            },
+          ),
+        ],
+      ),
+    );
   }
 }
