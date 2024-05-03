@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/bank_sync/services/bank_background_sync_service.dart';
@@ -22,6 +24,8 @@ class _BankSyncSettingsState extends State<BankSyncSettings> {
 
   @override
   Widget build(BuildContext context) {
+    var hasWorkmanager = Platform.isAndroid || Platform.isIOS;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Bank sync settings'),
@@ -32,17 +36,19 @@ class _BankSyncSettingsState extends State<BankSyncSettings> {
             title: const Text('Enable daily syncing'),
             subtitle: const Text('Only available on mobile'),
             value: _options.enabled,
-            onChanged: (value) async {
-              if (_options.enabled) {
-                await _cancelTask();
-              } else {
-                await _registerTask();
-              }
+            onChanged: hasWorkmanager
+                ? (value) async {
+                    if (_options.enabled) {
+                      await _cancelTask();
+                    } else {
+                      await _registerTask();
+                    }
 
-              setState(() {
-                _options.setEnabled(value);
-              });
-            },
+                    setState(() {
+                      _options.setEnabled(value);
+                    });
+                  }
+                : null,
           ),
           ListTile(
             onTap: () async {
