@@ -262,12 +262,16 @@ class _HomePageState extends State<HomePage> {
 
   Widget home() {
     return SingleChildScrollView(
+    padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const AccountsCard(),
+          const SizedBox(height: 8),
           PieChartCard(dateRange: _dateRange),
+          const SizedBox(height: 8),
           BalanceGraphCard(range: _dateRange),
+          const SizedBox(height: 8),
           const RecurringTransactionCard(),
           const SizedBox(height: 88),
         ],
