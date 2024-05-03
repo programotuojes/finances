@@ -1,6 +1,8 @@
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/components/common_values.dart';
+import 'package:finances/transaction/service.dart';
+import 'package:finances/utils/amount_input_formatter.dart';
 import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
 
@@ -18,6 +20,15 @@ class _AccountEditPageState extends State<AccountEditPage> {
   final formKey = GlobalKey<FormState>();
   late String formAccountName;
   late String formBalance;
+  final _currentAmountCtrl = TextEditingController();
+  late final _initialAmountCtrl = TextEditingController(text: widget.account?.initialMoney.amount.toString());
+
+  @override
+  void dispose() {
+    _currentAmountCtrl.dispose();
+    _initialAmountCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +48,6 @@ class _AccountEditPageState extends State<AccountEditPage> {
                 initialValue: widget.account?.name,
                 decoration: const InputDecoration(
                   labelText: 'Name',
-                  helperText: '', // Prevents layout jumping on error
                 ),
                 textCapitalization: TextCapitalization.sentences,
                 validator: (value) {
@@ -50,25 +60,29 @@ class _AccountEditPageState extends State<AccountEditPage> {
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
               ),
+              const SizedBox(height: 24),
               TextFormField(
+                controller: _initialAmountCtrl,
                 onSaved: (value) => formBalance = value!,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                initialValue: widget.account?.initialMoney.amount.toString(),
-                decoration: const InputDecoration(
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
                   labelText: 'Initial amount',
-                  helperText: '',
                   prefixText: '€ ',
+                  suffixIcon: Visibility(
+                    visible: widget.account != null,
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 8),
+                      child: IconButton(
+                        onPressed: () {
+                          _recalculate();
+                        },
+                        tooltip: 'Calculate based on current amount',
+                        icon: const Icon(Icons.calculate_rounded),
+                      ),
+                    ),
+                  ),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter an amount';
-                  }
-                  if (!amountValidator.hasMatch(value)) {
-                    return 'Must be a number';
-                  }
-                  return null;
-                },
+                inputFormatters: amountFormatter,
                 onTapOutside: (event) {
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
@@ -106,5 +120,75 @@ class _AccountEditPageState extends State<AccountEditPage> {
         },
       ),
     );
+  }
+
+  Future<void> _recalculate() async {
+    _currentAmountCtrl.clear();
+
+    var agreed = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Recalculate the initial amount'),
+        content: SizedBox(
+          width: 150,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                  'Enter the current amount below and the initial amount will be recalculated based on saved transactions.'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _currentAmountCtrl,
+                inputFormatters: amountFormatter,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: 'Current amount',
+                  prefixText: '€ ',
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(false);
+            },
+            child: const Text('Cancel'),
+          ),
+          ListenableBuilder(
+              listenable: _currentAmountCtrl,
+              builder: (context, child) {
+                var money = _currentAmountCtrl.text.toMoney();
+                return TextButton(
+                  onPressed: money != null && money != zeroEur
+                      ? () {
+                          Navigator.of(context).pop(true);
+                        }
+                      : null,
+                  child: const Text('Recalculate'),
+                );
+              }),
+        ],
+      ),
+    );
+
+    if (agreed != true) {
+      return;
+    }
+
+    var currentMoney = _currentAmountCtrl.text.toMoney()!;
+    var totalExpenses = TransactionService.instance.expenses
+        .where((expense) => expense.transaction.account == widget.account)
+        .map((expense) => expense.signedMoney)
+        .fold(zeroEur, (acc, x) => acc + x);
+
+    var newInitialMoney = currentMoney - totalExpenses;
+
+    setState(() {
+      _initialAmountCtrl.text = newInitialMoney.amount.toString();
+      widget.account!.initialMoney = newInitialMoney;
+      AccountService.instance.update();
+    });
   }
 }
