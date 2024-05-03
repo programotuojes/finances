@@ -23,11 +23,15 @@ final logger = Logger(
 
 Future<void> main() async {
   runApp(const MainApp());
-  await _preventMlKitPhoningHome();
+
   await BankBackgroundSyncService.instance.initialize();
   await GoCardlessSerivce.instance.initialize();
-  await Workmanager().initialize(backgroundMain, isInDebugMode: kDebugMode);
-  _listenForBackgroundJobs();
+
+  if (Platform.isAndroid || Platform.isIOS) {
+    await _preventMlKitPhoningHome();
+    await Workmanager().initialize(backgroundMain, isInDebugMode: kDebugMode);
+    _listenForBackgroundJobs();
+  }
 }
 
 class MainApp extends StatelessWidget {
