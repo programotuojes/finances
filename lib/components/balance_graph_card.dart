@@ -43,7 +43,7 @@ class BalanceGraphCard extends StatelessWidget {
           return ListenableBuilder(
             listenable: _listenables,
             builder: (context, child) {
-              var spots = _getPeriodizedPoints().toList();
+              var spots = _getPeriodizedPoints().toList(growable: false);
 
               return LineChart(
                 LineChartData(
@@ -141,23 +141,31 @@ class BalanceGraphCard extends StatelessWidget {
   }
 
   Iterable<FlSpot> _getPeriodizedPoints() sync* {
-    var runningTotal = AccountService.instance.accounts.fold(zeroEur, (acc, x) => acc + x.initialMoney);
+    var initial = AccountService.instance.accounts.fold(zeroEur, (acc, x) => acc + x.initialMoney);
+    var moneyOnStart = _getTotalExpenditureOn(range.start);
+    var runningTotal = initial + moneyOnStart;
 
     for (var i = 0; i <= range.duration.inDays; i++) {
       var date = range.start.add(Duration(days: i));
+      runningTotal += _getExpenditureOnDate(date);
 
       yield FlSpot(
         date.millisecondsSinceEpoch.toDouble(),
         runningTotal.amount.toDecimal().toDouble(),
       );
-
-      runningTotal += _getExpenditureOnDate(date);
     }
   }
 
   Money _getExpenditureOnDate(DateTime date) {
     return TransactionService.instance.expenses
         .where((x) => DateUtils.isSameDay(x.transaction.dateTime, date))
+        .map((e) => e.signedMoney)
+        .fold(zeroEur, (acc, x) => acc + x);
+  }
+
+  Money _getTotalExpenditureOn(DateTime date) {
+    return TransactionService.instance.expenses
+        .where((x) => x.transaction.dateTime.isBefore(date))
         .map((e) => e.signedMoney)
         .fold(zeroEur, (acc, x) => acc + x);
   }
