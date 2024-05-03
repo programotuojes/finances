@@ -56,7 +56,7 @@ class MainApp extends StatelessWidget {
         shape: RoundedRectangleBorder(),
       ),
       useMaterial3: true,
-      colorSchemeSeed: Colors.redAccent,
+      colorSchemeSeed: const Color(0xFF869962),
     );
   }
 }
