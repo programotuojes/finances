@@ -27,7 +27,10 @@ class CategoryListPage extends StatelessWidget {
             for (var i in category.children)
               ListTile(
                 title: Text(i.name),
-                leading: CategoryIcon(icon: i.icon),
+                leading: CategoryIcon(
+                  icon: i.icon,
+                  color: i.color,
+                ),
                 contentPadding: const EdgeInsets.only(
                   left: 16,
                   right: 12, // Otherwise `trailing` is too far from the edge

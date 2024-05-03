@@ -28,14 +28,16 @@ class AutomationListPage extends StatelessWidget {
             itemBuilder: (context, index) {
               var automation = automations[index];
               return ListTile(
-                leading: CategoryIcon(icon: automation.category.icon),
+                leading: CategoryIcon(
+                  icon: automation.category.icon,
+                  color: automation.category.color,
+                ),
                 title: Text(automation.name),
                 subtitle: Text(_subtitle(automation)),
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) =>
-                          AutomationEditPage(model: automation),
+                      builder: (context) => AutomationEditPage(model: automation),
                     ),
                   );
                 },

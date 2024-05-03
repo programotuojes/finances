@@ -21,7 +21,10 @@ class RecurringListPage extends StatelessWidget {
             for (var i in RecurringService.instance.transactions)
               ListTile(
                 title: Text(i.category.name),
-                leading: CategoryIcon(icon: i.category.icon),
+                leading: CategoryIcon(
+                  icon: i.category.icon,
+                  color: i.category.color,
+                ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

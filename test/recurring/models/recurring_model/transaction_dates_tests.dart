@@ -4,6 +4,7 @@ import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/utils/money.dart';
 import 'package:finances/utils/periodicity.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:money2/money2.dart';
@@ -17,6 +18,7 @@ final _category = CategoryModel(
   id: 0,
   name: 'Food',
   icon: Symbols.restaurant,
+  color: Colors.green,
 );
 final _sut = RecurringModel(
   account: _account,

@@ -21,7 +21,10 @@ class AccountsPage extends StatelessWidget {
             for (var i in AccountService.instance.accounts)
               ListTile(
                 title: Text(i.name),
-                leading: const CategoryIcon(icon: Symbols.account_balance),
+                leading: const CategoryIcon(
+                  icon: Symbols.account_balance,
+                  color: Colors.red,
+                ),
                 subtitle: CurrentAccountMoney(account: i),
                 onTap: () {
                   Navigator.push(

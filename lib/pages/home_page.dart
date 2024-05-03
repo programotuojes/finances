@@ -333,7 +333,10 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (context, expense) {
                   return ListTile(
                     title: Text(expense.category.name),
-                    leading: CategoryIcon(icon: expense.category.icon),
+                    leading: CategoryIcon(
+                      icon: expense.category.icon,
+                      color: expense.category.color,
+                    ),
                     trailing: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.end,

@@ -38,7 +38,10 @@ class _RecurringListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: CategoryIcon(icon: recurringModel.category.icon),
+      leading: CategoryIcon(
+        icon: recurringModel.category.icon,
+        color: recurringModel.category.color,
+      ),
       title: Text(recurringModel.category.name),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

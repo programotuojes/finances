@@ -291,7 +291,10 @@ class _BankTransactionListState extends State<BankTransactionList> {
                         '"${_importCategory.name}" will be used for expenses that did not match any automation rules'),
                     trailing: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: CategoryIcon(icon: _importCategory.icon),
+                      child: CategoryIcon(
+                        icon: _importCategory.icon,
+                        color: _importCategory.color,
+                      ),
                     ),
                   );
                 },

@@ -775,7 +775,10 @@ class __CategoryListTileState extends State<_CategoryListTile> {
         });
       },
       contentPadding: widget.morePadding ? const EdgeInsets.symmetric(horizontal: 24) : null,
-      leading: CategoryIcon(icon: category.icon),
+      leading: CategoryIcon(
+        icon: category.icon,
+        color: category.color,
+      ),
       title: Text(category.name),
     );
   }
