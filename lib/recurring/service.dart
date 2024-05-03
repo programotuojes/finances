@@ -1,11 +1,12 @@
 import 'package:finances/account/service.dart';
 import 'package:finances/category/service.dart';
-import 'package:finances/extensions/money.dart';
+import 'package:finances/utils/money.dart';
 import 'package:finances/main.dart';
 import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/service.dart';
+import 'package:finances/utils/periodicity.dart';
 import 'package:flutter/foundation.dart';
 
 final _r1 = RecurringModel(

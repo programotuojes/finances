@@ -11,7 +11,6 @@ import 'package:finances/bank_sync/models/go_cardless_token.dart';
 import 'package:finances/bank_sync/models/institution.dart';
 import 'package:finances/bank_sync/models/requisition.dart';
 import 'package:finances/category/models/category.dart';
-import 'package:finances/extensions/money.dart';
 import 'package:finances/main.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';

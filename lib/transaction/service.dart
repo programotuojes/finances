@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:finances/account/service.dart';
 import 'package:finances/category/service.dart';
-import 'package:finances/extensions/money.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
+import 'package:finances/utils/money.dart';
 import 'package:finances/utils/random_string.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';

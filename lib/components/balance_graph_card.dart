@@ -8,15 +8,18 @@ import 'package:intl/intl.dart';
 import 'package:money2/money2.dart';
 
 final _dateFormatter = DateFormat('MMM d');
-const _interval = 5.0 * Duration.millisecondsPerDay;
-const _days = 30;
 final _listenables = Listenable.merge([
   TransactionService.instance,
   AccountService.instance,
 ]);
 
 class BalanceGraphCard extends StatelessWidget {
-  const BalanceGraphCard({super.key});
+  final DateTimeRange range;
+
+  BalanceGraphCard({
+    super.key,
+    required DateTimeRange range,
+  }) : range = DateUtils.datesOnly(range);
 
   @override
   Widget build(BuildContext context) {
@@ -35,83 +38,81 @@ class BalanceGraphCard extends StatelessWidget {
       padding: const EdgeInsets.only(right: 40),
       child: SizedBox(
         height: 200,
-        child: ListenableBuilder(
-          listenable: _listenables,
-          builder: (context, child) {
-            var spots = _getPeriodizedPoints().toList();
+        child: LayoutBuilder(builder: (context, constraints) {
+          var horizontalInterval = range.duration.inMilliseconds / (constraints.maxWidth / 100).ceil();
+          return ListenableBuilder(
+            listenable: _listenables,
+            builder: (context, child) {
+              var spots = _getPeriodizedPoints().toList();
 
-            return LineChart(
-              LineChartData(
-                titlesData: FlTitlesData(
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 30,
-                      getTitlesWidget: _xAxis,
-                      interval: _interval,
+              return LineChart(
+                LineChartData(
+                  titlesData: FlTitlesData(
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 30,
+                        getTitlesWidget: _xAxis,
+                        interval: horizontalInterval,
+                      ),
+                    ),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 70,
+                        getTitlesWidget: _yAxis,
+                      ),
+                    ),
+                    topTitles: const AxisTitles(),
+                    rightTitles: const AxisTitles(),
+                  ),
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipColor: (spot) => Theme.of(context).colorScheme.surfaceVariant,
+                      getTooltipItems: (spots) => spots.map((spot) {
+                        var date = _dateFormatter.format(DateTime.fromMillisecondsSinceEpoch(spot.x.toInt()));
+                        return LineTooltipItem(
+                          '${spot.y.toStringAsFixed(0)} €\n$date',
+                          Theme.of(context).textTheme.bodyMedium!,
+                        );
+                      }).toList(),
                     ),
                   ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 70,
-                      getTitlesWidget: _yAxis,
+                  borderData: FlBorderData(
+                    border: Border(
+                      left: borderSide,
+                      bottom: borderSide,
                     ),
                   ),
-                  topTitles: const AxisTitles(),
-                  rightTitles: const AxisTitles(),
-                ),
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipColor: (spot) =>
-                        Theme.of(context).colorScheme.surfaceVariant,
-                    getTooltipItems: (spots) => spots.map((spot) {
-                      var date = _dateFormatter.format(
-                          DateTime.fromMillisecondsSinceEpoch(spot.x.toInt()));
-                      return LineTooltipItem(
-                        '${spot.y.toStringAsFixed(0)} €\n$date',
-                        Theme.of(context).textTheme.bodyMedium!,
-                      );
-                    }).toList(),
+                  gridData: FlGridData(
+                    verticalInterval: horizontalInterval,
+                    getDrawingHorizontalLine: (value) => gridLine,
+                    getDrawingVerticalLine: (value) => gridLine,
                   ),
-                ),
-                borderData: FlBorderData(
-                  border: Border(
-                    left: borderSide,
-                    bottom: borderSide,
-                  ),
-                ),
-                gridData: FlGridData(
-                  verticalInterval: _interval,
-                  getDrawingHorizontalLine: (value) => gridLine,
-                  getDrawingVerticalLine: (value) => gridLine,
-                ),
-                lineBarsData: [
-                  LineChartBarData(
-                    isCurved: true,
-                    preventCurveOverShooting: true,
-                    dotData: const FlDotData(show: false),
-                    color: Theme.of(context).colorScheme.primary,
-                    spots: spots,
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withOpacity(0.2),
+                  lineBarsData: [
+                    LineChartBarData(
+                      isCurved: true,
+                      preventCurveOverShooting: true,
+                      dotData: const FlDotData(show: false),
+                      color: Theme.of(context).colorScheme.primary,
+                      spots: spots,
+                      belowBarData: BarAreaData(
+                        show: true,
+                        color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+                  ],
+                ),
+              );
+            },
+          );
+        }),
       ),
     );
   }
 
   Widget _xAxis(value, meta) {
-    if (value == meta.min) {
+    if (value == meta.min || value == meta.max) {
       return const SizedBox.shrink();
     }
 
@@ -119,8 +120,7 @@ class BalanceGraphCard extends StatelessWidget {
     if (value == meta.max) {
       text = 'Today';
     } else {
-      text = _dateFormatter
-          .format(DateTime.fromMillisecondsSinceEpoch(value.toInt()));
+      text = _dateFormatter.format(DateTime.fromMillisecondsSinceEpoch(value.toInt()));
     }
 
     return SideTitleWidget(
@@ -141,14 +141,10 @@ class BalanceGraphCard extends StatelessWidget {
   }
 
   Iterable<FlSpot> _getPeriodizedPoints() sync* {
-    var runningTotal = AccountService.instance.accounts
-        .fold(zeroEur, (acc, x) => acc + x.initialMoney);
+    var runningTotal = AccountService.instance.accounts.fold(zeroEur, (acc, x) => acc + x.initialMoney);
 
-    var graphStartDate = DateUtils.dateOnly(DateTime.now())
-        .subtract(const Duration(days: _days - 1));
-
-    for (var i = 0; i <= _days; i++) {
-      var date = graphStartDate.add(Duration(days: i));
+    for (var i = 0; i <= range.duration.inDays; i++) {
+      var date = range.start.add(Duration(days: i));
 
       yield FlSpot(
         date.millisecondsSinceEpoch.toDouble(),

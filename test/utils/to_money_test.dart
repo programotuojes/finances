@@ -1,4 +1,4 @@
-import 'package:finances/extensions/money.dart';
+import 'package:finances/utils/money.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -1,4 +1,4 @@
-import 'package:finances/extensions/money.dart';
+import 'package:finances/utils/money.dart';
 import 'package:flutter/services.dart';
 
 final amountFormatter = [AmountFormatter()];

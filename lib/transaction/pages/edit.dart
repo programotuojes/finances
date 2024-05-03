@@ -10,7 +10,6 @@ import 'package:finances/components/category_icon.dart';
 import 'package:finances/components/common_values.dart';
 import 'package:finances/components/image_viewer.dart';
 import 'package:finances/components/square_button.dart';
-import 'package:finances/extensions/money.dart';
 import 'package:finances/transaction/models/attachment.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';

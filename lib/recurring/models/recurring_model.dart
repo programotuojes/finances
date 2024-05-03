@@ -2,26 +2,9 @@ import 'package:collection/collection.dart';
 import 'package:finances/account/models/account.dart';
 import 'package:finances/category/models/category.dart';
 import 'package:finances/transaction/models/transaction.dart';
+import 'package:finances/utils/periodicity.dart';
 import 'package:flutter/material.dart';
 import 'package:money2/money2.dart';
-
-enum Periodicity {
-  day,
-  week,
-  month,
-  year,
-}
-
-extension LyNaming on Periodicity {
-  String toLy() {
-    return switch (this) {
-      Periodicity.day => 'Daily',
-      Periodicity.week => 'Weekly',
-      Periodicity.month => 'Monthly',
-      Periodicity.year => 'Yearly',
-    };
-  }
-}
 
 class RecurringModel {
   Account account;

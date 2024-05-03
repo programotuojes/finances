@@ -1,8 +1,9 @@
 import 'package:finances/account/models/account.dart';
 import 'package:finances/category/models/category.dart';
-import 'package:finances/extensions/money.dart';
 import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/transaction/models/transaction.dart';
+import 'package:finances/utils/money.dart';
+import 'package:finances/utils/periodicity.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:money2/money2.dart';

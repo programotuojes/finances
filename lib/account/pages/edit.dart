@@ -1,7 +1,7 @@
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/components/common_values.dart';
-import 'package:finances/extensions/money.dart';
+import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
 
 class AccountEditPage extends StatefulWidget {

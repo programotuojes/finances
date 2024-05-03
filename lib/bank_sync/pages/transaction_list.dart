@@ -84,9 +84,11 @@ class _BankTransactionListState extends State<BankTransactionList> {
                 defaultCategory: _importCategory,
               );
             } finally {
-              setState(() {
-                _importing = false;
-              });
+              if (context.mounted) {
+                setState(() {
+                  _importing = false;
+                });
+              }
             }
           },
           label: const Text('Import'),
