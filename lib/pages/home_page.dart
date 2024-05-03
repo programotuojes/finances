@@ -9,6 +9,7 @@ import 'package:finances/category/service.dart';
 import 'package:finances/components/accounts_card.dart';
 import 'package:finances/components/balance_graph_card.dart';
 import 'package:finances/components/category_icon.dart';
+import 'package:finances/components/pie_chart_card.dart';
 import 'package:finances/components/recurring_transaction_card.dart';
 import 'package:finances/recurring/pages/list.dart';
 import 'package:finances/transaction/models/transaction.dart';
@@ -265,6 +266,7 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const AccountsCard(),
+          PieChartCard(dateRange: _dateRange),
           BalanceGraphCard(range: _dateRange),
           const RecurringTransactionCard(),
           const SizedBox(height: 88),
