@@ -1,67 +1,16 @@
-import 'package:finances/account/service.dart';
-import 'package:finances/category/service.dart';
-import 'package:finances/utils/money.dart';
 import 'package:finances/main.dart';
 import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/service.dart';
-import 'package:finances/utils/periodicity.dart';
 import 'package:flutter/foundation.dart';
-
-final _r1 = RecurringModel(
-  account: swedbank,
-  category: spotify,
-  money: '2.2'.toMoney()!,
-  description: null,
-  periodicity: Periodicity.month,
-  interval: 1,
-  from: DateTime.now(),
-  until: null,
-  type: TransactionType.expense,
-);
-final _r2 = RecurringModel(
-  account: revolut,
-  category: transport,
-  money: '120'.toMoney()!,
-  description: 'Insurance',
-  periodicity: Periodicity.year,
-  interval: 1,
-  from: DateTime.now(),
-  until: DateTime.now().add(const Duration(days: 365 * 2)),
-  type: TransactionType.expense,
-);
-final _r3 = RecurringModel(
-  account: swedbank,
-  category: food,
-  money: '6'.toMoney()!,
-  description: 'Lunch delivery',
-  periodicity: Periodicity.day,
-  interval: 2,
-  from: DateTime.now(),
-  until: null,
-  type: TransactionType.expense,
-);
-final _r4 = RecurringModel(
-  account: swedbank,
-  category: entertainment,
-  money: '10'.toMoney()!,
-  description: 'Netflix',
-  periodicity: Periodicity.month,
-  interval: 1,
-  from: DateTime.now().subtract(const Duration(days: 10)),
-  until: null,
-  type: TransactionType.expense,
-);
 
 class RecurringService with ChangeNotifier {
   static final instance = RecurringService._ctor();
 
-  final List<RecurringModel> transactions;
+  final List<RecurringModel> transactions = [];
 
-  RecurringService._ctor() : transactions = [_r1, _r2, _r3, _r4] {
-    _sort();
-  }
+  RecurringService._ctor();
 
   Iterable<RecurringModel> get activeTransactions => transactions.where((x) => x.nextDate(DateTime.now()) != null);
 

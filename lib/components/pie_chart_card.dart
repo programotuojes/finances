@@ -91,7 +91,7 @@ class _PieChartCardState extends State<PieChartCard> {
                         ),
                         _getCenter(categoryWithTotals, total),
                         Align(
-                          alignment: Alignment.centerRight,
+                          alignment: Alignment.bottomRight,
                           child: Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: Column(

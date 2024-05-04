@@ -26,7 +26,7 @@ class _BankTransactionListState extends State<BankTransactionList> {
   var _account = AccountService.instance.lastSelection;
   var _importing = false;
   var _remittanceInfoAsDescription = false;
-  var _importCategory = other;
+  var _importCategory = CategoryService.instance.categoryOther;
 
   @override
   Widget build(BuildContext context) {
