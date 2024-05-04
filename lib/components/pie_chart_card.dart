@@ -44,6 +44,26 @@ class _PieChartCardState extends State<PieChartCard> {
               var total = categoryWithTotals.values.fold(zeroEur, (acc, x) => acc + x);
               var sections = _getSections(categoryWithTotals, total).toList();
 
+              if (sections.isEmpty) {
+                return Container(
+                  height: 240,
+                  width: 240,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      width: 40,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'No expenses found',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              }
+
               return Row(
                 children: [
                   Expanded(
