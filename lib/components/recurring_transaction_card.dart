@@ -17,9 +17,34 @@ class RecurringTransactionCard extends StatelessWidget {
       child: ListenableBuilder(
         listenable: RecurringService.instance,
         builder: (context, child) {
+          var activeTransactions = RecurringService.instance.activeTransactions;
+          if (activeTransactions.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  const Text('No active recurring transactions found'),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RecurringEditPage(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('Create'),
+                  ),
+                ],
+              ),
+            );
+          }
+
           return Column(
             children: [
-              for (final i in RecurringService.instance.activeTransactions) _RecurringListItem(recurringModel: i),
+              for (final i in activeTransactions) _RecurringListItem(recurringModel: i),
             ],
           );
         },
