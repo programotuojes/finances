@@ -618,7 +618,7 @@ class _DateRangeFilter extends StatelessWidget {
                 var newRange = await showDateRangePicker(
                   context: context,
                   firstDate: TransactionService.instance.transactions.last.dateTime,
-                  lastDate: DateTime.now(),
+                  lastDate: TransactionService.instance.transactions.first.dateTime,
                 );
 
                 if (newRange != null) {

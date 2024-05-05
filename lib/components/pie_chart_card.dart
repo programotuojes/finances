@@ -165,7 +165,7 @@ class _PieChartCardState extends State<PieChartCard> {
         continue;
       }
 
-      var showIcon = money.dividedBy(total) > 0.04;
+      var showIcon = money.dividedBy(total) > 0.05;
 
       yield PieChartSectionData(
         value: money.amount.toDecimal().toDouble(),
