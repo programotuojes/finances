@@ -29,102 +29,99 @@ class _PieChartCardState extends State<PieChartCard> {
   Widget build(BuildContext context) {
     return HomeCard(
       title: 'Expenses by category',
-      child: SizedBox(
-        height: 250,
-        child: ListenableBuilder(
-            listenable: Listenable.merge([
-              CategoryService.instance,
-              TransactionService.instance,
-            ]),
-            builder: (context, child) {
-              var categoryWithTotals = CategoryService.instance.root.children.groupFoldBy<CategoryModel, Money>(
-                (category) => category,
-                (total, category) => (total ?? zeroEur) + _getTotalOfCategory(category),
-              )..removeWhere((key, value) => value.isZero);
-              var total = categoryWithTotals.values.fold(zeroEur, (acc, x) => acc + x);
-              var sections = _getSections(categoryWithTotals, total).toList();
+      child: ListenableBuilder(
+          listenable: Listenable.merge([
+            CategoryService.instance,
+            TransactionService.instance,
+          ]),
+          builder: (context, child) {
+            var categoryWithTotals = CategoryService.instance.root.children.groupFoldBy<CategoryModel, Money>(
+              (category) => category,
+              (total, category) => (total ?? zeroEur) + _getTotalOfCategory(category),
+            )..removeWhere((key, value) => value.isZero);
+            var total = categoryWithTotals.values.fold(zeroEur, (acc, x) => acc + x);
+            var sections = _getSections(categoryWithTotals, total).toList();
 
-              if (sections.isEmpty) {
-                return Container(
-                  height: 240,
-                  width: 240,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      width: 40,
-                      color: Colors.grey,
-                    ),
+            if (sections.isEmpty) {
+              return Container(
+                height: 220,
+                width: 220,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    width: 40,
+                    color: Colors.grey,
                   ),
-                  child: const Center(
+                ),
+                child: const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(8),
                     child: Text(
                       'No expenses found',
                       textAlign: TextAlign.center,
                     ),
                   ),
-                );
-              }
-
-              return Row(
-                children: [
-                  Expanded(
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        PieChart(
-                          PieChartData(
-                            pieTouchData: PieTouchData(
-                              touchCallback: (event, pieTouchResponse) {
-                                setState(() {
-                                  if (!event.isInterestedForInteractions ||
-                                      pieTouchResponse == null ||
-                                      pieTouchResponse.touchedSection == null) {
-                                    _touchedIndex = -1;
-                                    return;
-                                  }
-                                  _touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
-                                });
-                              },
-                            ),
-                            centerSpaceRadius: 80,
-                            sections: sections,
-                          ),
-                        ),
-                        _getCenter(categoryWithTotals, total),
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                for (var section in sections)
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: section.color,
-                                          borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                        ),
-                                        width: 16,
-                                        height: 16,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(section.title),
-                                    ],
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               );
-            }),
-      ),
+            }
+
+            return Column(
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      height: 220,
+                      child: PieChart(
+                        PieChartData(
+                          pieTouchData: PieTouchData(
+                            touchCallback: (event, pieTouchResponse) {
+                              setState(() {
+                                if (!event.isInterestedForInteractions ||
+                                    pieTouchResponse == null ||
+                                    pieTouchResponse.touchedSection == null) {
+                                  _touchedIndex = -1;
+                                  return;
+                                }
+                                _touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                              });
+                            },
+                          ),
+                          centerSpaceRadius: 70,
+                          sections: sections,
+                        ),
+                      ),
+                    ),
+                    _getCenter(categoryWithTotals, total),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 16,
+                  runSpacing: 4,
+                  children: [
+                    for (var section in sections)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: section.color,
+                              borderRadius: const BorderRadius.all(Radius.circular(4)),
+                            ),
+                            width: 16,
+                            height: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(section.title),
+                        ],
+                      ),
+                  ],
+                )
+              ],
+            );
+          }),
     );
   }
 
