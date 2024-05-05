@@ -23,78 +23,95 @@ class PieChartCard extends StatefulWidget {
 }
 
 class _PieChartCardState extends State<PieChartCard> {
-  var _touchedIndex = -1;
+  final _historyStack = [CategoryService.instance.root];
+  var _hoveredIndex = -1;
+  var _clickedIndex = -1;
 
   @override
   Widget build(BuildContext context) {
-    return HomeCard(
-      title: 'Expenses by category',
-      child: ListenableBuilder(
-          listenable: Listenable.merge([
-            CategoryService.instance,
-            TransactionService.instance,
-          ]),
-          builder: (context, child) {
-            var categoryWithTotals = CategoryService.instance.root.children.groupFoldBy<CategoryModel, Money>(
-              (category) => category,
-              (total, category) => (total ?? zeroEur) + _getTotalOfCategory(category),
-            )..removeWhere((key, value) => value.isZero);
-            var total = categoryWithTotals.values.fold(zeroEur, (acc, x) => acc + x);
-            var sections = _getSections(categoryWithTotals, total).toList();
+    var categoryWithTotals = _historyStack.last.children.groupFoldBy<CategoryModel, Money>(
+      (category) => category,
+      (total, category) => (total ?? zeroEur) + _getTotalOfCategory(category),
+    )..removeWhere((key, value) => value.isZero);
+    var total = categoryWithTotals.values.fold(zeroEur, (acc, x) => acc + x);
+    var sections = _getSections(categoryWithTotals, total).toList();
 
-            if (sections.isEmpty) {
-              return Container(
-                height: 220,
-                width: 220,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    width: 40,
-                    color: Colors.grey,
-                  ),
-                ),
-                child: const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Text(
-                      'No expenses found',
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              );
-            }
-
-            return Column(
+    return GestureDetector(
+      onTap: () {
+        _resetIndices();
+      },
+      child: HomeCard(
+        title: 'Expenses by category',
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            Column(
               children: [
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
+                if (sections.isEmpty)
+                  Center(
+                    child: Container(
                       height: 220,
-                      child: PieChart(
-                        PieChartData(
-                          pieTouchData: PieTouchData(
-                            touchCallback: (event, pieTouchResponse) {
-                              setState(() {
-                                if (!event.isInterestedForInteractions ||
-                                    pieTouchResponse == null ||
-                                    pieTouchResponse.touchedSection == null) {
-                                  _touchedIndex = -1;
-                                  return;
-                                }
-                                _touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
-                              });
-                            },
+                      width: 220,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          width: 40,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      child: const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(8),
+                          child: Text(
+                            'No expenses found',
+                            textAlign: TextAlign.center,
                           ),
-                          centerSpaceRadius: 70,
-                          sections: sections,
                         ),
                       ),
                     ),
-                    _getCenter(categoryWithTotals, total),
-                  ],
-                ),
+                  )
+                else
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      _getCenter(categoryWithTotals, total),
+                      SizedBox(
+                        height: 220,
+                        width: 220,
+                        child: PieChart(
+                          PieChartData(
+                            pieTouchData: PieTouchData(
+                              mouseCursorResolver: (event, response) {
+                                if (response?.touchedSection?.touchedSection != null) {
+                                  return SystemMouseCursors.click;
+                                }
+
+                                return MouseCursor.defer;
+                              },
+                              touchCallback: (event, pieTouchResponse) {
+                                var index = pieTouchResponse?.touchedSection?.touchedSectionIndex ?? -1;
+
+                                setState(() {
+                                  if (event is FlTapUpEvent) {
+                                    _clickedIndex = index;
+                                  }
+
+                                  if (!event.isInterestedForInteractions) {
+                                    index = -1;
+                                  }
+
+                                  _hoveredIndex = index;
+                                });
+                              },
+                            ),
+                            centerSpaceRadius: 70,
+                            sections: sections,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 const SizedBox(height: 24),
                 Wrap(
                   alignment: WrapAlignment.center,
@@ -120,9 +137,51 @@ class _PieChartCardState extends State<PieChartCard> {
                   ],
                 )
               ],
-            );
-          }),
+            ),
+            if (_historyStack.length > 1)
+              Align(
+                alignment: Alignment.topLeft,
+                child: OutlinedButton(
+                  onPressed: () {
+                    setState(() {
+                      _clickedIndex = -1;
+                      if (_historyStack.length > 1) {
+                        _historyStack.removeLast();
+                      }
+                    });
+                  },
+                  child: const Text('Go back'),
+                ),
+              ),
+            if (_clickedIndex != -1)
+              Align(
+                alignment: Alignment.topRight,
+                child: OutlinedButton(
+                  onPressed: () {
+                    var clickedCategory = categoryWithTotals.keys.elementAt(_clickedIndex);
+                    setState(() {
+                      _clickedIndex = -1;
+                      _historyStack.add(clickedCategory);
+                    });
+                  },
+                  child: const Text('Go deeper'),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    Listenable.merge([
+      CategoryService.instance,
+      TransactionService.instance,
+    ]).addListener(() {
+      _resetIndices();
+    });
   }
 
   Widget _getCenter(
@@ -130,10 +189,11 @@ class _PieChartCardState extends State<PieChartCard> {
     Money total,
   ) {
     String title, amount;
+    var index = _hoveredIndex != -1 ? _hoveredIndex : _clickedIndex;
 
-    if (_touchedIndex != -1) {
-      title = categoryWithTotals.keys.elementAt(_touchedIndex).name;
-      amount = categoryWithTotals.values.elementAt(_touchedIndex).toString();
+    if (index != -1 && index < categoryWithTotals.length) {
+      title = categoryWithTotals.keys.elementAt(index).name;
+      amount = categoryWithTotals.values.elementAt(index).toString();
     } else {
       title = 'Total';
       amount = total.toString();
@@ -166,12 +226,21 @@ class _PieChartCardState extends State<PieChartCard> {
       }
 
       var showIcon = money.dividedBy(total) > 0.05;
+      var radius = 40.0;
+
+      if (index == _clickedIndex) {
+        radius += 10;
+      }
+
+      if (index == _hoveredIndex) {
+        radius += 5;
+      }
 
       yield PieChartSectionData(
         value: money.amount.toDecimal().toDouble(),
         title: category.name,
         color: category.color,
-        radius: index == _touchedIndex ? 50 : 40,
+        radius: radius,
         showTitle: false,
         badgeWidget: showIcon
             ? Icon(
@@ -179,7 +248,6 @@ class _PieChartCardState extends State<PieChartCard> {
                 color: category.color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
               )
             : null,
-        // badgePositionPercentageOffset: 0.9,
       );
 
       index++;
@@ -194,5 +262,12 @@ class _PieChartCardState extends State<PieChartCard> {
             expense.category.isNestedChildOf(category))
         .map((e) => e.money)
         .fold(zeroEur, (acc, x) => acc + x);
+  }
+
+  void _resetIndices() {
+    setState(() {
+      _hoveredIndex = -1;
+      _clickedIndex = -1;
+    });
   }
 }
