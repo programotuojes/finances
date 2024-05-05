@@ -262,7 +262,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget home() {
     return SingleChildScrollView(
-    padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -457,6 +457,7 @@ class _MySearch extends StatelessWidget {
         padding: const MaterialStatePropertyAll(
           EdgeInsets.symmetric(horizontal: 16),
         ),
+        textInputAction: TextInputAction.search,
         leading: const Icon(Icons.search),
         trailing: [
           ListenableBuilder(
