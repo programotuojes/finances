@@ -4,13 +4,15 @@ import 'package:finances/automation/pages/list.dart';
 import 'package:finances/bank_sync/pages/bank_setup.dart';
 import 'package:finances/bank_sync/pages/settings.dart';
 import 'package:finances/bank_sync/pages/transaction_list.dart';
+import 'package:finances/budget/pages/list.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
-import 'package:finances/components/accounts_card.dart';
-import 'package:finances/components/balance_graph_card.dart';
+import 'package:finances/components/cards/accounts_card.dart';
+import 'package:finances/components/cards/balance_graph_card.dart';
+import 'package:finances/components/cards/budget_card.dart';
+import 'package:finances/components/cards/pie_chart_card.dart';
+import 'package:finances/components/cards/recurring_transaction_card.dart';
 import 'package:finances/components/category_icon.dart';
-import 'package:finances/components/pie_chart_card.dart';
-import 'package:finances/components/recurring_transaction_card.dart';
 import 'package:finances/recurring/pages/list.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/pages/edit.dart';
@@ -173,6 +175,17 @@ class _HomePageState extends State<HomePage> {
                 );
               },
             ),
+            ListTile(
+              title: const Text('Budgets'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const BudgetListPage(),
+                  ),
+                );
+              },
+            ),
             const Divider(),
             const ListTile(
               subtitle: Text('Bank sync'),
@@ -267,6 +280,8 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const AccountsCard(),
+          const SizedBox(height: 8),
+          const BudgetCard(),
           const SizedBox(height: 8),
           PieChartCard(dateRange: _dateRange),
           const SizedBox(height: 8),

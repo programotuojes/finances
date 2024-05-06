@@ -712,7 +712,7 @@ class _ExpenseColumn extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _CategoryListTile(
+        CategoryListTile(
           initialCategory: initialCategory,
           onCategorySelected: onCategorySelected,
           morePadding: morePadding,
@@ -735,22 +735,23 @@ class _ExpenseColumn extends StatelessWidget {
   }
 }
 
-class _CategoryListTile extends StatefulWidget {
+class CategoryListTile extends StatefulWidget {
   final CategoryModel initialCategory;
   final void Function(CategoryModel) onCategorySelected;
   final bool morePadding;
 
-  const _CategoryListTile({
+  const CategoryListTile({
+    super.key,
     required this.initialCategory,
     required this.onCategorySelected,
     required this.morePadding,
   });
 
   @override
-  State<_CategoryListTile> createState() => __CategoryListTileState();
+  State<CategoryListTile> createState() => _CategoryListTileState();
 }
 
-class __CategoryListTileState extends State<_CategoryListTile> {
+class _CategoryListTileState extends State<CategoryListTile> {
   late CategoryModel category = widget.initialCategory;
 
   @override
