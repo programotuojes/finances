@@ -1,5 +1,6 @@
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
+import 'package:finances/components/amount_text_field.dart';
 import 'package:finances/components/common_values.dart';
 import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/amount_input_formatter.dart';
@@ -16,17 +17,18 @@ class AccountEditPage extends StatefulWidget {
 }
 
 class _AccountEditPageState extends State<AccountEditPage> {
-  var autovalidateMode = AutovalidateMode.disabled;
-  final formKey = GlobalKey<FormState>();
-  late String formAccountName;
-  late String formBalance;
-  final _currentAmountCtrl = TextEditingController();
+  late final _editing = widget.account != null;
+  var _autovalidateMode = AutovalidateMode.disabled;
+  final _formKey = GlobalKey<FormState>();
+  late final _nameCtrl = TextEditingController(text: widget.account?.name);
   late final _initialAmountCtrl = TextEditingController(text: widget.account?.initialMoney.amount.toString());
+  final _dialogAmountCtrl = TextEditingController();
 
   @override
   void dispose() {
-    _currentAmountCtrl.dispose();
+    _nameCtrl.dispose();
     _initialAmountCtrl.dispose();
+    _dialogAmountCtrl.dispose();
     super.dispose();
   }
 
@@ -34,18 +36,18 @@ class _AccountEditPageState extends State<AccountEditPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.account?.name ?? 'Create a new account'),
+        title: Text(_editing ? 'Edit account' : 'Create new account'),
       ),
-      body: Padding(
-        padding: scaffoldPadding,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Form(
-          key: formKey,
-          autovalidateMode: autovalidateMode,
+          key: _formKey,
+          autovalidateMode: _autovalidateMode,
           child: Column(
             children: [
+              const SizedBox(height: 16),
               TextFormField(
-                onSaved: (value) => formAccountName = value!,
-                initialValue: widget.account?.name,
+                controller: _nameCtrl,
                 decoration: const InputDecoration(
                   labelText: 'Name',
                 ),
@@ -56,74 +58,62 @@ class _AccountEditPageState extends State<AccountEditPage> {
                   }
                   return null;
                 },
-                onTapOutside: (event) {
-                  FocusManager.instance.primaryFocus?.unfocus();
-                },
               ),
-              const SizedBox(height: 24),
-              TextFormField(
+              const SizedBox(height: 32),
+              AmountTextField(
                 controller: _initialAmountCtrl,
-                onSaved: (value) => formBalance = value!,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(
-                  labelText: 'Initial amount',
-                  prefixText: '€ ',
-                  suffixIcon: Visibility(
-                    visible: widget.account != null,
-                    child: Padding(
-                      padding: const EdgeInsetsDirectional.only(end: 8),
-                      child: IconButton(
-                        onPressed: () {
-                          _recalculate();
-                        },
-                        tooltip: 'Calculate based on current amount',
-                        icon: const Icon(Icons.calculate_rounded),
-                      ),
+                labelText: 'Initial amount',
+                suffixIcon: Visibility(
+                  visible: widget.account != null,
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 8),
+                    child: IconButton(
+                      onPressed: () async {
+                        await _recalculate();
+                      },
+                      tooltip: 'Calculate based on current amount',
+                      icon: const Icon(Icons.calculate_rounded),
                     ),
                   ),
                 ),
-                inputFormatters: amountFormatter,
-                onTapOutside: (event) {
-                  FocusManager.instance.primaryFocus?.unfocus();
-                },
               ),
+              const SizedBox(height: fabHeight),
             ],
           ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.save),
         onPressed: () {
-          setState(() {
-            autovalidateMode = AutovalidateMode.onUserInteraction;
-          });
+          if (!_formKey.currentState!.validate()) {
+            setState(() {
+              _autovalidateMode = AutovalidateMode.onUserInteraction;
+            });
 
-          if (!formKey.currentState!.validate()) {
             return;
           }
 
-          formKey.currentState!.save();
-          var balance = formBalance.toMoney()!; // TODO check if valid
-
-          if (widget.account == null) {
-            AccountService.instance.add(
-              name: formAccountName,
-              balance: balance,
+          if (_editing) {
+            AccountService.instance.update(
+              widget.account!,
+              name: _nameCtrl.text,
+              initialMoney: _initialAmountCtrl.text.toMoney()!,
             );
           } else {
-            widget.account!.name = formAccountName;
-            widget.account!.initialMoney = balance;
-            AccountService.instance.update();
+            AccountService.instance.add(
+              name: _nameCtrl.text,
+              balance: _initialAmountCtrl.text.toMoney()!,
+            );
           }
 
-          Navigator.pop(context);
+          Navigator.of(context).pop();
         },
+        child: const Icon(Icons.save),
       ),
     );
   }
 
   Future<void> _recalculate() async {
-    _currentAmountCtrl.clear();
+    _dialogAmountCtrl.clear();
 
     var agreed = await showDialog(
       context: context,
@@ -134,11 +124,10 @@ class _AccountEditPageState extends State<AccountEditPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                  'Enter the current amount below and the initial amount will be recalculated based on saved transactions.'),
+              const Text('This will be done using your saved transactions.'),
               const SizedBox(height: 16),
               TextField(
-                controller: _currentAmountCtrl,
+                controller: _dialogAmountCtrl,
                 inputFormatters: amountFormatter,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
@@ -157,9 +146,9 @@ class _AccountEditPageState extends State<AccountEditPage> {
             child: const Text('Cancel'),
           ),
           ListenableBuilder(
-              listenable: _currentAmountCtrl,
+              listenable: _dialogAmountCtrl,
               builder: (context, child) {
-                var money = _currentAmountCtrl.text.toMoney();
+                var money = _dialogAmountCtrl.text.toMoney();
                 return TextButton(
                   onPressed: money != null && money != zeroEur
                       ? () {
@@ -177,18 +166,14 @@ class _AccountEditPageState extends State<AccountEditPage> {
       return;
     }
 
-    var currentMoney = _currentAmountCtrl.text.toMoney()!;
+    var currentMoney = _dialogAmountCtrl.text.toMoney()!;
     var totalExpenses = TransactionService.instance.expenses
         .where((expense) => expense.transaction.account == widget.account)
         .map((expense) => expense.signedMoney)
         .fold(zeroEur, (acc, x) => acc + x);
 
-    var newInitialMoney = currentMoney - totalExpenses;
-
     setState(() {
-      _initialAmountCtrl.text = newInitialMoney.amount.toString();
-      widget.account!.initialMoney = newInitialMoney;
-      AccountService.instance.update();
+      _initialAmountCtrl.text = (currentMoney - totalExpenses).amount.toString();
     });
   }
 }

@@ -4,10 +4,14 @@ import 'package:flutter/material.dart';
 
 class AmountTextField extends StatelessWidget {
   final TextEditingController controller;
+  final String labelText;
+  final Widget? suffixIcon;
 
   const AmountTextField({
     super.key,
     required this.controller,
+    this.labelText = 'Amount',
+    this.suffixIcon,
   });
 
   @override
@@ -29,9 +33,10 @@ class AmountTextField extends StatelessWidget {
       keyboardType: const TextInputType.numberWithOptions(
         decimal: true,
       ),
-      decoration: const InputDecoration(
-        labelText: 'Amount',
+      decoration: InputDecoration(
         prefixText: '€ ',
+        labelText: labelText,
+        suffixIcon: suffixIcon,
       ),
     );
   }

@@ -49,7 +49,19 @@ class AccountService with ChangeNotifier {
     notifyListeners();
   }
 
-  void update() {
+  void update(
+    Account target, {
+    String? name,
+    Money? initialMoney,
+  }) {
+    if (name != null) {
+      target.name = name;
+    }
+
+    if (initialMoney != null) {
+      target.initialMoney = initialMoney;
+    }
+
     notifyListeners();
   }
 }
