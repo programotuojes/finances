@@ -80,6 +80,7 @@ class _AttachmentRowState extends State<AttachmentRow> {
             Padding(
               padding: const EdgeInsets.only(top: _deleteButtonOffset),
               child: Material(
+                color: Colors.transparent,
                 child: InkWell(
                   onTap: () {
                     selectFile();
@@ -216,9 +217,11 @@ class _ThumbState extends State<Thumb> {
                   color: Colors.transparent,
                   child: InkWell(
                     onTap: !_processing ? widget.onTap : null,
-                    onLongPress: !_processing ? () {
-                      _menuController.open();
-                    } : null,
+                    onLongPress: !_processing
+                        ? () {
+                            _menuController.open();
+                          }
+                        : null,
                     onTapDown: _processing ? _handleTapDown : null,
                     onSecondaryTapDown: _processing ? _handleSecondaryTapDown : null,
                     child: MenuAnchor(

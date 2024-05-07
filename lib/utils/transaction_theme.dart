@@ -5,17 +5,13 @@ ThemeData _transactionTheme(
   BuildContext context,
   TransactionType type,
 ) {
-  var color = switch (type) {
-    TransactionType.income => Colors.green[100]!,
-    TransactionType.expense => Colors.red[200]!,
-    TransactionType.transfer => Colors.indigo[100]!,
-  };
-
+  var colorScheme = ColorScheme.fromSeed(
+    seedColor: type.color,
+    brightness: Theme.of(context).brightness,
+  );
   return Theme.of(context).copyWith(
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: color,
-      brightness: Theme.of(context).brightness,
-    ),
+    scaffoldBackgroundColor: colorScheme.background,
+    colorScheme: colorScheme,
   );
 }
 

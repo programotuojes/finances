@@ -36,21 +36,13 @@ class Transaction {
 }
 
 enum TransactionType {
-  income,
-  expense,
-  transfer,
-}
+  income(color: Color(0xFFAED581)),
+  expense(color: Color(0xFFCC616B)),
+  transfer(color: Color(0xFF6AC6E7));
 
-class BankSyncInfo {
-  String transactionId;
-  String? receiverName;
-  String? receiverIban;
-  String? remittanceInfo;
+  final Color color;
 
-  BankSyncInfo({
-    required this.transactionId,
-    required this.receiverName,
-    required this.receiverIban,
-    required this.remittanceInfo,
+  const TransactionType({
+    required this.color,
   });
 }
