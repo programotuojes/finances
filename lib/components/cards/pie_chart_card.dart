@@ -180,7 +180,9 @@ class _PieChartCardState extends State<PieChartCard> {
       CategoryService.instance,
       TransactionService.instance,
     ]).addListener(() {
-      _resetIndices();
+      if (mounted) {
+        _resetIndices();
+      }
     });
   }
 
