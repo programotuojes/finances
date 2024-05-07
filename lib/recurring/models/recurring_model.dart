@@ -49,34 +49,16 @@ class RecurringModel {
     _from = DateUtils.dateOnly(value);
   }
 
-  String get humanReadablePeriod {
-    var period = periodicity.name;
-
-    if (interval != 1) {
-      period += 's';
-    }
-
-    return 'Every $interval $period';
-  }
-
   Iterable<DateTime> get transactionDates sync* {
     DateTime point = from;
 
     do {
       yield point;
       point = switch (periodicity) {
-        Periodicity.day => point.copyWith(
-            day: point.day + interval,
-          ),
-        Periodicity.week => point.copyWith(
-            day: point.day + interval * 7,
-          ),
-        Periodicity.month => point.copyWith(
-            month: point.month + interval,
-          ),
-        Periodicity.year => point.copyWith(
-            year: point.year + interval,
-          ),
+        Periodicity.day => point.copyWith(day: point.day + interval),
+        Periodicity.week => point.copyWith(day: point.day + interval * 7),
+        Periodicity.month => point.copyWith(month: point.month + interval),
+        Periodicity.year => point.copyWith(year: point.year + interval),
       };
     } while (until == null || !point.isAfter(until!));
   }
@@ -91,7 +73,7 @@ class RecurringModel {
     }
   }
 
-  DateTime? nextDate(DateTime now) {
+  DateTime? nextDate() {
     return transactionDates.skip(timesConfirmed).firstOrNull;
   }
 }

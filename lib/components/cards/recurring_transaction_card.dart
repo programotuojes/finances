@@ -107,16 +107,16 @@ class _RecurringListItem extends StatelessWidget {
 }
 
 class _NextTransactionDate extends StatelessWidget {
+  final RecurringModel recurringModel;
+
   const _NextTransactionDate({
     required this.recurringModel,
   });
 
-  final RecurringModel recurringModel;
-
   @override
   Widget build(BuildContext context) {
     final now = DateUtils.dateOnly(DateTime.now());
-    final nextDate = recurringModel.nextDate(now);
+    final nextDate = recurringModel.nextDate();
 
     assert(nextDate != null, 'Recurring transaction has ended, but was displayed in the list');
 

@@ -38,10 +38,9 @@ void main() {
     _sut.periodicity = Periodicity.week;
     _sut.from = DateTime(2024, 04, 01);
     _sut.until = null;
-    final now = DateTime(2024, 04, 02);
 
     // Act
-    final result = _sut.nextDate(now);
+    final result = _sut.nextDate();
 
     // Assert
     expect(result, DateTime(2024, 04, 07));
@@ -51,10 +50,9 @@ void main() {
     // Arrange
     _sut.from = DateTime(2024, 04, 01);
     _sut.until = DateTime(2024, 04, 05);
-    final now = DateTime(2024, 04, 10);
 
     // Act
-    final result = _sut.nextDate(now);
+    final result = _sut.nextDate();
 
     // Assert
     expect(result, null);
@@ -63,10 +61,9 @@ void main() {
   test('payment date is today, returns next date', () {
     // Arrange
     _sut.from = DateTime(2024, 04, 01);
-    final now = DateTime(2024, 04, 02);
 
     // Act
-    final result = _sut.nextDate(now);
+    final result = _sut.nextDate();
 
     // Assert
     expect(result, DateTime(2024, 04, 03));
@@ -76,10 +73,9 @@ void main() {
     // Arrange
     _sut.from = DateTime(2024, 04, 01);
     _sut.until = DateTime(2024, 04, 02);
-    final now = DateTime(2024, 04, 02);
 
     // Act
-    final result = _sut.nextDate(now);
+    final result = _sut.nextDate();
 
     // Assert
     expect(result, null);

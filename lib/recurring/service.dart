@@ -12,7 +12,7 @@ class RecurringService with ChangeNotifier {
 
   RecurringService._ctor();
 
-  Iterable<RecurringModel> get activeTransactions => transactions.where((x) => x.nextDate(DateTime.now()) != null);
+  Iterable<RecurringModel> get activeTransactions => transactions.where((x) => x.nextDate() != null);
 
   void add(RecurringModel model) {
     transactions.add(model);
@@ -21,7 +21,7 @@ class RecurringService with ChangeNotifier {
   }
 
   void confirm(RecurringModel model) {
-    final nextDate = model.nextDate(DateTime.now());
+    final nextDate = model.nextDate();
 
     if (nextDate == null) {
       logger.w('Tried to confirm an already ended recurring transaction');
@@ -47,7 +47,7 @@ class RecurringService with ChangeNotifier {
     );
 
     model.timesConfirmed++;
-    _sort(basedOn: nextDate);
+    _sort();
     notifyListeners();
   }
 
@@ -70,11 +70,10 @@ class RecurringService with ChangeNotifier {
     notifyListeners();
   }
 
-  void _sort({DateTime? basedOn}) {
-    final now = basedOn ?? DateTime.now();
+  void _sort() {
     transactions.sort((a, b) {
-      final aDate = a.nextDate(now);
-      final bDate = b.nextDate(now);
+      final aDate = a.nextDate();
+      final bDate = b.nextDate();
 
       if (aDate == null && bDate == null) {
         return 0;

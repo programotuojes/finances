@@ -36,7 +36,7 @@ class RecurringListPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(i.humanReadablePeriod),
+                    Text(_humanReadablePeriod(i)),
                     if (i.until != null) untilString(i),
                   ],
                 ),
@@ -68,12 +68,22 @@ class RecurringListPage extends StatelessWidget {
 
   Widget untilString(RecurringModel model) {
     var text = 'Until ${model.until!.toIso8601String().substring(0, 10)}';
-    final nextDate = model.nextDate(DateUtils.dateOnly(DateTime.now()));
+    final nextDate = model.nextDate();
 
     if (nextDate == null) {
       text += ' (ended)';
     }
 
     return Text(text);
+  }
+
+  String _humanReadablePeriod(RecurringModel recurring) {
+    var period = recurring.periodicity.name;
+
+    if (recurring.interval != 1) {
+      period += 's';
+    }
+
+    return 'Every ${recurring.interval} $period';
   }
 }
