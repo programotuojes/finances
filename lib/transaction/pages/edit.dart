@@ -660,10 +660,10 @@ class _ExpenseCardState extends State<_ExpenseCard> {
               rows: [
                 if (widget.expense.transaction.bankInfo?.transactionId != null)
                   _fieldRow('Transaction ID', widget.expense.transaction.bankInfo!.transactionId),
-                if (widget.expense.transaction.bankInfo?.receiverName != null)
-                  _fieldRow('Receiver name', widget.expense.transaction.bankInfo!.receiverName!),
-                if (widget.expense.transaction.bankInfo?.receiverIban != null)
-                  _fieldRow('Receiver IBAN', widget.expense.transaction.bankInfo!.receiverIban!),
+                if (widget.expense.transaction.bankInfo?.creditorName != null)
+                  _fieldRow('Receiver name', widget.expense.transaction.bankInfo!.creditorName!),
+                if (widget.expense.transaction.bankInfo?.creditorIban != null)
+                  _fieldRow('Receiver IBAN', widget.expense.transaction.bankInfo!.creditorIban!),
                 if (widget.expense.transaction.bankInfo?.remittanceInfo != null)
                   _fieldRow('Remittance info', widget.expense.transaction.bankInfo!.remittanceInfo!),
               ],

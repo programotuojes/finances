@@ -7,6 +7,11 @@ class Attachment {
   String? text;
   Uint8List? _bytes;
 
+  Attachment({
+    required this.file,
+    this.text,
+  });
+
   Future<Uint8List> get bytes async {
     if (_bytes != null) {
       return _bytes!;
@@ -15,9 +20,4 @@ class Attachment {
     _bytes = await file.readAsBytes();
     return _bytes!;
   }
-
-  Attachment({
-    required this.file,
-    this.text,
-  });
 }

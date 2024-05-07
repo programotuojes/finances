@@ -289,8 +289,8 @@ class GoCardlessSerivce with ChangeNotifier {
 
         var bankInfo = BankSyncInfo(
           transactionId: bankTr.transactionId,
-          receiverName: bankTr.creditorName,
-          receiverIban: bankTr.creditorAccount?.iban,
+          creditorName: bankTr.creditorName,
+          creditorIban: bankTr.creditorAccount?.iban,
           remittanceInfo: bankTr.remittanceInformationUnstructured,
         );
 

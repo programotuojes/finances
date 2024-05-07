@@ -1,16 +1,29 @@
 import 'package:finances/account/models/account.dart';
 import 'package:finances/transaction/models/attachment.dart';
 import 'package:finances/transaction/models/expense.dart';
+import 'package:flutter/material.dart';
+
+class BankSyncInfo {
+  String transactionId;
+  String? creditorName;
+  String? creditorIban;
+  String? remittanceInfo;
+
+  BankSyncInfo({
+    required this.transactionId,
+    required this.creditorName,
+    required this.creditorIban,
+    required this.remittanceInfo,
+  });
+}
 
 class Transaction {
   Account account;
   DateTime dateTime;
   TransactionType type;
-  List<Attachment> attachments = List.empty(growable: true);
-  List<Expense> expenses = List.empty(growable: true);
+  List<Attachment> attachments = [];
+  List<Expense> expenses = [];
   BankSyncInfo? bankInfo;
-
-  Expense get mainExpense => expenses.first;
 
   Transaction({
     required this.account,
@@ -18,6 +31,8 @@ class Transaction {
     required this.type,
     this.bankInfo,
   });
+
+  Expense get mainExpense => expenses.first;
 }
 
 enum TransactionType {
