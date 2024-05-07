@@ -19,8 +19,7 @@ class AccountsCard extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                for (var i in AccountService.instance.accounts)
-                  smallCard(context, i),
+                for (var i in AccountService.instance.accounts) smallCard(context, i),
               ],
             ),
           );
@@ -36,9 +35,7 @@ class AccountsCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
         side: BorderSide(
-          style: AccountService.instance.selectedFilter == account
-              ? BorderStyle.solid
-              : BorderStyle.none,
+          style: AccountService.instance.filter == account ? BorderStyle.solid : BorderStyle.none,
           color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
         ),
       ),
@@ -52,10 +49,7 @@ class AccountsCard extends StatelessWidget {
           },
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(account.name),
-              CurrentAccountMoney(account: account)
-            ],
+            children: [Text(account.name), CurrentAccountMoney(account: account)],
           ),
         ),
       ),
