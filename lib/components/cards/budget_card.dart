@@ -70,11 +70,10 @@ class _BudgetChart extends StatelessWidget {
     var value = currentSpending.dividedBy(budget.limit);
     var moneyLeft = budget.limit - currentSpending;
 
-    var start = budget.periodStart(now);
-    var end = budget.periodEnd(start);
-    var timeValue = (now.millisecondsSinceEpoch - start.millisecondsSinceEpoch) /
-        (end.millisecondsSinceEpoch - start.millisecondsSinceEpoch);
-    var timeLeft = DateTimeRange(start: now, end: end).duration.inDays;
+    var range = budget.currentRange(now);
+    var timeValue = (now.millisecondsSinceEpoch - range.start.millisecondsSinceEpoch) /
+        (range.end.millisecondsSinceEpoch - range.start.millisecondsSinceEpoch);
+    var timeLeft = DateTimeRange(start: now, end: range.end).duration.inDays;
     if (timeLeft == 0) {
       timeLeft = 1;
     }

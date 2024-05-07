@@ -20,28 +20,26 @@ class Budget {
     required this.categories,
   });
 
-  DateTime periodStart(DateTime current) {
-    return switch (period) {
-      Periodicity.day => DateTime(current.year, current.month, current.day),
-      Periodicity.week => DateUtils.dateOnly(current.subtract(Duration(days: current.weekday - 1))),
-      Periodicity.month => DateTime(current.year, current.month),
-      Periodicity.year => DateTime(current.year),
+  DateTimeRange currentRange(DateTime now) {
+    var start = switch (period) {
+      Periodicity.day => DateTime(now.year, now.month, now.day),
+      Periodicity.week => DateUtils.dateOnly(now.subtract(Duration(days: now.weekday - 1))),
+      Periodicity.month => DateTime(now.year, now.month),
+      Periodicity.year => DateTime(now.year),
     };
-  }
 
-  DateTime periodEnd(DateTime start) {
-    return switch (period) {
+    var end = switch (period) {
       Periodicity.day => DateTime(start.year, start.month, start.day + 1, 0, 0, -1),
       Periodicity.week => DateTime(start.year, start.month, start.day + 7, 0, 0, -1),
       Periodicity.month => DateTime(start.year, start.month + 1, 0, 0, 0, -1),
       Periodicity.year => DateTime(start.year + 1, 1, 1, 0, 0, -1),
     };
+
+    return DateTimeRange(start: start, end: end);
   }
 
-  Money usedThisPeriod(DateTime current) {
-    var start = periodStart(current);
-    var end = periodEnd(start);
-    var range = DateTimeRange(start: start, end: end);
+  Money usedThisPeriod(DateTime now) {
+    var range = currentRange(now);
 
     Money total = zeroEur;
 
