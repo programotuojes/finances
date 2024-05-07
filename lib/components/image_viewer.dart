@@ -1,4 +1,4 @@
-import 'package:finances/automation/service.dart';
+import 'package:finances/transaction/models/attachment.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_view/photo_view.dart';

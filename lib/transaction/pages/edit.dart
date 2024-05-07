@@ -266,7 +266,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> with SingleTi
 
                     return true;
                   },
-                  onOcr: (attachment) async {
+                  onAutoCategorize: (attachment) async {
                     var auto = await _autoExpenses(attachment).toList();
                     if (auto.isEmpty && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -390,7 +390,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> with SingleTi
   }
 
   Stream<Expense> _autoExpenses(Attachment attachment) async* {
-    var lineItems = extractLineItems(attachment.text);
+    var lineItems = attachment.extractLineItems();
 
     await for (var lineItem in lineItems) {
       var category = AutomationService.instance.getCategory(remittanceInfo: lineItem.text);

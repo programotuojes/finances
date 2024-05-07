@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
-import 'package:finances/automation/service.dart';
 import 'package:finances/components/conditional_tooltip.dart';
 import 'package:finances/transaction/models/attachment.dart';
 import 'package:flutter/foundation.dart';
@@ -16,14 +15,14 @@ const _deleteButtonOffset = 16.0;
 class AttachmentRow extends StatefulWidget {
   final List<Attachment> attachments;
   final void Function(Attachment attachment)? onTap;
-  final void Function(Attachment attachment)? onOcr;
+  final void Function(Attachment attachment)? onAutoCategorize;
   final bool Function()? allowOcr;
 
   const AttachmentRow({
     super.key,
     required this.attachments,
     this.onTap,
-    this.onOcr,
+    this.onAutoCategorize,
     this.allowOcr,
   });
 
@@ -65,9 +64,9 @@ class _AttachmentRowState extends State<AttachmentRow> {
                 onTap: () {
                   widget.onTap?.call(attachment);
                 },
-                onOcr: widget.onOcr != null
+                onAutoCategorize: widget.onAutoCategorize != null
                     ? () {
-                        widget.onOcr?.call(attachment);
+                        widget.onAutoCategorize?.call(attachment);
                       }
                     : null,
                 allowOcr: widget.allowOcr,
@@ -114,7 +113,7 @@ class Thumb extends StatefulWidget {
   final Attachment attachment;
   final VoidCallback? onRemove;
   final VoidCallback? onTap;
-  final VoidCallback? onOcr;
+  final VoidCallback? onAutoCategorize;
 
   /// Called before automatically categorizing.
   /// If the result is false, parsing won't be done.
@@ -125,7 +124,7 @@ class Thumb extends StatefulWidget {
     required this.attachment,
     this.onRemove,
     this.onTap,
-    this.onOcr,
+    this.onAutoCategorize,
     this.allowOcr,
   });
 
@@ -239,22 +238,11 @@ class _ThumbState extends State<Thumb> {
                                       return;
                                     }
 
-                                    var text = widget.attachment.text;
-                                    if (text == null) {
-                                      try {
-                                        setState(() {
-                                          _processing = true;
-                                        });
-                                        var extracted = await extractTextMlKit(widget.attachment);
-                                        widget.attachment.text = extracted;
-                                      } finally {
-                                        setState(() {
-                                          _processing = false;
-                                        });
-                                      }
+                                    if (widget.attachment.text == null) {
+                                      await _extractText();
                                     }
 
-                                    widget.onOcr?.call();
+                                    widget.onAutoCategorize?.call();
                                   }
                                 : null,
                             child: const Text('Auto categorize'),
@@ -265,21 +253,7 @@ class _ThumbState extends State<Thumb> {
                           message: 'OCR is only available on mobile and web',
                           child: MenuItemButton(
                             leadingIcon: const Icon(Symbols.document_scanner),
-                            onPressed: _isOcrAvailable()
-                                ? () async {
-                                    try {
-                                      setState(() {
-                                        _processing = true;
-                                      });
-                                      var extracted = await extractTextMlKit(widget.attachment);
-                                      widget.attachment.text = extracted;
-                                    } finally {
-                                      setState(() {
-                                        _processing = false;
-                                      });
-                                    }
-                                  }
-                                : null,
+                            onPressed: _isOcrAvailable() ? _extractText : null,
                             child: const Text('Extract text'),
                           ),
                         ),
@@ -318,6 +292,20 @@ class _ThumbState extends State<Thumb> {
         ),
       ],
     );
+  }
+
+  Future<void> _extractText() async {
+    setState(() {
+      _processing = true;
+    });
+
+    try {
+      await widget.attachment.extractText();
+    } finally {
+      setState(() {
+        _processing = false;
+      });
+    }
   }
 
   bool _isOcrAvailable() {

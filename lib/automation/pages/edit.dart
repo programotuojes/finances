@@ -166,7 +166,7 @@ class _AutomationEditPageState extends State<AutomationEditPage> {
           if (isEditing) {
             AutomationService.instance.update(widget.model!, tempModel);
           } else {
-            AutomationService.instance.save(tempModel);
+            AutomationService.instance.add(tempModel);
           }
           Navigator.of(context).pop();
         },
