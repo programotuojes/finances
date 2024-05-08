@@ -9,9 +9,10 @@ import 'package:path_provider/path_provider.dart';
 class TransactionService with ChangeNotifier {
   static final TransactionService instance = TransactionService._ctor();
 
+  final List<Transaction> transactions = [];
+
   TransactionService._ctor();
 
-  List<Transaction> transactions = List.empty(growable: true);
   Iterable<Expense> get expenses sync* {
     for (final transaction in transactions) {
       for (final expense in transaction.expenses) {
@@ -47,8 +48,8 @@ class TransactionService with ChangeNotifier {
   }) async {
     final previousDateTime = target.dateTime;
 
-    // await removeUnusedFiles(attachments, target.attachments);
-    // target.attachments = await moveAttachmentsFromCache(attachments).toList();
+    // await _removeUnusedFiles(attachments, target.attachments);
+    // target.attachments = await _moveAttachmentsFromCache(attachments).toList();
     target.attachments = newValues.attachments;
 
     target.account = newValues.account;
@@ -64,25 +65,7 @@ class TransactionService with ChangeNotifier {
     notifyListeners();
   }
 
-  Stream<File> moveAttachmentsFromCache(List<File> attachments) async* {
-    final appDir = await getApplicationDocumentsDirectory();
-    final attachmentsDir = await Directory(
-      '${appDir.path}/attachments',
-    ).create();
-
-    for (final cacheFile in attachments) {
-      final fileExtensionIndex = cacheFile.path.lastIndexOf('.');
-      final extension = cacheFile.path.substring(fileExtensionIndex + 1);
-      final name = await getUniqueName(attachmentsDir.path, extension);
-
-      final movedAttachment = await cacheFile.rename(
-        '${attachmentsDir.path}/$name.$extension',
-      );
-      yield movedAttachment;
-    }
-  }
-
-  Future<String> getUniqueName(
+  Future<String> _getUniqueName(
     String attachmentsDir,
     String extension,
   ) async {
@@ -95,7 +78,26 @@ class TransactionService with ChangeNotifier {
     return name;
   }
 
-  Future<void> removeUnusedFiles(
+  Stream<File> _moveAttachmentsFromCache(List<File> attachments) async* {
+    final appDir = await getApplicationDocumentsDirectory();
+    final attachmentsDir = await Directory(
+      '${appDir.path}/attachments',
+    ).create();
+
+    for (final cacheFile in attachments) {
+      final fileExtensionIndex = cacheFile.path.lastIndexOf('.');
+      final extension = cacheFile.path.substring(fileExtensionIndex + 1);
+      final name = await _getUniqueName(attachmentsDir.path, extension);
+
+      final movedAttachment = await cacheFile.rename(
+        '${attachmentsDir.path}/$name.$extension',
+      );
+
+      yield movedAttachment;
+    }
+  }
+
+  Future<void> _removeUnusedFiles(
     List<File> current,
     List<File> previous,
   ) async {
