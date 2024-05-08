@@ -6,12 +6,17 @@ import 'package:money2/money2.dart';
 class BudgetService with ChangeNotifier {
   static final instance = BudgetService._ctor();
 
-  BudgetService._ctor();
-
   final List<Budget> budgets = [];
+
+  BudgetService._ctor();
 
   void add(Budget budget) {
     budgets.add(budget);
+    notifyListeners();
+  }
+
+  void delete(Budget budget) {
+    budgets.remove(budget);
     notifyListeners();
   }
 
@@ -35,11 +40,6 @@ class BudgetService with ChangeNotifier {
       target.categories = categories;
     }
 
-    notifyListeners();
-  }
-
-  void delete(Budget budget) {
-    budgets.remove(budget);
     notifyListeners();
   }
 }
