@@ -56,16 +56,16 @@ class RecurringService with ChangeNotifier {
     notifyListeners();
   }
 
-  void update(RecurringModel model, RecurringModel newValues) {
-    model.account = newValues.account;
-    model.category = newValues.category;
-    model.money = newValues.money;
-    model.description = newValues.description;
-    model.periodicity = newValues.periodicity;
-    model.interval = newValues.interval;
-    model.from = newValues.from;
-    model.until = newValues.until;
-    model.type = newValues.type;
+  void update(RecurringModel target, RecurringModel newValues) {
+    target.account = newValues.account;
+    target.category = newValues.category;
+    target.money = newValues.money;
+    target.description = newValues.description;
+    target.periodicity = newValues.periodicity;
+    target.interval = newValues.interval;
+    target.from = newValues.from;
+    target.until = newValues.until;
+    target.type = newValues.type;
     _sort();
     notifyListeners();
   }
