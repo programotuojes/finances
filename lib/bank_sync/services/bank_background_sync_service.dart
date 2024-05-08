@@ -42,9 +42,9 @@ class BankBackgroundSyncService {
 
     var categoryId = storage.getInt(_Keys.categoryId);
     if (categoryId != null) {
-      _defaultCategory = CategoryService.instance.findById(categoryId) ?? CategoryService.instance.categoryOther;
+      _defaultCategory = CategoryService.instance.findById(categoryId) ?? CategoryService.instance.otherCategory;
     } else {
-      _defaultCategory = CategoryService.instance.categoryOther;
+      _defaultCategory = CategoryService.instance.otherCategory;
     }
 
     var remittanceInfoAsDescription = storage.getBool(_Keys.remittanceInfoAsDescription) ?? false;

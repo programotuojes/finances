@@ -1,4 +1,5 @@
 import 'package:finances/automation/models/automation.dart';
+import 'package:finances/category/seed.dart';
 import 'package:finances/category/service.dart';
 
 Iterable<Automation> seedData() sync* {

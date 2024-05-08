@@ -73,7 +73,7 @@ class _BankSyncSettingsState extends State<BankSyncSettings> {
               var selectedCategory = await Navigator.push<CategoryModel>(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => CategoryListPage(CategoryService.instance.root),
+                  builder: (context) => CategoryListPage(CategoryService.instance.rootCategory),
                 ),
               );
 

@@ -146,7 +146,7 @@ class _HomePageState extends State<HomePage> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => CategoryListPage(
-                      CategoryService.instance.root,
+                      CategoryService.instance.rootCategory,
                       isForEditing: true,
                     ),
                   ),

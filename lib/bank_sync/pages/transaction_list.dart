@@ -26,7 +26,7 @@ class _BankTransactionListState extends State<BankTransactionList> {
   var _account = AccountService.instance.lastSelection;
   var _importing = false;
   var _remittanceInfoAsDescription = false;
-  var _importCategory = CategoryService.instance.categoryOther;
+  var _importCategory = CategoryService.instance.otherCategory;
 
   @override
   Widget build(BuildContext context) {
@@ -273,7 +273,7 @@ class _BankTransactionListState extends State<BankTransactionList> {
                       var selectedCategory = await Navigator.push<CategoryModel>(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => CategoryListPage(CategoryService.instance.root),
+                          builder: (context) => CategoryListPage(CategoryService.instance.rootCategory),
                         ),
                       );
 

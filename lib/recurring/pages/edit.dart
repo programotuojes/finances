@@ -218,7 +218,7 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
                   var selection = await Navigator.push<CategoryModel>(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CategoryListPage(CategoryService.instance.root),
+                      builder: (context) => CategoryListPage(CategoryService.instance.rootCategory),
                     ),
                   );
                   if (selection == null) {

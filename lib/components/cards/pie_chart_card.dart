@@ -23,7 +23,7 @@ class PieChartCard extends StatefulWidget {
 }
 
 class _PieChartCardState extends State<PieChartCard> {
-  final _historyStack = [CategoryService.instance.root];
+  final _historyStack = [CategoryService.instance.rootCategory];
   var _hoveredIndex = -1;
   var _clickedIndex = -1;
 

@@ -112,7 +112,7 @@ class _AutomationEditPageState extends State<AutomationEditPage> {
                   var selected = await Navigator.push<CategoryModel>(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CategoryListPage(CategoryService.instance.root),
+                      builder: (context) => CategoryListPage(CategoryService.instance.rootCategory),
                     ),
                   );
                   if (selected == null) {
