@@ -2,7 +2,7 @@ import 'package:money2/money2.dart';
 
 final amountValidator = RegExp(r'^\d*[\.,]?\d{0,2}$');
 
-final zeroEur = Money.fromInt(0, code: 'EUR');
+final zeroEur = Money.fromInt(0, isoCode: 'EUR');
 
 extension MoneyParsing on String {
   Money? toMoney() {
@@ -24,7 +24,7 @@ extension MoneyParsing on String {
 
     return Money.fromInt(
       major + minor,
-      code: 'EUR',
+      isoCode: 'EUR',
     );
   }
 }
