@@ -39,7 +39,11 @@ class BalanceGraphCard extends StatelessWidget {
       child: SizedBox(
         height: 200,
         child: LayoutBuilder(builder: (context, constraints) {
-          var horizontalInterval = range.duration.inMilliseconds / (constraints.maxWidth / 100).ceil();
+          double? horizontalInterval = range.duration.inMilliseconds / (constraints.maxWidth / 100).ceil();
+          if (horizontalInterval == double.infinity) {
+            horizontalInterval = null;
+          }
+
           return ListenableBuilder(
             listenable: _listenables,
             builder: (context, child) {
