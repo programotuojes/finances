@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:sqflite/sqflite.dart';
 
 class CategoryModel {
   int id;
@@ -31,5 +32,19 @@ class CategoryModel {
     }
 
     return parent!.isNestedChildOf(category);
+  }
+
+  static void createTable(Batch batch) {
+    batch.execute('''
+      create table categories (
+        id integer primary key autoincrement,
+        name text not null,
+        color integer not null,
+        iconPack text not null,
+        iconKey text not null,
+        parentId integer,
+        foreign key (parentId) references categories(id) on delete cascade
+      )
+    ''');
   }
 }

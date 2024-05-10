@@ -11,6 +11,7 @@ import 'package:finances/utils/money.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:money2/money2.dart';
 import 'package:path/path.dart' as p;
+import 'package:sqflite/sqflite.dart';
 
 List<Rect> boundingBoxes = [];
 
@@ -91,6 +92,7 @@ class Attachment {
     var extractedText = stringBuffer.toString();
     logger.i(extractedText);
     text = extractedText;
+    await File(scaledImagePath).delete();
   }
 
   String _getLineSeparator(TextLine t1, TextLine t2) {
@@ -133,5 +135,17 @@ class Attachment {
     }
 
     return (text: name, money: money);
+  }
+
+  static void createTable(Batch batch) {
+    batch.execute('''
+      create table attachments (
+        id integer primary key autoincrement,
+        path text not null,
+        attachmentText text,
+        transactionId integer not null,
+        foreign key (transactionId) references transactions(id) on delete cascade
+      )
+    ''');
   }
 }

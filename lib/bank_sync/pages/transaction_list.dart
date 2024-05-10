@@ -23,7 +23,6 @@ class _BankTransactionListState extends State<BankTransactionList> {
     booked: [],
     pending: [],
   );
-  var _account = AccountService.instance.lastSelection;
   var _importing = false;
   var _remittanceInfoAsDescription = false;
   var _importCategory = CategoryService.instance.otherCategory;
@@ -69,8 +68,8 @@ class _BankTransactionListState extends State<BankTransactionList> {
         visible: _index == 0,
         child: FloatingActionButton.extended(
           onPressed: () async {
-            var importing = await _setImportOptions();
-            if (importing != true) {
+            var targetAccount = await _showImportOptionsDialog();
+            if (targetAccount == null) {
               return;
             }
 
@@ -79,7 +78,7 @@ class _BankTransactionListState extends State<BankTransactionList> {
                 _importing = true;
               });
               await GoCardlessSerivce.instance.importTransactions(
-                account: _account,
+                account: targetAccount,
                 remittanceInfoAsDescription: _remittanceInfoAsDescription,
                 defaultCategory: _importCategory,
               );
@@ -229,10 +228,12 @@ class _BankTransactionListState extends State<BankTransactionList> {
     );
   }
 
-  Future<bool?> _setImportOptions() {
-    return showDialog<bool>(
+  Future<Account?> _showImportOptionsDialog() {
+    return showDialog<Account?>(
       context: context,
       builder: (context) {
+        var account = AccountService.instance.lastSelection;
+
         return AlertDialog(
           title: const Text('Import options'),
           content: Column(
@@ -240,13 +241,13 @@ class _BankTransactionListState extends State<BankTransactionList> {
             children: [
               DropdownMenu<Account>(
                 expandedInsets: const EdgeInsets.all(0),
-                initialSelection: _account,
+                initialSelection: account,
                 label: const Text('Account'),
                 onSelected: (selected) {
                   if (selected == null) {
                     return;
                   }
-                  _account = selected;
+                  account = selected;
                 },
                 dropdownMenuEntries: [
                   for (final x in AccountService.instance.accounts) DropdownMenuEntry(value: x, label: x.name)
@@ -303,15 +304,11 @@ class _BankTransactionListState extends State<BankTransactionList> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
+              onPressed: () => Navigator.of(context).pop(null),
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
+              onPressed: () => Navigator.of(context).pop(account),
               child: const Text('Import'),
             ),
           ],

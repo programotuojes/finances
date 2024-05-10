@@ -83,7 +83,7 @@ class _AccountEditPageState extends State<AccountEditPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
+        onPressed: () async {
           if (!_formKey.currentState!.validate()) {
             setState(() {
               _autovalidateMode = AutovalidateMode.onUserInteraction;
@@ -93,19 +93,21 @@ class _AccountEditPageState extends State<AccountEditPage> {
           }
 
           if (_editing) {
-            AccountService.instance.update(
+            await AccountService.instance.update(
               widget.account!,
               name: _nameCtrl.text,
               initialMoney: _initialAmountCtrl.text.toMoney()!,
             );
           } else {
-            AccountService.instance.add(
+            await AccountService.instance.add(
               name: _nameCtrl.text,
-              balance: _initialAmountCtrl.text.toMoney()!,
+              initialMoney: _initialAmountCtrl.text.toMoney()!,
             );
           }
 
-          Navigator.of(context).pop();
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
         },
         child: const Icon(Icons.save),
       ),

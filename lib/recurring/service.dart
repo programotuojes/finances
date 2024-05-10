@@ -1,9 +1,13 @@
+import 'package:finances/account/models/account.dart';
+import 'package:finances/category/models/category.dart';
 import 'package:finances/main.dart';
 import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/service.dart';
+import 'package:finances/utils/periodicity.dart';
 import 'package:flutter/foundation.dart';
+import 'package:money2/money2.dart';
 
 class RecurringService with ChangeNotifier {
   static final instance = RecurringService._ctor();
@@ -14,8 +18,28 @@ class RecurringService with ChangeNotifier {
 
   Iterable<RecurringModel> get activeTransactions => transactions.where((x) => x.nextDate() != null);
 
-  void add(RecurringModel model) {
-    transactions.add(model);
+  void add({
+    required Account account,
+    required CategoryModel category,
+    required Money money,
+    required String? description,
+    required Periodicity period,
+    required int interval,
+    required DateTime from,
+    required DateTime? until,
+    required TransactionType type,
+  }) {
+    transactions.add(RecurringModel(
+      account: account,
+      category: category,
+      money: money,
+      description: description,
+      periodicity: period,
+      interval: interval,
+      from: from,
+      until: until,
+      type: type,
+    ));
     _sort();
     notifyListeners();
   }
@@ -56,16 +80,28 @@ class RecurringService with ChangeNotifier {
     notifyListeners();
   }
 
-  void update(RecurringModel target, RecurringModel newValues) {
-    target.account = newValues.account;
-    target.category = newValues.category;
-    target.money = newValues.money;
-    target.description = newValues.description;
-    target.periodicity = newValues.periodicity;
-    target.interval = newValues.interval;
-    target.from = newValues.from;
-    target.until = newValues.until;
-    target.type = newValues.type;
+  void update(
+    RecurringModel target, {
+    Account? account,
+    CategoryModel? category,
+    Money? money,
+    String? description,
+    Periodicity? period,
+    int? interval,
+    DateTime? from,
+    DateTime? until,
+    TransactionType? type,
+  }) {
+    target.account = account ?? target.account;
+    target.category = category ?? target.category;
+    target.money = money ?? target.money;
+    target.description = description ?? target.description;
+    target.periodicity = period ?? target.periodicity;
+    target.interval = interval ?? target.interval;
+    target.from = from ?? target.from;
+    target.until = until ?? target.until;
+    target.type = type ?? target.type;
+
     _sort();
     notifyListeners();
   }

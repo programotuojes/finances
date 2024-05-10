@@ -2,12 +2,22 @@ import 'package:finances/category/models/category.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/utils/money.dart';
 import 'package:money2/money2.dart';
+import 'package:sqflite/sqflite.dart' as sql;
 
 class Expense {
-  Transaction transaction;
   Money money;
-  CategoryModel category;
   String? _description;
+  Transaction transaction;
+  CategoryModel category;
+
+  Expense({
+    required this.transaction,
+    required this.money,
+    required this.category,
+    required String? description,
+  }) {
+    this.description = description;
+  }
 
   String? get description => _description;
 
@@ -19,13 +29,12 @@ class Expense {
     }
   }
 
-  Expense({
-    required this.transaction,
-    required this.money,
-    required this.category,
-    required String? description,
-  }) {
-    this.description = description;
+  Money get signedMoney {
+    return switch (transaction.type) {
+      TransactionType.income => money,
+      TransactionType.expense => -money,
+      TransactionType.transfer => zeroEur,
+    };
   }
 
   Expense copy() => Expense(
@@ -34,14 +43,6 @@ class Expense {
         category: category,
         description: description,
       );
-
-  Money get signedMoney {
-    return switch (transaction.type) {
-      TransactionType.income => money,
-      TransactionType.expense => -money,
-      TransactionType.transfer => zeroEur,
-    };
-  }
 
   bool matchesFilter(RegExp regex) {
     var descriptionMatches = description?.contains(regex) == true;
@@ -65,5 +66,21 @@ class Expense {
     }
 
     return false;
+  }
+
+  static void createTable(sql.Batch batch) {
+    batch.execute('''
+      create table expenses (
+        id integer primary key autoincrement,
+        moneyMinor integer not null,
+        moneyDecimalDigits integer not null,
+        currencyIsoCode text not null,
+        description text,
+        categoryId integer not null,
+        transactionId integer not null,
+        foreign key (categoryId) references categories(id) on delete cascade,
+        foreign key (transactionId) references transactions(id) on delete cascade
+      )
+    ''');
   }
 }

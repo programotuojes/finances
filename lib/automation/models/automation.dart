@@ -1,11 +1,13 @@
 import 'package:finances/category/models/category.dart';
 import 'package:flutter/foundation.dart';
+import 'package:sqflite/sqflite.dart';
 
 class Automation with ChangeNotifier {
+  String name;
+  CategoryModel category;
+
   /// All rules are ORed together
   List<Rule> rules = [];
-  CategoryModel category;
-  String name;
 
   Automation({
     required this.name,
@@ -16,34 +18,61 @@ class Automation with ChangeNotifier {
       this.rules = rules;
     }
   }
+
+  static void createTable(Batch batch) {
+    batch.execute('''
+      CREATE TABLE automations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        categoryId INTEGER NOT NULL,
+        FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE CASCADE
+      )
+    ''');
+  }
 }
 
 class Rule {
-  RegExp? remittanceInfo;
   RegExp? creditorName;
   RegExp? creditorIban;
+  RegExp? remittanceInfo;
 
   Rule({
-    this.remittanceInfo,
     this.creditorName,
     this.creditorIban,
+    this.remittanceInfo,
   });
 
   factory Rule.fromStrings({
-    required String remittanceInfo,
     required String creditorName,
     required String creditorIban,
+    required String remittanceInfo,
   }) {
-    var a = remittanceInfo.isNotEmpty;
-    var b = creditorName.isNotEmpty;
-    var c = creditorIban.isNotEmpty;
+    var creditorNameProvided = creditorName.isNotEmpty;
+    var creditorIbanProvided = creditorIban.isNotEmpty;
+    var remittanceInfoProvided = remittanceInfo.isNotEmpty;
 
-    assert(a || b || c, 'At least one field must be provided');
+    assert(
+      creditorNameProvided || creditorIbanProvided || remittanceInfoProvided,
+      'At least one field must be provided',
+    );
 
     return Rule(
-      remittanceInfo: a ? RegExp(remittanceInfo) : null,
-      creditorName: b ? RegExp(creditorName) : null,
-      creditorIban: c ? RegExp(creditorIban) : null,
+      creditorName: creditorNameProvided ? RegExp(creditorName) : null,
+      creditorIban: creditorIbanProvided ? RegExp(creditorIban) : null,
+      remittanceInfo: remittanceInfoProvided ? RegExp(remittanceInfo) : null,
     );
+  }
+
+  static void createTable(Batch batch) {
+    batch.execute('''
+      CREATE TABLE automationRules (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        creditorName TEXT,
+        creditorIban TEXT
+        remittanceInfo TEXT,
+        automationId INTEGER NOT NULL,
+        FOREIGN KEY (automationId) REFERENCES automations(id) ON DELETE CASCADE
+      )
+    ''');
   }
 }

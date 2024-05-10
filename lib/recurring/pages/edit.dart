@@ -27,58 +27,35 @@ class RecurringEditPage extends StatefulWidget {
 }
 
 class _RecurringEditPageState extends State<RecurringEditPage> with SingleTickerProviderStateMixin {
-  final tempModel = RecurringModel(
-    account: AccountService.instance.lastSelection,
-    category: CategoryService.instance.lastSelection,
-    money: '0'.toMoney()!,
-    description: null,
-    periodicity: Periodicity.month,
-    interval: 1,
-    from: DateTime.now(),
-    until: null,
-    type: TransactionType.expense,
-  );
+  late var _account = widget.model?.account ?? AccountService.instance.lastSelection;
+  late var _category = widget.model?.category ?? CategoryService.instance.lastSelection;
+  late var _period = widget.model?.periodicity ?? Periodicity.month;
+  late var _from = widget.model?.from ?? DateTime.now();
+  late var _until = widget.model?.until;
+  late var _type = widget.model?.type ?? TransactionType.expense;
 
   late TextEditingController amountCtrl;
   late TextEditingController intervalCtrl;
   late TextEditingController descriptionCtrl;
-  late bool isEditing;
+  late var isEditing = widget.model != null;
   late TabController _tabCtrl;
   late TransactionTheme _theme;
 
   @override
   void initState() {
     super.initState();
-    amountCtrl = TextEditingController(
-      text: widget.model?.money.amount.toString(),
-    );
-    intervalCtrl = TextEditingController(
-      text: widget.model?.interval.toString(),
-    );
-    descriptionCtrl = TextEditingController(
-      text: widget.model?.description,
-    );
-
-    isEditing = widget.model != null;
-
-    if (isEditing) {
-      tempModel.account = widget.model!.account;
-      tempModel.category = widget.model!.category;
-      tempModel.periodicity = widget.model!.periodicity;
-      tempModel.interval = widget.model!.interval;
-      tempModel.from = widget.model!.from;
-      tempModel.until = widget.model!.until;
-      tempModel.type = widget.model!.type;
-    }
+    amountCtrl = TextEditingController(text: widget.model?.money.amount.toString());
+    intervalCtrl = TextEditingController(text: widget.model?.interval.toString());
+    descriptionCtrl = TextEditingController(text: widget.model?.description);
 
     _tabCtrl = TabController(
-      initialIndex: tempModel.type.index,
+      initialIndex: _type.index,
       length: 2,
       vsync: this,
     );
     _tabCtrl.addListener(() {
       setState(() {
-        tempModel.type = TransactionType.values[_tabCtrl.index];
+        _type = TransactionType.values[_tabCtrl.index];
       });
     });
   }
@@ -100,8 +77,8 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
-    final dateFromString = tempModel.from.toIso8601String().substring(0, 10);
-    final dateUntilString = (tempModel.until ?? DateTime.now()).toIso8601String().substring(0, 10);
+    final dateFromString = _from.toIso8601String().substring(0, 10);
+    final dateUntilString = (_until ?? DateTime.now()).toIso8601String().substring(0, 10);
 
     return AnimatedTheme(
       data: _theme.current(_tabCtrl.index),
@@ -144,13 +121,14 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
             children: [
               DropdownMenu<Account>(
                 expandedInsets: const EdgeInsets.all(0),
-                initialSelection: tempModel.account,
+                initialSelection: _account,
                 label: const Text('Account'),
                 onSelected: (selected) {
-                  if (selected == null) return;
-                  setState(() {
-                    tempModel.account = selected;
-                  });
+                  if (selected != null) {
+                    setState(() {
+                      _account = selected;
+                    });
+                  }
                 },
                 dropdownMenuEntries: [
                   for (final x in AccountService.instance.accounts) DropdownMenuEntry(value: x, label: x.name)
@@ -161,7 +139,7 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
                 onPressed: () async {
                   var selected = await showDatePicker(
                     context: context,
-                    initialDate: tempModel.from,
+                    initialDate: _from,
                     firstDate: DateTime(0),
                     lastDate: DateTime(9999),
                     builder: (context, child) => Theme(
@@ -173,7 +151,7 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
                     return;
                   }
                   setState(() {
-                    tempModel.from = selected;
+                    _from = selected;
                   });
                 },
                 child: Text(dateFromString),
@@ -181,32 +159,32 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
               const SizedBox(height: 16),
               SwitchListTile(
                 title: const Text('Has end date'),
-                value: tempModel.until != null,
+                value: _until != null,
                 onChanged: (value) {
                   setState(() {
                     if (value) {
-                      tempModel.until = DateTime.now();
+                      _until = DateTime.now();
                     } else {
-                      tempModel.until = null;
+                      _until = null;
                     }
                   });
                 },
               ),
               const SizedBox(height: 16),
               SquareButton(
-                onPressed: tempModel.until != null
+                onPressed: _until != null
                     ? () async {
                         var selected = await showDatePicker(
                           context: context,
-                          initialDate: tempModel.until,
-                          firstDate: tempModel.from,
+                          initialDate: _until,
+                          firstDate: _from,
                           lastDate: DateTime(9999),
                         );
                         if (selected == null) {
                           return;
                         }
                         setState(() {
-                          tempModel.until = selected;
+                          _until = selected;
                         });
                       }
                     : null,
@@ -226,10 +204,10 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
                   }
                   CategoryService.instance.lastSelection = selection;
                   setState(() {
-                    tempModel.category = selection;
+                    _category = selection;
                   });
                 },
-                child: Text(tempModel.category.name),
+                child: Text(_category.name),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -246,14 +224,14 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
               const SizedBox(height: 16),
               DropdownMenu<Periodicity>(
                 expandedInsets: const EdgeInsets.all(0),
-                initialSelection: tempModel.periodicity,
+                initialSelection: _period,
                 label: const Text('Periodicity'),
                 onSelected: (selected) {
                   if (selected == null) {
                     return;
                   }
                   setState(() {
-                    tempModel.periodicity = selected;
+                    _period = selected;
                   });
                 },
                 dropdownMenuEntries: [for (final x in Periodicity.values) DropdownMenuEntry(value: x, label: x.toLy())],
@@ -284,18 +262,35 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             var money = amountCtrl.text.toMoney();
-            assert(money != null, 'Should have been checked with the amountFormatter');
-
             var interval = int.parse(intervalCtrl.text);
 
-            tempModel.money = money!;
-            tempModel.interval = interval;
-            tempModel.description = descriptionCtrl.text;
+            assert(money != null, 'Should have been checked with the amountFormatter');
 
             if (isEditing) {
-              RecurringService.instance.update(widget.model!, tempModel);
+              RecurringService.instance.update(
+                widget.model!,
+                account: _account,
+                category: _category,
+                description: descriptionCtrl.text,
+                from: _from,
+                interval: interval,
+                money: money,
+                period: _period,
+                type: _type,
+                until: _until,
+              );
             } else {
-              RecurringService.instance.add(tempModel);
+              RecurringService.instance.add(
+                account: _account,
+                category: _category,
+                description: descriptionCtrl.text,
+                from: _from,
+                interval: interval,
+                money: money!,
+                period: _period,
+                type: _type,
+                until: _until,
+              );
             }
             Navigator.of(context).pop();
           },

@@ -5,6 +5,7 @@ import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/utils/periodicity.dart';
 import 'package:flutter/material.dart';
 import 'package:money2/money2.dart';
+import 'package:sqflite/sqflite.dart';
 
 class RecurringModel {
   Account account;
@@ -75,5 +76,27 @@ class RecurringModel {
 
   DateTime? nextDate() {
     return transactionDates.skip(timesConfirmed).firstOrNull;
+  }
+
+  static void createTable(Batch batch) {
+    batch.execute('''
+      create table recurring (
+        id integer primary key autoincrement,
+        accountId integer not null,
+        categoryId integer not null,
+        moneyMinor integer not null,
+        moneyDecimalDigits integer not null,
+        currencyIsoCode text not null,
+        description text,
+        period integer not null,
+        interval integer not null,
+        dateFromMs integer not null,
+        dateUntilMs integer not null,
+        timesConfirmed integer not null,
+        type integer not null,
+        foreign key (accountId) references accounts(id) on delete cascade,
+        foreign key (categoryId) references categories(id) on delete cascade
+      )
+    ''');
   }
 }

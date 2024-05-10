@@ -2,10 +2,13 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:finances/account/service.dart';
 import 'package:finances/bank_sync/pages/settings.dart';
 import 'package:finances/bank_sync/services/bank_background_sync_service.dart';
 import 'package:finances/bank_sync/services/go_cardless_service.dart';
+import 'package:finances/pages/first_run.dart';
 import 'package:finances/pages/home_page.dart';
+import 'package:finances/utils/db.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -22,12 +25,17 @@ final logger = Logger(
 );
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Db.instance.initialize();
+  await AccountService.instance.initialize();
+
   runApp(const MainApp());
 
-  await BankBackgroundSyncService.instance.initialize();
   await GoCardlessSerivce.instance.initialize();
 
   if (Platform.isAndroid || Platform.isIOS) {
+    await BankBackgroundSyncService.instance.initialize();
     await _preventMlKitPhoningHome();
     await Workmanager().initialize(backgroundMain, isInDebugMode: kDebugMode);
     _listenForBackgroundJobs();
@@ -42,7 +50,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       theme: _getThemeData(Brightness.light),
       darkTheme: _getThemeData(Brightness.dark),
-      home: const HomePage(),
+      home: AccountService.instance.accounts.isEmpty ? const FirstRunPage() : const HomePage(),
     );
   }
 

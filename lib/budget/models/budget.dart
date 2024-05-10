@@ -6,6 +6,7 @@ import 'package:finances/utils/money.dart';
 import 'package:finances/utils/periodicity.dart';
 import 'package:flutter/material.dart';
 import 'package:money2/money2.dart';
+import 'package:sqflite/sqflite.dart';
 
 class Budget {
   String name;
@@ -63,6 +64,19 @@ class Budget {
 
     return expenseCategory == budgetCategory.category;
   }
+
+  static void createTable(Batch batch) {
+    batch.execute('''
+      create table budgets (
+        id integer primary key autoincrement,
+        name text not null,
+        period integer not null,
+        moneyMinor integer not null,
+        moneyDecimalDigits integer not null,
+        currencyIsoCode text not null
+      )
+    ''');
+  }
 }
 
 class BudgetCategory {
@@ -79,5 +93,18 @@ class BudgetCategory {
       category: category,
       includeChildren: includeChildren,
     );
+  }
+
+  static void createTable(Batch batch) {
+    batch.execute('''
+      create table budgetCategories (
+        id integer primary key autoincrement,
+        includeChildren integer not null,
+        categoryId integer not null,
+        budgetId integer not null,
+        foreign key (categoryId) references categories(id) on delete cascade,
+        foreign key (budgetId) references budgets(id) on delete cascade
+      )
+    ''');
   }
 }

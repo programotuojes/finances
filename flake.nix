@@ -61,6 +61,7 @@
 
           # Avoid crashing when opening file picker
           export XDG_DATA_DIRS=${gtk3}/share/gsettings-schemas/${gtk3.name}:$XDG_DATA_DIRS
+          export LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [ sqlite ]}:$LD_LIBRARY_PATH
         '';
       };
     };

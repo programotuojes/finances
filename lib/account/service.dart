@@ -1,41 +1,57 @@
 import 'package:finances/account/models/account.dart';
+import 'package:finances/main.dart';
+import 'package:finances/utils/db.dart';
+import 'package:finances/utils/money.dart';
 import 'package:flutter/foundation.dart';
 import 'package:money2/money2.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-final cash = Account(
-  id: 2,
-  name: 'Cash',
-  initialMoney: CommonCurrencies().euro.parse('99,65'),
-);
-final revolut = Account(
-  id: 1,
-  name: 'Revolut',
-  initialMoney: CommonCurrencies().euro.parse('3,50'),
-);
-final swedbank = Account(
-  id: 0,
-  name: 'Swedbank',
-  initialMoney: CommonCurrencies().euro.parse('100'),
+/// Only used as a placeholder to pass null checks.
+final _initialAccount = Account(
+  id: -1,
+  name: '',
+  initialMoney: zeroEur,
 );
 
 class AccountService with ChangeNotifier {
   static final instance = AccountService._ctor();
+  late final SharedPreferences storage;
 
-  int _id = 2;
-  final accounts = [revolut, swedbank, cash];
-  Account lastSelection = swedbank;
+  final List<Account> accounts = [];
+  Account lastSelection = _initialAccount;
   Account? _selected;
 
   AccountService._ctor();
 
+  Future<void> initialize() async {
+    var accounts = await Db.instance.db.query('accounts');
+    this.accounts.addAll(accounts.map((e) => Account.fromTable(e)));
+
+    storage = await SharedPreferences.getInstance();
+    var lastSelectionId = storage.getInt('lastSelectionId');
+    if (lastSelectionId != null) {
+      lastSelection = this.accounts.firstWhere(
+            (account) => account.id == lastSelectionId,
+            orElse: () => _initialAccount,
+          );
+    }
+  }
+
   Account? get filter => _selected;
 
-  void add({required String name, required Money balance}) {
-    accounts.add(Account(
-      id: _id++,
-      name: name,
-      initialMoney: balance,
-    ));
+  Future<void> add({
+    required String name,
+    required Money initialMoney,
+  }) async {
+    var account = Account(name: name, initialMoney: initialMoney);
+
+    account.id = await Db.instance.db.insert(
+      'accounts',
+      account.toMap(),
+    );
+
+    accounts.add(account);
+    logger.t('Added account', error: account.toMap());
 
     notifyListeners();
   }
@@ -49,18 +65,20 @@ class AccountService with ChangeNotifier {
     notifyListeners();
   }
 
-  void update(
+  Future<void> update(
     Account target, {
     String? name,
     Money? initialMoney,
-  }) {
-    if (name != null) {
-      target.name = name;
-    }
+  }) async {
+    target.name = name ?? target.name;
+    target.initialMoney = initialMoney ?? target.initialMoney;
 
-    if (initialMoney != null) {
-      target.initialMoney = initialMoney;
-    }
+    await Db.instance.db.update(
+      'accounts',
+      target.toMap(),
+      where: 'id = ?',
+      whereArgs: [target.id],
+    );
 
     notifyListeners();
   }
