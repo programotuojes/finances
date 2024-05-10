@@ -2,7 +2,6 @@ import 'package:finances/category/models/category.dart';
 import 'package:finances/category/seed.dart';
 import 'package:flutter/material.dart';
 
-
 class CategoryService with ChangeNotifier {
   static final instance = CategoryService._ctor();
 
@@ -18,10 +17,22 @@ class CategoryService with ChangeNotifier {
     lastSelection = root.children.first;
   }
 
-  void addChild(CategoryModel parent, CategoryModel child) {
-    child.id = _id++;
+  void addChild(
+    CategoryModel parent, {
+    required String name,
+    required Color color,
+    required IconData icon,
+  }) {
+    var child = CategoryModel(
+      id: _id++,
+      name: name,
+      color: color,
+      icon: icon,
+    );
+
     parent.children.add(child);
     child.parent = parent;
+
     notifyListeners();
   }
 
@@ -46,6 +57,7 @@ class CategoryService with ChangeNotifier {
     CategoryModel target, {
     String? newName,
     Color? newColor,
+    IconData? newIcon,
   }) {
     if (newName != null) {
       target.name = newName;
@@ -53,6 +65,10 @@ class CategoryService with ChangeNotifier {
 
     if (newColor != null) {
       target.color = newColor;
+    }
+
+    if (newIcon != null) {
+      target.icon = newIcon;
     }
 
     notifyListeners();

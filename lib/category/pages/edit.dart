@@ -1,11 +1,8 @@
 import 'package:finances/category/models/category.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/components/category_icon.dart';
-import 'package:flex_color_picker/flex_color_picker.dart';
+import 'package:finances/components/common_values.dart';
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
-
-const double _paddingForFab = 100;
 
 class CategoryEditPage extends StatefulWidget {
   final CategoryModel category;
@@ -17,16 +14,29 @@ class CategoryEditPage extends StatefulWidget {
 }
 
 class _CategoryEditPageState extends State<CategoryEditPage> {
-  VoidCallback? onPressed;
-  late final nameTextCtrl = TextEditingController(text: widget.category.name);
-  final newChildTextCtrl = TextEditingController();
-  final formKey = GlobalKey<FormState>();
+  late final _nameCtrl = TextEditingController(text: widget.category.name);
+  final _childNameCtrl = TextEditingController();
+  var _childNameEmpty = true;
+  var _childColor = const Color(0xFFBDBDBD);
+  var _childIcon = Icons.question_mark;
+  final _formKey = GlobalKey<FormState>();
   late var _color = widget.category.color;
+  late var _icon = widget.category.icon;
+
+  @override
+  void initState() {
+    super.initState();
+    _childNameCtrl.addListener(() {
+      setState(() {
+        _childNameEmpty = _childNameCtrl.text.isEmpty;
+      });
+    });
+  }
 
   @override
   void dispose() {
-    nameTextCtrl.dispose();
-    newChildTextCtrl.dispose();
+    _nameCtrl.dispose();
+    _childNameCtrl.dispose();
     super.dispose();
   }
 
@@ -34,14 +44,11 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
     setState(() {
       CategoryService.instance.addChild(
         widget.category,
-        CategoryModel(
-          id: 0,
-          name: newChildTextCtrl.text,
-          icon: Symbols.attach_money, // TODO allow selecting the icon
-          color: _color,
-        ),
+        name: _childNameCtrl.text,
+        color: _childColor,
+        icon: _childIcon,
       );
-      newChildTextCtrl.clear();
+      _childNameCtrl.clear();
     });
   }
 
@@ -49,50 +56,44 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit ${widget.category.name.toLowerCase()}'),
+        title: const Text('Edit category'),
       ),
       body: Column(
         children: [
           Material(
             elevation: 5,
             child: Padding(
-              padding: const EdgeInsets.only(
-                top: 32,
-                left: 16,
-                right: 16,
-                bottom: 8,
-              ),
+              padding: const EdgeInsets.all(16),
               child: Form(
-                key: formKey,
+                key: _formKey,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: Column(
+                child: Row(
                   children: [
-                    Row(
-                      children: [
-                        CategoryIcon(icon: Icons.map, color: _color),
-                        Expanded(
-                          child: TextFormField(
-                            controller: nameTextCtrl,
-                            textCapitalization: TextCapitalization.sentences,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter a name';
-                              }
-                              return null;
-                            },
-                            decoration: const InputDecoration(
-                              labelText: 'Name',
-                              helperText: '',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    OutlinedButton(
-                      onPressed: () {
-                        _colorPickerDialog(context);
+                    CategoryIcon(
+                      icon: _icon,
+                      color: _color,
+                      onChange: (newColor, newIcon) {
+                        setState(() {
+                          _color = newColor;
+                          _icon = newIcon;
+                        });
                       },
-                      child: const Text('Change color'),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _nameCtrl,
+                        textCapitalization: TextCapitalization.sentences,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter a name';
+                          }
+                          return null;
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'Name',
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -105,35 +106,55 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
               children: [
                 for (var i in widget.category.children)
                   ListTile(
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CategoryEditPage(i),
+                        ),
+                      );
+
+                      if (context.mounted) {
+                        setState(() {});
+                      }
+                    },
                     title: Text(i.name),
                     leading: CategoryIcon(
                       icon: i.icon,
                       color: i.color,
                     ),
-                    onTap: () {},
                   ),
                 const Divider(),
                 ListTile(
-                  leading: const CategoryIcon(
-                    icon: Symbols.question_mark,
-                    color: Colors.red,
+                  leading: CategoryIcon(
+                    color: _childColor,
+                    icon: _childIcon,
+                    onChange: (newColor, newIcon) {
+                      setState(() {
+                        _childColor = newColor;
+                        _childIcon = newIcon;
+                      });
+                    },
                   ),
                   title: TextField(
-                    controller: newChildTextCtrl,
+                    controller: _childNameCtrl,
                     decoration: const InputDecoration(
                       hintText: 'New category name',
                       border: UnderlineInputBorder(),
                     ),
                     textCapitalization: TextCapitalization.sentences,
-                    scrollPadding: const EdgeInsets.all(_paddingForFab),
+                    scrollPadding: const EdgeInsets.only(top: double.infinity),
                   ),
                   trailing: FilledButton(
-                    onPressed: onPressed,
+                    onPressed: !_childNameEmpty
+                        ? () {
+                            addCategory();
+                          }
+                        : null,
                     child: const Text('Add'),
                   ),
                 ),
-                // NewCategoryListTile(widget.category),
-                const Padding(padding: EdgeInsets.only(bottom: _paddingForFab)),
+                const SizedBox(height: fabHeight),
               ],
             ),
           ),
@@ -142,59 +163,20 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.save),
         onPressed: () {
-          if (!formKey.currentState!.validate()) {
+          if (!_formKey.currentState!.validate()) {
             return;
           }
 
           CategoryService.instance.update(
             widget.category,
-            newName: nameTextCtrl.text,
+            newName: _nameCtrl.text,
             newColor: _color,
+            newIcon: _icon,
           );
 
           Navigator.of(context).pop();
         },
       ),
     );
-  }
-
-  Future<void> _colorPickerDialog(BuildContext context) async {
-    var newColor = await showColorPickerDialog(
-      context,
-      _color,
-      barrierColor: Colors.black54,
-      wheelDiameter: 172,
-      wheelSquarePadding: 8,
-      wheelSquareBorderRadius: 0,
-      showColorCode: true,
-      colorCodeHasColor: true,
-      enableShadesSelection: false,
-      enableTonalPalette: true,
-      tonalColorSameSize: true,
-      hasBorder: true,
-      copyPasteBehavior: const ColorPickerCopyPasteBehavior(
-        copyFormat: ColorPickerCopyFormat.numHexRRGGBB,
-      ),
-      pickersEnabled: const {
-        ColorPickerType.both: false,
-        ColorPickerType.primary: true,
-        ColorPickerType.accent: false,
-        ColorPickerType.bw: false,
-        ColorPickerType.custom: false,
-        ColorPickerType.wheel: true,
-      },
-      constraints: const BoxConstraints(
-        minWidth: 250,
-        maxWidth: 250,
-      ),
-      tonalSubheading: const Padding(
-        padding: EdgeInsets.only(top: 16),
-        child: Text('Tones'),
-      ),
-    );
-
-    setState(() {
-      _color = newColor;
-    });
   }
 }
