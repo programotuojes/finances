@@ -18,6 +18,7 @@ import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/pages/edit.dart';
 import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/date.dart';
+import 'package:finances/utils/db.dart';
 import 'package:finances/utils/money.dart';
 import 'package:finances/utils/periodicity.dart';
 import 'package:finances/utils/transaction_theme.dart';
@@ -225,6 +226,13 @@ class _HomePageState extends State<HomePage> {
                     builder: (context) => const BankSyncSettings(),
                   ),
                 );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete),
+              title: const Text('Delete db'),
+              onTap: () {
+                Db.instance.delete();
               },
             ),
           ],

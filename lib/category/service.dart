@@ -71,7 +71,7 @@ class CategoryService with ChangeNotifier {
       var root = seedCategories();
 
       var batch = Db.instance.db.batch();
-      _insertWithChildren(batch, root);
+      _dbInsertWithChildren(batch, root);
       await batch.commit(noResult: true);
 
       rootCategory = root;
@@ -110,11 +110,11 @@ class CategoryService with ChangeNotifier {
     notifyListeners();
   }
 
-  void _insertWithChildren(Batch batch, CategoryModel parent) {
-    batch.insert('categories', parent.toMap());
+  void _dbInsertWithChildren(Batch batch, CategoryModel category) {
+    batch.insert('categories', category.toMap());
 
-    for (var i in parent.children) {
-      _insertWithChildren(batch, i);
+    for (var i in category.children) {
+      _dbInsertWithChildren(batch, i);
     }
   }
 }

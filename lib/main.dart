@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:finances/account/service.dart';
+import 'package:finances/automation/service.dart';
 import 'package:finances/bank_sync/pages/settings.dart';
 import 'package:finances/bank_sync/services/bank_background_sync_service.dart';
 import 'package:finances/bank_sync/services/go_cardless_service.dart';
@@ -31,6 +32,7 @@ Future<void> main() async {
   await Db.instance.initialize();
   await AccountService.instance.initialize();
   await CategoryService.instance.initialize();
+  await AutomationService.instance.init();
 
   runApp(const MainApp());
 

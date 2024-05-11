@@ -155,20 +155,28 @@ class _AutomationEditPageState extends State<AutomationEditPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
+        onPressed: () async {
           if (!formKey.currentState!.validate()) {
             return;
           }
 
           formKey.currentState!.save();
-
           tempModel.name = nameCtrl.text;
+
           if (isEditing) {
-            AutomationService.instance.update(widget.model!, tempModel);
+            await AutomationService.instance.update(
+              widget.model!,
+              name: nameCtrl.text,
+              category: tempModel.category,
+              newRules: tempModel.rules,
+            );
           } else {
-            AutomationService.instance.add(tempModel);
+            await AutomationService.instance.add(tempModel);
           }
-          Navigator.of(context).pop();
+
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
         },
         child: const Icon(Symbols.save),
       ),
@@ -237,6 +245,8 @@ class _RuleListItemState extends State<_RuleListItem> {
                 onSaved: (value) {
                   if (_isEditing && _remittanceInfoCtrl.text.isNotEmpty) {
                     widget.rule!.remittanceInfo = RegExp(_remittanceInfoCtrl.text);
+                  } else {
+                    widget.rule!.remittanceInfo = null;
                   }
                 },
                 validator: _isValidRegex,
@@ -250,6 +260,8 @@ class _RuleListItemState extends State<_RuleListItem> {
                 onSaved: (value) {
                   if (_isEditing && _creditorNameCtrl.text.isNotEmpty) {
                     widget.rule!.creditorName = RegExp(_creditorNameCtrl.text);
+                  } else {
+                    widget.rule!.creditorName = null;
                   }
                 },
                 validator: _isValidRegex,
@@ -263,6 +275,8 @@ class _RuleListItemState extends State<_RuleListItem> {
                 onSaved: (value) {
                   if (_isEditing && _creditorIbanCtrl.text.isNotEmpty) {
                     widget.rule!.creditorIban = RegExp(_creditorIbanCtrl.text);
+                  } else {
+                    widget.rule!.creditorIban = null;
                   }
                 },
                 validator: _isValidRegex,

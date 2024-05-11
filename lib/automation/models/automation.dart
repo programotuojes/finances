@@ -1,15 +1,14 @@
 import 'package:finances/category/models/category.dart';
-import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 
-class Automation with ChangeNotifier {
+class Automation {
+  int id;
   String name;
   CategoryModel category;
-
-  /// All rules are ORed together
   List<Rule> rules = [];
 
   Automation({
+    this.id = -1,
     required this.name,
     required this.category,
     List<Rule>? rules,
@@ -19,37 +18,84 @@ class Automation with ChangeNotifier {
     }
   }
 
+  void addRules(Iterable<Rule> rules) {
+    for (var rule in rules) {
+      rule.automationId = id;
+      this.rules.add(rule);
+    }
+  }
+
+  factory Automation.fromMap(
+    Map<String, Object?> map,
+    List<CategoryModel> categories,
+    List<Rule> rules,
+  ) {
+    var id = map['id'] as int;
+
+    return Automation(
+      id: id,
+      name: map['name'] as String,
+      category: categories.firstWhere((element) => element.id == map['categoryId'] as int),
+      rules: rules.where((element) => element.automationId == id).toList(),
+    );
+  }
+
+  Map<String, Object?> toMap({bool setId = true}) {
+    return {
+      'id': setId ? id : null,
+      'name': name,
+      'categoryId': category.id,
+    };
+  }
+
   static void createTable(Batch batch) {
     batch.execute('''
-      CREATE TABLE automations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        categoryId INTEGER NOT NULL,
-        FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE CASCADE
+      create table automations (
+        id integer primary key autoincrement,
+        name text not null,
+        categoryId integer not null,
+        foreign key (categoryId) references categories(id) on delete cascade
       )
     ''');
   }
 }
 
 class Rule {
+  int? id;
+  int? automationId;
   RegExp? creditorName;
   RegExp? creditorIban;
   RegExp? remittanceInfo;
 
   Rule({
+    this.id,
+    this.automationId,
     this.creditorName,
     this.creditorIban,
     this.remittanceInfo,
   });
 
+  factory Rule.fromMap(Map<String, Object?> map) {
+    var rule = Rule.fromStrings(
+      creditorName: map['creditorName'] as String?,
+      creditorIban: map['creditorIban'] as String?,
+      remittanceInfo: map['remittanceInfo'] as String?,
+    );
+
+    rule.id = map['id'] as int;
+    rule.automationId = map['automationId'] as int;
+
+    return rule;
+  }
+
   factory Rule.fromStrings({
-    required String creditorName,
-    required String creditorIban,
-    required String remittanceInfo,
+    String? creditorName,
+    String? creditorIban,
+    String? remittanceInfo,
   }) {
-    var creditorNameProvided = creditorName.isNotEmpty;
-    var creditorIbanProvided = creditorIban.isNotEmpty;
-    var remittanceInfoProvided = remittanceInfo.isNotEmpty;
+    var creditorNameProvided = creditorName != null && creditorName.isNotEmpty;
+    var creditorIbanProvided = creditorIban != null && creditorIban.isNotEmpty;
+    var remittanceInfoProvided = remittanceInfo != null && remittanceInfo.isNotEmpty;
 
     assert(
       creditorNameProvided || creditorIbanProvided || remittanceInfoProvided,
@@ -63,15 +109,25 @@ class Rule {
     );
   }
 
+  Map<String, Object?> toMap() {
+    return {
+      'id': id,
+      'creditorName': creditorName?.pattern,
+      'creditorIban': creditorIban?.pattern,
+      'remittanceInfo': remittanceInfo?.pattern,
+      'automationId': automationId,
+    };
+  }
+
   static void createTable(Batch batch) {
     batch.execute('''
-      CREATE TABLE automationRules (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        creditorName TEXT,
-        creditorIban TEXT
-        remittanceInfo TEXT,
-        automationId INTEGER NOT NULL,
-        FOREIGN KEY (automationId) REFERENCES automations(id) ON DELETE CASCADE
+      create table automationRules (
+        id integer primary key autoincrement,
+        creditorName text,
+        creditorIban text,
+        remittanceInfo text,
+        automationId integer not null,
+        foreign key (automationId) references automations(id) on delete cascade
       )
     ''');
   }

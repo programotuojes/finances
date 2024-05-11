@@ -1,7 +1,9 @@
 import 'package:finances/automation/models/automation.dart';
 import 'package:finances/automation/seed.dart';
 import 'package:finances/category/models/category.dart';
+import 'package:finances/utils/db.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final lidlNameVariants = [
   'Lidl',
@@ -17,17 +19,41 @@ final lidlRegex = RegExp(
 class AutomationService with ChangeNotifier {
   static final instance = AutomationService._ctor();
 
-  final automations = seedData().toList();
+  final List<Automation> automations = [];
 
   AutomationService._ctor();
 
-  void add(Automation automation) {
+  Future<void> add(Automation automation) async {
     automations.add(automation);
+
+    automation.id = await Db.instance.db.insert(
+      'automations',
+      automation.toMap(setId: false),
+    );
+
+    var batch = Db.instance.db.batch();
+    for (var i in automation.rules) {
+      i.automationId = automation.id;
+      batch.insert('automationRules', i.toMap());
+    }
+    var ids = await batch.commit();
+
+    for (var i = 0; i < automation.rules.length; i++) {
+      automation.rules[i].id = ids[i] as int;
+    }
+
     notifyListeners();
   }
 
-  void delete(Automation automation) {
+  Future<void> delete(Automation automation) async {
     automations.remove(automation);
+
+    await Db.instance.db.delete(
+      'automations',
+      where: 'id = ?',
+      whereArgs: [automation.id],
+    );
+
     notifyListeners();
   }
 
@@ -55,10 +81,75 @@ class AutomationService with ChangeNotifier {
     return null;
   }
 
-  void update(Automation model, Automation newValues) {
-    model.name = newValues.name;
-    model.category = newValues.category;
-    model.rules = newValues.rules;
+  Future<void> init() async {
+    var dbCategories = await Db.instance.db.query('categories');
+    var categories = dbCategories.map((e) => CategoryModel.fromMap(e)).toList();
+
+    var dbRules = await Db.instance.db.query('automationRules');
+    var rules = dbRules.map((e) => Rule.fromMap(e)).toList();
+
+    var dbAutomations = await Db.instance.db.query('automations');
+    automations.addAll(dbAutomations.map((e) => Automation.fromMap(e, categories, rules)));
+
+    var sharedPrefs = await SharedPreferences.getInstance();
+    if (sharedPrefs.getBool('seeded') != true) {
+      var seed = seedData().toList();
+
+      for (var automation in seed) {
+        automation.id = await Db.instance.db.insert('automations', automation.toMap(setId: false));
+
+        var batch = Db.instance.db.batch();
+        for (var rule in automation.rules) {
+          rule.automationId = automation.id;
+          batch.insert('automationRules', rule.toMap());
+        }
+
+        var ids = await batch.commit();
+        for (var i = 0; i < automation.rules.length; i++) {
+          automation.rules[i].id = ids[i] as int;
+        }
+      }
+
+      automations.addAll(seed);
+      await sharedPrefs.setBool('seeded', true);
+    }
+  }
+
+  Future<void> update(
+    Automation target, {
+    String? newName,
+    CategoryModel? newCategory,
+    List<Rule>? newRules,
+  }) async {
+    target.name = newName ?? target.name;
+    target.category = newCategory ?? target.category;
+
+    await Db.instance.db.update('automations', target.toMap(), where: 'id = ?', whereArgs: [target.id]);
+
+    if (newRules != null) {
+      for (var rule in newRules) {
+        rule.automationId = target.id;
+
+        var ruleExists = target.rules.any((element) => element.id == rule.id);
+
+        if (ruleExists) {
+          await Db.instance.db.update('automationRules', rule.toMap(), where: 'id = ?', whereArgs: [rule.id]);
+        } else {
+          rule.id = await Db.instance.db.insert('automationRules', rule.toMap());
+        }
+      }
+
+      // Delete removed rules
+      for (var oldRule in target.rules) {
+        var oldExists = newRules.any((element) => element.id == oldRule.id);
+        if (!oldExists) {
+          await Db.instance.db.delete('automationRules', where: 'id = ?', whereArgs: [oldRule.id]);
+        }
+      }
+
+      target.rules = newRules;
+    }
+
     notifyListeners();
   }
 

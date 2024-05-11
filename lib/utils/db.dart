@@ -17,6 +17,7 @@ class Db {
   static final Db instance = Db._ctor();
 
   late final Database _database;
+  late final String path;
 
   Db._ctor();
 
@@ -32,12 +33,12 @@ class Db {
       databasePath = await getDatabasesPath();
     }
 
-    databasePath = join(databasePath, 'finances.db');
+    path = join(databasePath, 'finances.db');
 
-    logger.d('Database path = $databasePath');
+    logger.d('Database path = $path');
 
     _database = await openDatabase(
-      databasePath,
+      path,
       version: 1,
       onConfigure: (db) {
         db.execute('PRAGMA foreign_keys = ON');
@@ -60,5 +61,10 @@ class Db {
         await batch.commit();
       },
     );
+  }
+
+  // TODO remove
+  Future<void> delete() async {
+    await deleteDatabase(path);
   }
 }
