@@ -84,8 +84,8 @@ class _RecurringListItem extends StatelessWidget {
         children: [
           _NextTransactionDate(recurringModel: recurringModel),
           IconButton(
-            onPressed: () {
-              RecurringService.instance.confirm(recurringModel);
+            onPressed: () async {
+              await RecurringService.instance.confirm(recurringModel);
             },
             tooltip: 'Confirm',
             icon: const Icon(Symbols.post_add),

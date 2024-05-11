@@ -3,13 +3,14 @@ import 'package:finances/account/service.dart';
 import 'package:finances/category/models/category.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
+import 'package:finances/components/amount_text_field.dart';
 import 'package:finances/components/common_values.dart';
+import 'package:finances/components/period_dropdown.dart';
 import 'package:finances/components/square_button.dart';
 import 'package:finances/utils/money.dart';
 import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/recurring/service.dart';
 import 'package:finances/transaction/models/transaction.dart';
-import 'package:finances/utils/amount_input_formatter.dart';
 import 'package:finances/utils/app_bar_delete.dart';
 import 'package:finances/utils/periodicity.dart';
 import 'package:finances/utils/transaction_theme.dart';
@@ -40,6 +41,8 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
   late var isEditing = widget.model != null;
   late TabController _tabCtrl;
   late TransactionTheme _theme;
+  final _formKey = GlobalKey<FormState>();
+  var _autovalidateMode = AutovalidateMode.disabled;
 
   @override
   void initState() {
@@ -116,158 +119,164 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
         ),
         body: SingleChildScrollView(
           padding: scaffoldPadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              DropdownMenu<Account>(
-                expandedInsets: const EdgeInsets.all(0),
-                initialSelection: _account,
-                label: const Text('Account'),
-                onSelected: (selected) {
-                  if (selected != null) {
-                    setState(() {
-                      _account = selected;
-                    });
-                  }
-                },
-                dropdownMenuEntries: [
-                  for (final x in AccountService.instance.accounts) DropdownMenuEntry(value: x, label: x.name)
-                ],
-              ),
-              const SizedBox(height: 16),
-              SquareButton(
-                onPressed: () async {
-                  var selected = await showDatePicker(
-                    context: context,
-                    initialDate: _from,
-                    firstDate: DateTime(0),
-                    lastDate: DateTime(9999),
-                    builder: (context, child) => Theme(
-                      data: _theme.current(_tabCtrl.index),
-                      child: child!,
-                    ),
-                  );
-                  if (selected == null) {
-                    return;
-                  }
-                  setState(() {
-                    _from = selected;
-                  });
-                },
-                child: Text(dateFromString),
-              ),
-              const SizedBox(height: 16),
-              SwitchListTile(
-                title: const Text('Has end date'),
-                value: _until != null,
-                onChanged: (value) {
-                  setState(() {
-                    if (value) {
-                      _until = DateTime.now();
-                    } else {
-                      _until = null;
+          child: Form(
+            key: _formKey,
+            autovalidateMode: _autovalidateMode,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                DropdownMenu<Account>(
+                  expandedInsets: const EdgeInsets.all(0),
+                  initialSelection: _account,
+                  label: const Text('Account'),
+                  onSelected: (selected) {
+                    if (selected != null) {
+                      setState(() {
+                        _account = selected;
+                      });
                     }
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              SquareButton(
-                onPressed: _until != null
-                    ? () async {
-                        var selected = await showDatePicker(
-                          context: context,
-                          initialDate: _until,
-                          firstDate: _from,
-                          lastDate: DateTime(9999),
-                        );
-                        if (selected == null) {
-                          return;
-                        }
-                        setState(() {
-                          _until = selected;
-                        });
+                  },
+                  dropdownMenuEntries: [
+                    for (final x in AccountService.instance.accounts) DropdownMenuEntry(value: x, label: x.name)
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SquareButton(
+                  onPressed: () async {
+                    var selected = await showDatePicker(
+                      context: context,
+                      initialDate: _from,
+                      firstDate: DateTime(0),
+                      lastDate: DateTime(9999),
+                      builder: (context, child) => Theme(
+                        data: _theme.current(_tabCtrl.index),
+                        child: child!,
+                      ),
+                    );
+                    if (selected == null) {
+                      return;
+                    }
+                    setState(() {
+                      _from = selected;
+                    });
+                  },
+                  child: Text(dateFromString),
+                ),
+                const SizedBox(height: 16),
+                SwitchListTile(
+                  title: const Text('Has end date'),
+                  value: _until != null,
+                  onChanged: (value) {
+                    setState(() {
+                      if (value) {
+                        _until = DateTime.now();
+                      } else {
+                        _until = null;
                       }
-                    : null,
-                child: Text(dateUntilString),
-              ),
-              const SizedBox(height: 16),
-              SquareButton(
-                onPressed: () async {
-                  var selection = await Navigator.push<CategoryModel>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CategoryListPage(CategoryService.instance.rootCategory),
-                    ),
-                  );
-                  if (selection == null) {
-                    return;
-                  }
-                  CategoryService.instance.lastSelection = selection;
-                  setState(() {
-                    _category = selection;
-                  });
-                },
-                child: Text(_category.name),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: amountCtrl,
-                inputFormatters: amountFormatter,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
+                    });
+                  },
                 ),
-                decoration: const InputDecoration(
-                  labelText: 'Amount',
-                  prefixText: '€ ',
+                const SizedBox(height: 16),
+                SquareButton(
+                  onPressed: _until != null
+                      ? () async {
+                          var selected = await showDatePicker(
+                            context: context,
+                            initialDate: _until,
+                            firstDate: _from,
+                            lastDate: DateTime(9999),
+                          );
+                          if (selected == null) {
+                            return;
+                          }
+                          setState(() {
+                            _until = selected;
+                          });
+                        }
+                      : null,
+                  child: Text(dateUntilString),
                 ),
-              ),
-              const SizedBox(height: 16),
-              DropdownMenu<Periodicity>(
-                expandedInsets: const EdgeInsets.all(0),
-                initialSelection: _period,
-                label: const Text('Periodicity'),
-                onSelected: (selected) {
-                  if (selected == null) {
-                    return;
-                  }
-                  setState(() {
-                    _period = selected;
-                  });
-                },
-                dropdownMenuEntries: [for (final x in Periodicity.values) DropdownMenuEntry(value: x, label: x.toLy())],
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: intervalCtrl,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
-                ],
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Interval',
+                const SizedBox(height: 16),
+                SquareButton(
+                  onPressed: () async {
+                    var selection = await Navigator.push<CategoryModel>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CategoryListPage(CategoryService.instance.rootCategory),
+                      ),
+                    );
+                    if (selection == null) {
+                      return;
+                    }
+                    CategoryService.instance.lastSelection = selection;
+                    setState(() {
+                      _category = selection;
+                    });
+                  },
+                  child: Text(_category.name),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: descriptionCtrl,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
+                const SizedBox(height: 16),
+                AmountTextField(controller: amountCtrl),
+                const SizedBox(height: 16),
+                PeriodDropdown(
+                  initialSelection: _period,
+                  onSelected: (newPeriod) {
+                    setState(() {
+                      _period = newPeriod;
+                    });
+                  },
                 ),
-              ),
-              const SizedBox(height: 56 + 16),
-            ],
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: intervalCtrl,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                  ],
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter an interval';
+                    }
+
+                    if (int.tryParse(value) == null) {
+                      return 'Please enter a valid integer';
+                    }
+
+                    return null;
+                  },
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Interval',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: descriptionCtrl,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: const InputDecoration(
+                    labelText: 'Description',
+                  ),
+                ),
+                const SizedBox(height: fabHeight),
+              ],
+            ),
           ),
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () {
+          onPressed: () async {
+            if (!_formKey.currentState!.validate()) {
+              setState(() {
+                _autovalidateMode = AutovalidateMode.onUserInteraction;
+              });
+              return;
+            }
+
             var money = amountCtrl.text.toMoney();
             var interval = int.parse(intervalCtrl.text);
 
             assert(money != null, 'Should have been checked with the amountFormatter');
 
             if (isEditing) {
-              RecurringService.instance.update(
+              await RecurringService.instance.update(
                 widget.model!,
                 account: _account,
                 category: _category,
@@ -280,7 +289,7 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
                 until: _until,
               );
             } else {
-              RecurringService.instance.add(
+              await RecurringService.instance.add(
                 account: _account,
                 category: _category,
                 description: descriptionCtrl.text,
@@ -292,7 +301,10 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
                 until: _until,
               );
             }
-            Navigator.of(context).pop();
+
+            if (context.mounted) {
+              Navigator.of(context).pop();
+            }
           },
           child: const Icon(Symbols.save),
         ),

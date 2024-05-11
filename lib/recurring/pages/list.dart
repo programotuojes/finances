@@ -16,41 +16,51 @@ class RecurringListPage extends StatelessWidget {
       ),
       body: ListenableBuilder(
         listenable: RecurringService.instance,
-        builder: (context, _) => ListView(
-          children: [
-            for (var i in RecurringService.instance.transactions)
-              ListTile(
-                title: Text(i.category.name),
-                leading: CategoryIcon(
-                  icon: i.category.icon,
-                  color: i.category.color,
+        builder: (context, _) {
+          var recurring = RecurringService.instance.transactions;
+
+          if (recurring.isEmpty) {
+            return const Center(
+              child: Text('No recurring transactions found'),
+            );
+          }
+
+          return ListView(
+            children: [
+              for (var i in recurring)
+                ListTile(
+                  title: Text(i.category.name),
+                  leading: CategoryIcon(
+                    icon: i.category.icon,
+                    color: i.category.color,
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(i.money.toString()),
+                      if (i.description != null) Text(i.description!),
+                    ],
+                  ),
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(_humanReadablePeriod(i)),
+                      if (i.until != null) untilString(i),
+                    ],
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RecurringEditPage(model: i),
+                      ),
+                    );
+                  },
                 ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(i.money.toString()),
-                    if (i.description != null) Text(i.description!),
-                  ],
-                ),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(_humanReadablePeriod(i)),
-                    if (i.until != null) untilString(i),
-                  ],
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RecurringEditPage(model: i),
-                    ),
-                  );
-                },
-              ),
-          ],
-        ),
+            ],
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

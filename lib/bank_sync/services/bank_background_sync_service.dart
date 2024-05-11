@@ -67,7 +67,7 @@ class BankBackgroundSyncService {
   Future<void> setAccount(Account value) async {
     _account = value;
     var storage = await _storage;
-    await storage.setInt(_Keys.accountId, value.id);
+    await storage.setInt(_Keys.accountId, value.id!);
   }
 
   Future<void> setDefaultCategory(CategoryModel value) async {

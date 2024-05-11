@@ -2,12 +2,12 @@ import 'package:money2/money2.dart';
 import 'package:sqflite/sqflite.dart';
 
 class Account {
-  int id;
+  int? id;
   String name;
   Money initialMoney;
 
   Account({
-    this.id = -1,
+    this.id,
     required this.name,
     required this.initialMoney,
   });

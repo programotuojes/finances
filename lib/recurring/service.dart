@@ -5,6 +5,7 @@ import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/service.dart';
+import 'package:finances/utils/db.dart';
 import 'package:finances/utils/periodicity.dart';
 import 'package:flutter/foundation.dart';
 import 'package:money2/money2.dart';
@@ -18,7 +19,7 @@ class RecurringService with ChangeNotifier {
 
   Iterable<RecurringModel> get activeTransactions => transactions.where((x) => x.nextDate() != null);
 
-  void add({
+  Future<void> add({
     required Account account,
     required CategoryModel category,
     required Money money,
@@ -28,8 +29,8 @@ class RecurringService with ChangeNotifier {
     required DateTime from,
     required DateTime? until,
     required TransactionType type,
-  }) {
-    transactions.add(RecurringModel(
+  }) async {
+    var model = RecurringModel(
       account: account,
       category: category,
       money: money,
@@ -39,12 +40,17 @@ class RecurringService with ChangeNotifier {
       from: from,
       until: until,
       type: type,
-    ));
+    );
+
+    model.id = await Db.instance.db.insert('recurring', model.toMap());
+
+    transactions.add(model);
+
     _sort();
     notifyListeners();
   }
 
-  void confirm(RecurringModel model) {
+  Future<void> confirm(RecurringModel model) async {
     final nextDate = model.nextDate();
 
     if (nextDate == null) {
@@ -65,22 +71,42 @@ class RecurringService with ChangeNotifier {
       description: model.description,
     );
 
-    TransactionService.instance.add(
+    await TransactionService.instance.add(
       transaction,
       expenses: [expense],
     );
 
     model.timesConfirmed++;
+
+    await Db.instance.db.rawUpdate(
+      'update recurring set timesConfirmed = ? where id = ?',
+      [model.timesConfirmed, model.id],
+    );
+
     _sort();
     notifyListeners();
   }
 
-  void delete(RecurringModel model) {
+  Future<void> delete(RecurringModel model) async {
+    await Db.instance.db.delete('recurring', where: 'id = ?', whereArgs: [model.id]);
+
     transactions.remove(model);
+
     notifyListeners();
   }
 
-  void update(
+  Future<void> init() async {
+    var dbAccounts = await Db.instance.db.query('accounts');
+    var accounts = dbAccounts.map((e) => Account.fromTable(e)).toList();
+
+    var dbCategories = await Db.instance.db.query('categories');
+    var categories = dbCategories.map((e) => CategoryModel.fromMap(e)).toList();
+
+    var dbRecurring = await Db.instance.db.query('recurring');
+    transactions.addAll(dbRecurring.map((e) => RecurringModel.fromMap(e, accounts, categories)));
+  }
+
+  Future<void> update(
     RecurringModel target, {
     Account? account,
     CategoryModel? category,
@@ -91,7 +117,7 @@ class RecurringService with ChangeNotifier {
     DateTime? from,
     DateTime? until,
     TransactionType? type,
-  }) {
+  }) async {
     target.account = account ?? target.account;
     target.category = category ?? target.category;
     target.money = money ?? target.money;
@@ -101,6 +127,8 @@ class RecurringService with ChangeNotifier {
     target.from = from ?? target.from;
     target.until = until ?? target.until;
     target.type = type ?? target.type;
+
+    await Db.instance.db.update('recurring', target.toMap(), where: 'id = ?', whereArgs: [target.id]);
 
     _sort();
     notifyListeners();

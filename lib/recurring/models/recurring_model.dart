@@ -8,6 +8,7 @@ import 'package:money2/money2.dart';
 import 'package:sqflite/sqflite.dart';
 
 class RecurringModel {
+  int? id;
   Account account;
   CategoryModel category;
   Money money;
@@ -16,10 +17,11 @@ class RecurringModel {
   int interval;
   DateTime _from;
   DateTime? _until;
-  int timesConfirmed = 0;
+  int timesConfirmed;
   TransactionType type;
 
   RecurringModel({
+    this.id,
     required this.account,
     required this.category,
     required this.money,
@@ -28,10 +30,39 @@ class RecurringModel {
     required this.interval,
     required DateTime from,
     required DateTime? until,
+    this.timesConfirmed = 0,
     required this.type,
   })  : _from = DateUtils.dateOnly(from),
         _until = until != null ? DateUtils.dateOnly(until) : null {
     this.description = description;
+  }
+
+  factory RecurringModel.fromMap(
+    Map<String, Object?> map,
+    List<Account> accounts,
+    List<CategoryModel> categories,
+  ) {
+    var untilMs = map['dateUntilMs'] as int?;
+    var accountId = map['accountId'] as int;
+    var categoryId = map['categoryId'] as int;
+
+    return RecurringModel(
+      id: map['id'] as int,
+      account: accounts.firstWhere((element) => element.id == accountId),
+      category: categories.firstWhere((element) => element.id == categoryId),
+      money: Money.fromInt(
+        map['moneyMinor'] as int,
+        decimalDigits: map['moneyDecimalDigits'] as int,
+        isoCode: map['currencyIsoCode'] as String,
+      ),
+      description: map['description'] as String?,
+      periodicity: Periodicity.values[map['period'] as int],
+      interval: map['interval'] as int,
+      from: DateTime.fromMillisecondsSinceEpoch(map['dateFromMs'] as int),
+      until: untilMs != null ? DateTime.fromMicrosecondsSinceEpoch(untilMs) : null,
+      timesConfirmed: map['timesConfirmed'] as int,
+      type: TransactionType.values[map['type'] as int],
+    );
   }
 
   String? get description => _description;
@@ -78,6 +109,23 @@ class RecurringModel {
     return transactionDates.skip(timesConfirmed).firstOrNull;
   }
 
+  Map<String, Object?> toMap() {
+    return {
+      'accountId': account.id,
+      'categoryId': category.id,
+      'moneyMinor': money.minorUnits.toInt(),
+      'moneyDecimalDigits': money.decimalDigits,
+      'currencyIsoCode': money.currency.isoCode,
+      'description': description,
+      'period': periodicity.index,
+      'interval': interval,
+      'dateFromMs': _from.millisecondsSinceEpoch,
+      'dateUntilMs': _until?.millisecondsSinceEpoch,
+      'timesConfirmed': timesConfirmed,
+      'type': type.index,
+    };
+  }
+
   static void createTable(Batch batch) {
     batch.execute('''
       create table recurring (
@@ -91,7 +139,7 @@ class RecurringModel {
         period integer not null,
         interval integer not null,
         dateFromMs integer not null,
-        dateUntilMs integer not null,
+        dateUntilMs integer,
         timesConfirmed integer not null,
         type integer not null,
         foreign key (accountId) references accounts(id) on delete cascade,
