@@ -7,6 +7,7 @@ import 'package:finances/automation/service.dart';
 import 'package:finances/bank_sync/pages/settings.dart';
 import 'package:finances/bank_sync/services/bank_background_sync_service.dart';
 import 'package:finances/bank_sync/services/go_cardless_service.dart';
+import 'package:finances/budget/service.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/pages/first_run.dart';
 import 'package:finances/pages/home_page.dart';
@@ -33,6 +34,7 @@ Future<void> main() async {
   await AccountService.instance.initialize();
   await CategoryService.instance.initialize();
   await AutomationService.instance.init();
+  await BudgetService.instance.init();
 
   runApp(const MainApp());
 

@@ -166,8 +166,8 @@ class _AutomationEditPageState extends State<AutomationEditPage> {
           if (isEditing) {
             await AutomationService.instance.update(
               widget.model!,
-              name: nameCtrl.text,
-              category: tempModel.category,
+              newName: nameCtrl.text,
+              newCategory: tempModel.category,
               newRules: tempModel.rules,
             );
           } else {

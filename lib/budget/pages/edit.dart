@@ -50,9 +50,11 @@ class _BudgetEditPageState extends State<BudgetEditPage> {
             visible: editing,
             title: 'Delete this budget?',
             description: 'This action cannot be undone.',
-            onDelete: () {
-              BudgetService.instance.delete(widget.budget!);
-              Navigator.of(context).pop();
+            onDelete: () async {
+              await BudgetService.instance.delete(widget.budget!);
+              if (context.mounted) {
+                Navigator.of(context).pop();
+              }
             },
           )
         ],
@@ -144,7 +146,7 @@ class _BudgetEditPageState extends State<BudgetEditPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
+        onPressed: () async {
           if (!_formKey.currentState!.validate() || _categories.isEmpty) {
             setState(() {
               _autoValidateMode = AutovalidateMode.onUserInteraction;
@@ -155,20 +157,22 @@ class _BudgetEditPageState extends State<BudgetEditPage> {
           }
 
           if (editing) {
-            _update();
+            await _update();
           } else {
-            _add();
+            await _add();
           }
 
-          Navigator.of(context).pop();
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
         },
         child: const Icon(Icons.save),
       ),
     );
   }
 
-  void _add() {
-    BudgetService.instance.add(Budget(
+  Future<void> _add() async {
+    await BudgetService.instance.add(Budget(
       name: _nameCtrl.text,
       limit: _amountCtrl.text.toMoney()!,
       period: _period,
@@ -176,13 +180,13 @@ class _BudgetEditPageState extends State<BudgetEditPage> {
     ));
   }
 
-  void _update() {
-    BudgetService.instance.update(
+  Future<void> _update() async {
+    await BudgetService.instance.update(
       widget.budget!,
       name: _nameCtrl.text,
       limit: _amountCtrl.text.toMoney()!,
       period: _period,
-      categories: _categories,
+      budgetCategories: _categories,
     );
   }
 
