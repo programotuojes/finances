@@ -75,7 +75,13 @@ class CategoryIcon extends StatelessWidget {
         break;
 
       case _DialogOption.icon:
-        var icon = await showIconPicker(context, closeChild: const Text('Close'));
+        var icon = await showIconPicker(
+          context,
+          closeChild: const Text('Close'),
+          iconPackModes: [
+            IconPack.allMaterial,
+          ],
+        );
         if (icon != null) {
           newIcon = icon;
         }

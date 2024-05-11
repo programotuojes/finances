@@ -40,16 +40,15 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
     super.dispose();
   }
 
-  void addCategory() {
-    setState(() {
-      CategoryService.instance.addChild(
-        widget.category,
-        name: _childNameCtrl.text,
-        color: _childColor,
-        icon: _childIcon,
-      );
-      _childNameCtrl.clear();
-    });
+  Future<void> _addCategory() async {
+    await CategoryService.instance.addChild(
+      widget.category,
+      name: _childNameCtrl.text,
+      color: _childColor,
+      icon: _childIcon,
+    );
+
+    _childNameCtrl.clear();
   }
 
   @override
@@ -147,8 +146,8 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
                   ),
                   trailing: FilledButton(
                     onPressed: !_childNameEmpty
-                        ? () {
-                            addCategory();
+                        ? () async {
+                            await _addCategory();
                           }
                         : null,
                     child: const Text('Add'),
@@ -162,19 +161,21 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.save),
-        onPressed: () {
+        onPressed: () async {
           if (!_formKey.currentState!.validate()) {
             return;
           }
 
-          CategoryService.instance.update(
+          await CategoryService.instance.update(
             widget.category,
             newName: _nameCtrl.text,
             newColor: _color,
             newIcon: _icon,
           );
 
-          Navigator.of(context).pop();
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
         },
       ),
     );
