@@ -12,6 +12,7 @@ import 'package:finances/bank_sync/models/institution.dart';
 import 'package:finances/bank_sync/models/requisition.dart';
 import 'package:finances/category/models/category.dart';
 import 'package:finances/main.dart';
+import 'package:finances/transaction/models/bank_sync_info.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/service.dart';
@@ -275,10 +276,10 @@ class GoCardlessSerivce with ChangeNotifier {
     }
 
     var transactions = await GoCardlessHttpClient.getTransactions(accountId);
-    transactions.match((error) {
+    await transactions.match((error) {
       // TODO notify the user
       logger.e('Failed to get transactions', error: error);
-    }, (list) {
+    }, (list) async {
       for (var bankTr in list.booked) {
         var amount = bankTr.transactionAmount!.amount;
         var money = amount!.replaceFirst('-', '').toMoney();
@@ -294,9 +295,9 @@ class GoCardlessSerivce with ChangeNotifier {
           remittanceInfo: bankTr.remittanceInformationUnstructured,
         );
 
-        var manualTransaction = _manualTransaction(bankTr, account);
+        var manualTransaction = _getIfManuallyEntered(bankTr, account);
         if (manualTransaction != null) {
-          manualTransaction.bankInfo = bankInfo;
+          await TransactionService.instance.update(manualTransaction, bankInfo: bankInfo);
           continue;
         }
 
@@ -315,7 +316,7 @@ class GoCardlessSerivce with ChangeNotifier {
           if (previousImport.mainExpense.category == category) {
             continue;
           }
-          TransactionService.instance.delete(previousImport);
+          await TransactionService.instance.delete(previousImport);
         }
 
         var transaction = Transaction(
@@ -330,7 +331,7 @@ class GoCardlessSerivce with ChangeNotifier {
           category: category,
           description: remittanceInfoAsDescription ? bankTr.remittanceInformationUnstructured : null,
         );
-        TransactionService.instance.add(
+        await TransactionService.instance.add(
           transaction,
           expenses: [expense],
         );
@@ -338,8 +339,12 @@ class GoCardlessSerivce with ChangeNotifier {
     });
   }
 
-  Transaction? _manualTransaction(BankTransaction bankTransaction, Account targetAccount) {
+  Transaction? _getIfManuallyEntered(BankTransaction bankTransaction, Account targetAccount) {
     for (var transaction in TransactionService.instance.transactions) {
+      if (transaction.bankInfo != null) {
+        continue;
+      }
+
       var sameAccount = targetAccount == transaction.account;
       if (!sameAccount) {
         continue;

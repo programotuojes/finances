@@ -7,11 +7,12 @@ import 'package:finances/category/models/category.dart';
 import 'package:finances/main.dart';
 import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/transaction/models/attachment.dart';
+import 'package:finances/transaction/models/bank_sync_info.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart' as finances;
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:xdg_directories/xdg_directories.dart';
 
 class Db {
   static final Db instance = Db._ctor();
@@ -24,16 +25,12 @@ class Db {
   Database get db => _database;
 
   Future<void> initialize() async {
-    String databasePath;
-
-    if (Platform.isLinux) {
+    if (!Platform.isAndroid || !Platform.isIOS || !Platform.isMacOS) {
       databaseFactory = databaseFactoryFfi;
-      databasePath = '${dataHome.path}/finances';
-    } else {
-      databasePath = await getDatabasesPath();
     }
 
-    path = join(databasePath, 'finances.db');
+    var databasePath = await getApplicationSupportDirectory();
+    path = join(databasePath.path, 'finances.db');
 
     logger.d('Database path = $path');
 
@@ -55,7 +52,7 @@ class Db {
         RecurringModel.createTable(batch);
         Attachment.createTable(batch);
         Expense.createTable(batch);
-        finances.BankSyncInfo.createTable(batch);
+        BankSyncInfo.createTable(batch);
         finances.Transaction.createTable(batch);
 
         await batch.commit();
@@ -65,6 +62,7 @@ class Db {
 
   // TODO remove
   Future<void> delete() async {
+    logger.i('Deleted the database');
     await deleteDatabase(path);
   }
 }

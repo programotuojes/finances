@@ -1,38 +1,14 @@
+import 'package:collection/collection.dart';
 import 'package:finances/account/models/account.dart';
+import 'package:finances/account/service.dart';
 import 'package:finances/transaction/models/attachment.dart';
+import 'package:finances/transaction/models/bank_sync_info.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 
-class BankSyncInfo {
-  String transactionId;
-  String? creditorName;
-  String? creditorIban;
-  String? remittanceInfo;
-
-  BankSyncInfo({
-    required this.transactionId,
-    required this.creditorName,
-    required this.creditorIban,
-    required this.remittanceInfo,
-  });
-
-  static void createTable(Batch batch) {
-    batch.execute('''
-      create table bankSyncInfo (
-        id integer primary key autoincrement,
-        transactionId text not null,
-        creditorName text,
-        creditorIban text,
-        remittanceInfo text,
-        dbTransactionId integer not null unique,
-        foreign key (dbTransactionId) references transactions(id) on delete cascade
-      )
-    ''');
-  }
-}
-
 class Transaction {
+  int? id;
   Account account;
   DateTime dateTime;
   TransactionType type;
@@ -41,13 +17,44 @@ class Transaction {
   BankSyncInfo? bankInfo;
 
   Transaction({
+    this.id,
     required this.account,
     required this.dateTime,
     required this.type,
+    List<Attachment>? attachments,
     this.bankInfo,
-  });
+  }) {
+    if (attachments != null) {
+      this.attachments = attachments;
+    }
+  }
+
+  factory Transaction.fromMap(
+    Map<String, Object?> map,
+    List<Attachment> attachments,
+    List<BankSyncInfo> bankInfos,
+  ) {
+    var id = map['id'] as int;
+
+    return Transaction(
+      id: id,
+      account: AccountService.instance.accounts.firstWhere((x) => x.id == map['accountId'] as int),
+      dateTime: DateTime.fromMillisecondsSinceEpoch(map['dateTimeMs'] as int),
+      type: TransactionType.values[map['type'] as int],
+      attachments: attachments.where((x) => x.transactionId == id).toList(),
+      bankInfo: bankInfos.firstWhereOrNull((x) => x.dbTransactionId == id),
+    );
+  }
 
   Expense get mainExpense => expenses.first;
+
+  Map<String, Object?> toMap() {
+    return {
+      'accountId': account.id,
+      'dateTimeMs': dateTime.millisecondsSinceEpoch,
+      'type': type.index,
+    };
+  }
 
   static void createTable(Batch batch) {
     batch.execute('''

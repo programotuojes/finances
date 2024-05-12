@@ -96,14 +96,8 @@ class RecurringService with ChangeNotifier {
   }
 
   Future<void> init() async {
-    var dbAccounts = await Db.instance.db.query('accounts');
-    var accounts = dbAccounts.map((e) => Account.fromTable(e)).toList();
-
-    var dbCategories = await Db.instance.db.query('categories');
-    var categories = dbCategories.map((e) => CategoryModel.fromMap(e)).toList();
-
     var dbRecurring = await Db.instance.db.query('recurring');
-    transactions.addAll(dbRecurring.map((e) => RecurringModel.fromMap(e, accounts, categories)));
+    transactions.addAll(dbRecurring.map((e) => RecurringModel.fromMap(e)));
   }
 
   Future<void> update(

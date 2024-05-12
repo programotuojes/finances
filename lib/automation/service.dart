@@ -82,17 +82,14 @@ class AutomationService with ChangeNotifier {
   }
 
   Future<void> init() async {
-    var dbCategories = await Db.instance.db.query('categories');
-    var categories = dbCategories.map((e) => CategoryModel.fromMap(e)).toList();
-
     var dbRules = await Db.instance.db.query('automationRules');
     var rules = dbRules.map((e) => Rule.fromMap(e)).toList();
 
     var dbAutomations = await Db.instance.db.query('automations');
-    automations.addAll(dbAutomations.map((e) => Automation.fromMap(e, categories, rules)));
+    automations.addAll(dbAutomations.map((e) => Automation.fromMap(e, rules)));
 
     var sharedPrefs = await SharedPreferences.getInstance();
-    if (sharedPrefs.getBool('seeded') != true) {
+    if (sharedPrefs.getBool('automationsSeeded') != true) {
       var seed = seedData().toList();
 
       for (var automation in seed) {
@@ -111,7 +108,7 @@ class AutomationService with ChangeNotifier {
       }
 
       automations.addAll(seed);
-      await sharedPrefs.setBool('seeded', true);
+      await sharedPrefs.setBool('automationsSeeded', true);
     }
   }
 

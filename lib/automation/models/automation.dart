@@ -1,4 +1,5 @@
 import 'package:finances/category/models/category.dart';
+import 'package:finances/category/service.dart';
 import 'package:sqflite/sqflite.dart';
 
 class Automation {
@@ -27,7 +28,6 @@ class Automation {
 
   factory Automation.fromMap(
     Map<String, Object?> map,
-    List<CategoryModel> categories,
     List<Rule> rules,
   ) {
     var id = map['id'] as int;
@@ -35,7 +35,7 @@ class Automation {
     return Automation(
       id: id,
       name: map['name'] as String,
-      category: categories.firstWhere((element) => element.id == map['categoryId'] as int),
+      category: CategoryService.instance.findById(map['categoryId'] as int)!,
       rules: rules.where((element) => element.automationId == id).toList(),
     );
   }

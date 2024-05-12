@@ -1,22 +1,44 @@
 import 'package:finances/category/models/category.dart';
+import 'package:finances/category/service.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/utils/money.dart';
 import 'package:money2/money2.dart';
 import 'package:sqflite/sqflite.dart' as sql;
 
 class Expense {
+  int? id;
   Money money;
   String? _description;
   Transaction transaction;
   CategoryModel category;
 
   Expense({
+    this.id,
     required this.transaction,
     required this.money,
     required this.category,
     required String? description,
   }) {
     this.description = description;
+  }
+
+  factory Expense.fromMap(
+    Map<String, Object?> map,
+    List<Transaction> transactions,
+  ) {
+    var id = map['id'] as int;
+
+    return Expense(
+      id: id,
+      money: Money.fromInt(
+        map['moneyMinor'] as int,
+        decimalDigits: map['moneyDecimalDigits'] as int,
+        isoCode: map['currencyIsoCode'] as String,
+      ),
+      category: CategoryService.instance.findById(map['categoryId'] as int)!,
+      transaction: transactions.firstWhere((x) => x.id == map['transactionId'] as int),
+      description: map['description'] as String?,
+    );
   }
 
   String? get description => _description;
@@ -66,6 +88,17 @@ class Expense {
     }
 
     return false;
+  }
+
+  Map<String, Object?> toMap() {
+    return {
+      'moneyMinor': money.minorUnits.toInt(),
+      'moneyDecimalDigits': money.decimalDigits,
+      'currencyIsoCode': money.currency.isoCode,
+      'description': description,
+      'categoryId': category.id,
+      'transactionId': transaction.id,
+    };
   }
 
   static void createTable(sql.Batch batch) {

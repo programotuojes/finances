@@ -1,4 +1,5 @@
 import 'package:finances/category/models/category.dart';
+import 'package:finances/category/service.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/date.dart';
@@ -120,11 +121,11 @@ class BudgetCategory {
     required this.includeChildren,
   });
 
-  factory BudgetCategory.fromMap(Map<String, Object?> map, List<CategoryModel> categories) {
+  factory BudgetCategory.fromMap(Map<String, Object?> map) {
     return BudgetCategory(
       id: map['id'] as int,
       budgetId: map['budgetId'] as int,
-      category: categories.firstWhere((element) => element.id == map['categoryId'] as int),
+      category: CategoryService.instance.findById(map['categoryId'] as int)!,
       includeChildren: map['includeChildren'] == 1,
     );
   }

@@ -1,6 +1,8 @@
 import 'package:collection/collection.dart';
 import 'package:finances/account/models/account.dart';
+import 'package:finances/account/service.dart';
 import 'package:finances/category/models/category.dart';
+import 'package:finances/category/service.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/utils/periodicity.dart';
 import 'package:flutter/material.dart';
@@ -37,19 +39,13 @@ class RecurringModel {
     this.description = description;
   }
 
-  factory RecurringModel.fromMap(
-    Map<String, Object?> map,
-    List<Account> accounts,
-    List<CategoryModel> categories,
-  ) {
+  factory RecurringModel.fromMap(Map<String, Object?> map) {
     var untilMs = map['dateUntilMs'] as int?;
-    var accountId = map['accountId'] as int;
-    var categoryId = map['categoryId'] as int;
 
     return RecurringModel(
       id: map['id'] as int,
-      account: accounts.firstWhere((element) => element.id == accountId),
-      category: categories.firstWhere((element) => element.id == categoryId),
+      account: AccountService.instance.accounts.firstWhere((x) => x.id == map['accountId'] as int),
+      category: CategoryService.instance.findById(map['categoryId'] as int)!,
       money: Money.fromInt(
         map['moneyMinor'] as int,
         decimalDigits: map['moneyDecimalDigits'] as int,

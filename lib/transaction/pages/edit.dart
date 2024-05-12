@@ -142,9 +142,11 @@ class _EditTransactionPageState extends State<EditTransactionPage> with SingleTi
               visible: isEditing,
               title: 'Delete this transaction?',
               description: 'Deleting a transaction also removes all expenses associated with it.',
-              onDelete: () {
-                TransactionService.instance.delete(widget.transaction!);
-                Navigator.of(context).pop();
+              onDelete: () async {
+                await TransactionService.instance.delete(widget.transaction!);
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
               },
             ),
           ],
@@ -377,8 +379,12 @@ class _EditTransactionPageState extends State<EditTransactionPage> with SingleTi
 
   Future<void> update() async {
     await TransactionService.instance.update(
-      target: widget.transaction!,
-      newValues: transaction,
+      widget.transaction!,
+      account: transaction.account,
+      dateTime: transaction.dateTime,
+      type: transaction.type,
+      attachments: transaction.attachments,
+      expenses: transaction.expenses,
     );
   }
 
@@ -457,8 +463,11 @@ class _EditTransactionPageState extends State<EditTransactionPage> with SingleTi
       return;
     }
 
-    TransactionService.instance.delete(widget.transaction!);
-    Navigator.of(context).pop();
+    await TransactionService.instance.delete(widget.transaction!);
+
+    if (context.mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
   /// Show a dialog to create a new expense.

@@ -16,11 +16,15 @@ import 'package:sqflite/sqflite.dart';
 List<Rect> boundingBoxes = [];
 
 class Attachment {
+  int? id;
+  int? transactionId;
   XFile file;
   String? text;
   Uint8List? _bytes;
 
   Attachment({
+    this.id,
+    this.transactionId,
     required this.file,
     this.text,
   });
@@ -95,6 +99,14 @@ class Attachment {
     await File(scaledImagePath).delete();
   }
 
+  Map<String, Object?> toMap() {
+    return {
+      'path': file.path,
+      'attachmentText': text,
+      'transactionId': transactionId,
+    };
+  }
+
   String _getLineSeparator(TextLine t1, TextLine t2) {
     var diffOfTops = t1.boundingBox.top - t2.boundingBox.top;
     var height = t1.boundingBox.height + t2.boundingBox.height;
@@ -147,5 +159,14 @@ class Attachment {
         foreign key (transactionId) references transactions(id) on delete cascade
       )
     ''');
+  }
+
+  factory Attachment.fromMap(Map<String, Object?> map) {
+    return Attachment(
+      id: map['id'] as int,
+      file: XFile(map['path'] as String),
+      text: map['attachmentText'] as String?,
+      transactionId: map['transactionId'] as int,
+    );
   }
 }

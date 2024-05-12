@@ -1,5 +1,4 @@
 import 'package:finances/budget/models/budget.dart';
-import 'package:finances/category/models/category.dart';
 import 'package:finances/utils/db.dart';
 import 'package:finances/utils/periodicity.dart';
 import 'package:flutter/material.dart';
@@ -13,11 +12,8 @@ class BudgetService with ChangeNotifier {
   BudgetService._ctor();
 
   Future<void> init() async {
-    var dbCategories = await Db.instance.db.query('categories');
-    var categories = dbCategories.map((e) => CategoryModel.fromMap(e)).toList();
-
     var dbBudgetCategories = await Db.instance.db.query('budgetCategories');
-    var budgetCategories = dbBudgetCategories.map((e) => BudgetCategory.fromMap(e, categories)).toList();
+    var budgetCategories = dbBudgetCategories.map((e) => BudgetCategory.fromMap(e)).toList();
 
     var dbBudgets = await Db.instance.db.query('budgets');
     budgets.addAll(dbBudgets.map((e) => Budget.fromMap(e, budgetCategories)));

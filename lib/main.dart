@@ -12,6 +12,7 @@ import 'package:finances/category/service.dart';
 import 'package:finances/pages/first_run.dart';
 import 'package:finances/pages/home_page.dart';
 import 'package:finances/recurring/service.dart';
+import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/db.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +38,7 @@ Future<void> main() async {
   await AutomationService.instance.init();
   await BudgetService.instance.init();
   await RecurringService.instance.init();
+  await TransactionService.instance.init();
 
   runApp(const MainApp());
 
