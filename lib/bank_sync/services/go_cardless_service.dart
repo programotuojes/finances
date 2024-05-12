@@ -292,6 +292,8 @@ class GoCardlessSerivce with ChangeNotifier {
           transactionId: bankTr.transactionId,
           creditorName: bankTr.creditorName,
           creditorIban: bankTr.creditorAccount?.iban,
+          debtorName: bankTr.debtorName,
+          debtorIban: bankTr.debtorAccount?.iban,
           remittanceInfo: bankTr.remittanceInformationUnstructured,
         );
 

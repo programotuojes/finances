@@ -6,6 +6,8 @@ class BankSyncInfo {
   String transactionId;
   String? creditorName;
   String? creditorIban;
+  String? debtorName;
+  String? debtorIban;
   String? remittanceInfo;
 
   BankSyncInfo({
@@ -14,6 +16,8 @@ class BankSyncInfo {
     required this.transactionId,
     required this.creditorName,
     required this.creditorIban,
+    required this.debtorName,
+    required this.debtorIban,
     required this.remittanceInfo,
   });
 
@@ -24,6 +28,8 @@ class BankSyncInfo {
       transactionId: map['transactionId'] as String,
       creditorName: map['creditorName'] as String?,
       creditorIban: map['creditorIban'] as String?,
+      debtorName: map['debtorName'] as String?,
+      debtorIban: map['debtorIban'] as String?,
       remittanceInfo: map['remittanceInfo'] as String?,
     );
   }
@@ -33,6 +39,8 @@ class BankSyncInfo {
       'transactionId': transactionId,
       'creditorName': creditorName,
       'creditorIban': creditorIban,
+      'debtorName': debtorName,
+      'debtorIban': debtorIban,
       'remittanceInfo': remittanceInfo,
       'dbTransactionId': dbTransactionId,
     };
@@ -45,6 +53,8 @@ class BankSyncInfo {
         transactionId text not null,
         creditorName text,
         creditorIban text,
+        debtorName text,
+        debtorIban text,
         remittanceInfo text,
         dbTransactionId integer not null unique,
         foreign key (dbTransactionId) references transactions(id) on delete cascade
