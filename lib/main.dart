@@ -2,10 +2,11 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:finances/bank_sync/pages/settings.dart';
 import 'package:finances/bank_sync/services/bank_background_sync_service.dart';
 import 'package:finances/bank_sync/services/go_cardless_service.dart';
 import 'package:finances/pages/home_page.dart';
+import 'package:finances/pages/settings.dart';
+import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/app_paths.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -19,9 +20,6 @@ Future<void> main() async {
   await AppPaths.init();
 
   runApp(const MainApp());
-
-  await GoCardlessSerivce.instance.initialize();
-  await BankBackgroundSyncService.instance.initialize();
 
   if (Platform.isAndroid || Platform.isIOS) {
     await _preventMlKitPhoningHome();
@@ -47,9 +45,8 @@ void backgroundMain() {
     }
 
     logger.i('Starting background task');
-
-    await GoCardlessSerivce.instance.initialize();
-    await BankBackgroundSyncService.instance.initialize();
+    await AppPaths.init();
+    logger.i('Initialized services');
 
     var account = BankBackgroundSyncService.instance.account;
     var remittanceInfoAsDescription = BankBackgroundSyncService.instance.remittanceInfoAsDescription;
@@ -76,17 +73,7 @@ void _listenForBackgroundJobs() {
   IsolateNameServer.registerPortWithName(receivePort.sendPort, backgroundIsolatePort);
   receivePort.listen((message) async {
     logger.i('Bank import message received, reloading all transactions');
-
-    // TODO refresh from the db
-    var account = BankBackgroundSyncService.instance.account;
-    var remittanceInfoAsDescription = BankBackgroundSyncService.instance.remittanceInfoAsDescription;
-    var defaultCategory = BankBackgroundSyncService.instance.defaultCategory;
-
-    await GoCardlessSerivce.instance.importTransactions(
-      account: account,
-      remittanceInfoAsDescription: remittanceInfoAsDescription,
-      defaultCategory: defaultCategory,
-    );
+    await TransactionService.instance.init();
   });
 }
 

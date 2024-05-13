@@ -3,7 +3,6 @@ import 'package:finances/account/pages/list.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/automation/pages/list.dart';
 import 'package:finances/bank_sync/pages/bank_setup.dart';
-import 'package:finances/bank_sync/pages/settings.dart';
 import 'package:finances/bank_sync/pages/transaction_list.dart';
 import 'package:finances/budget/pages/list.dart';
 import 'package:finances/category/pages/list.dart';
@@ -15,6 +14,7 @@ import 'package:finances/components/cards/pie_chart_card.dart';
 import 'package:finances/components/cards/recurring_transaction_card.dart';
 import 'package:finances/components/category_icon.dart';
 import 'package:finances/pages/first_run.dart';
+import 'package:finances/pages/settings.dart';
 import 'package:finances/recurring/pages/list.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/pages/edit.dart';
@@ -50,6 +50,7 @@ class _HomePageState extends State<HomePage> {
   late TextStyle? _incomeStyle;
   late TextStyle? _expenseStyle;
   late TextStyle? _transferStyle;
+
   @override
   void initState() {
     super.initState();
@@ -145,6 +146,15 @@ class _HomePageState extends State<HomePage> {
               ),
               child: const Text('Finances'),
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                'Pages',
+                style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+              ),
+            ),
             ListTile(
               title: const Text('Accounts'),
               onTap: () {
@@ -204,9 +214,14 @@ class _HomePageState extends State<HomePage> {
               },
             ),
             const Divider(),
-            const ListTile(
-              subtitle: Text('Bank sync'),
-              dense: true,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                'Bank sync',
+                style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.admin_panel_settings_rounded),
@@ -246,7 +261,7 @@ class _HomePageState extends State<HomePage> {
               onTap: () async {
                 await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const BankSyncSettings()),
+                  MaterialPageRoute(builder: (context) => const SettingsPage()),
                 );
               },
             ),

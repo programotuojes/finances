@@ -16,14 +16,14 @@ import 'package:workmanager/workmanager.dart';
 const _uniqueTaskName = backgroundBankSyncTaskName;
 const backgroundBankSyncTaskName = 'bank sync';
 
-class BankSyncSettings extends StatefulWidget {
-  const BankSyncSettings({super.key});
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
 
   @override
-  State<BankSyncSettings> createState() => _BankSyncSettingsState();
+  State<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _BankSyncSettingsState extends State<BankSyncSettings> {
+class _SettingsPageState extends State<SettingsPage> {
   final _options = BankBackgroundSyncService.instance;
 
   @override
@@ -53,7 +53,15 @@ class _BankSyncSettingsState extends State<BankSyncSettings> {
                   !await Permission.manageExternalStorage.isGranted) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Don't have storage permissions")),
+                    SnackBar(
+                      content: const Text("Don't have storage permissions"),
+                      action: SnackBarAction(
+                        label: 'Open settings',
+                        onPressed: () async {
+                          await openAppSettings();
+                        },
+                      ),
+                    ),
                   );
                 }
                 return;
@@ -62,14 +70,21 @@ class _BankSyncSettingsState extends State<BankSyncSettings> {
               var dir = await getDirectoryPath();
               if (dir != null) {
                 await AppPaths.setAppPath(dir);
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                }
+                setState(() {});
               }
             },
             leading: const Icon(Icons.folder_open),
             title: const Text('Location'),
             subtitle: Text(AppPaths.base),
+          ),
+          ListTile(
+            onTap: () async {
+              await AppPaths.setAppPath(AppPaths.baseDefault);
+              setState(() {});
+            },
+            leading: const SizedBox.shrink(),
+            title: const Text('Reset to default location'),
+            // subtitle: Text(AppPaths.baseDefault),
           ),
           const Divider(),
           ListTile(
@@ -83,8 +98,8 @@ class _BankSyncSettingsState extends State<BankSyncSettings> {
           ),
           SwitchListTile(
             secondary: const SizedBox.shrink(),
-            title: const Text('Enable daily syncing'),
-            subtitle: const Text('Only available on mobile'),
+            title: const Text('Daily bank sync'),
+            subtitle: !hasWorkmanager ? const Text('Only available on mobile') : null,
             value: _options.enabled,
             onChanged: hasWorkmanager
                 ? (value) async {
@@ -103,6 +118,7 @@ class _BankSyncSettingsState extends State<BankSyncSettings> {
           ListTile(
             onTap: () async {
               await _selectTime();
+              await _registerTask();
             },
             enabled: _options.enabled,
             leading: const Icon(Icons.schedule_rounded),
@@ -112,6 +128,7 @@ class _BankSyncSettingsState extends State<BankSyncSettings> {
           ListTile(
             onTap: () async {
               await _showAccountSelection(context);
+              await _registerTask();
             },
             enabled: _options.enabled,
             leading: const Icon(Icons.account_balance_rounded),
@@ -134,6 +151,8 @@ class _BankSyncSettingsState extends State<BankSyncSettings> {
               setState(() {
                 _options.setDefaultCategory(selectedCategory);
               });
+
+              await _registerTask();
             },
             enabled: _options.enabled,
             leading: Icon(_options.defaultCategory.icon),
@@ -147,10 +166,11 @@ class _BankSyncSettingsState extends State<BankSyncSettings> {
             secondary: const Icon(Icons.description),
             value: _options.remittanceInfoAsDescription,
             onChanged: _options.enabled
-                ? (value) {
+                ? (value) async {
                     setState(() {
                       _options.setRemittanceInfoAsDescription(value);
                     });
+                    await _registerTask();
                   }
                 : null,
           ),
@@ -173,11 +193,18 @@ class _BankSyncSettingsState extends State<BankSyncSettings> {
   }
 
   Future<void> _registerTask() async {
+    var now = DateTime.now();
+    var then = now.copyWith(hour: _options.time.hour, minute: _options.time.minute);
+
+    if (now.isAfter(then)) {
+      then.add(const Duration(days: 1));
+    }
+
     await Workmanager().registerPeriodicTask(
       _uniqueTaskName,
       backgroundBankSyncTaskName,
       frequency: const Duration(days: 1),
-      initialDelay: Duration.zero, // TODO calculate initial delay to avoid running it instantly
+      initialDelay: then.difference(now),
       existingWorkPolicy: ExistingWorkPolicy.replace,
       constraints: Constraints(
         networkType: NetworkType.connected,
