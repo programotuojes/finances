@@ -26,12 +26,12 @@ class AutomationService with ChangeNotifier {
   Future<void> add(Automation automation) async {
     automations.add(automation);
 
-    automation.id = await Db.instance.db.insert(
+    automation.id = await database.insert(
       'automations',
       automation.toMap(setId: false),
     );
 
-    var batch = Db.instance.db.batch();
+    var batch = database.batch();
     for (var i in automation.rules) {
       i.automationId = automation.id;
       batch.insert('automationRules', i.toMap());
@@ -48,7 +48,7 @@ class AutomationService with ChangeNotifier {
   Future<void> delete(Automation automation) async {
     automations.remove(automation);
 
-    await Db.instance.db.delete(
+    await database.delete(
       'automations',
       where: 'id = ?',
       whereArgs: [automation.id],
@@ -82,10 +82,10 @@ class AutomationService with ChangeNotifier {
   }
 
   Future<void> init() async {
-    var dbRules = await Db.instance.db.query('automationRules');
+    var dbRules = await database.query('automationRules');
     var rules = dbRules.map((e) => Rule.fromMap(e)).toList();
 
-    var dbAutomations = await Db.instance.db.query('automations');
+    var dbAutomations = await database.query('automations');
     automations.addAll(dbAutomations.map((e) => Automation.fromMap(e, rules)));
 
     var sharedPrefs = await SharedPreferences.getInstance();
@@ -93,9 +93,9 @@ class AutomationService with ChangeNotifier {
       var seed = seedData().toList();
 
       for (var automation in seed) {
-        automation.id = await Db.instance.db.insert('automations', automation.toMap(setId: false));
+        automation.id = await database.insert('automations', automation.toMap(setId: false));
 
-        var batch = Db.instance.db.batch();
+        var batch = database.batch();
         for (var rule in automation.rules) {
           rule.automationId = automation.id;
           batch.insert('automationRules', rule.toMap());
@@ -110,6 +110,8 @@ class AutomationService with ChangeNotifier {
       automations.addAll(seed);
       await sharedPrefs.setBool('automationsSeeded', true);
     }
+
+    notifyListeners();
   }
 
   Future<void> update(
@@ -121,7 +123,7 @@ class AutomationService with ChangeNotifier {
     target.name = newName ?? target.name;
     target.category = newCategory ?? target.category;
 
-    await Db.instance.db.update('automations', target.toMap(), where: 'id = ?', whereArgs: [target.id]);
+    await database.update('automations', target.toMap(), where: 'id = ?', whereArgs: [target.id]);
 
     if (newRules != null) {
       for (var rule in newRules) {
@@ -130,9 +132,9 @@ class AutomationService with ChangeNotifier {
         var ruleExists = target.rules.any((element) => element.id == rule.id);
 
         if (ruleExists) {
-          await Db.instance.db.update('automationRules', rule.toMap(), where: 'id = ?', whereArgs: [rule.id]);
+          await database.update('automationRules', rule.toMap(), where: 'id = ?', whereArgs: [rule.id]);
         } else {
-          rule.id = await Db.instance.db.insert('automationRules', rule.toMap());
+          rule.id = await database.insert('automationRules', rule.toMap());
         }
       }
 
@@ -140,7 +142,7 @@ class AutomationService with ChangeNotifier {
       for (var oldRule in target.rules) {
         var oldExists = newRules.any((element) => element.id == oldRule.id);
         if (!oldExists) {
-          await Db.instance.db.delete('automationRules', where: 'id = ?', whereArgs: [oldRule.id]);
+          await database.delete('automationRules', where: 'id = ?', whereArgs: [oldRule.id]);
         }
       }
 

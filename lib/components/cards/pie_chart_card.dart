@@ -38,7 +38,9 @@ class _PieChartCardState extends State<PieChartCard> {
 
     return GestureDetector(
       onTap: () {
-        _resetIndices();
+        setState(() {
+          _resetIndices();
+        });
       },
       child: HomeCard(
         title: 'Expenses by category',
@@ -176,13 +178,17 @@ class _PieChartCardState extends State<PieChartCard> {
   @override
   void initState() {
     super.initState();
-    Listenable.merge([
-      CategoryService.instance,
-      TransactionService.instance,
-    ]).addListener(() {
-      if (mounted) {
-        _resetIndices();
+    Listenable.merge([CategoryService.instance, TransactionService.instance]).addListener(() {
+      if (!mounted) {
+        return;
       }
+
+      setState(() {
+        _resetIndices();
+        _historyStack
+          ..clear()
+          ..add(CategoryService.instance.rootCategory);
+      });
     });
   }
 
@@ -267,9 +273,7 @@ class _PieChartCardState extends State<PieChartCard> {
   }
 
   void _resetIndices() {
-    setState(() {
-      _hoveredIndex = -1;
-      _clickedIndex = -1;
-    });
+    _hoveredIndex = -1;
+    _clickedIndex = -1;
   }
 }

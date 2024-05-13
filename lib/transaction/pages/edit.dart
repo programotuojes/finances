@@ -10,16 +10,19 @@ import 'package:finances/components/category_icon.dart';
 import 'package:finances/components/common_values.dart';
 import 'package:finances/components/image_viewer.dart';
 import 'package:finances/components/square_button.dart';
+import 'package:finances/main.dart';
 import 'package:finances/transaction/models/attachment.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/amount_input_formatter.dart';
 import 'package:finances/utils/app_bar_delete.dart';
+import 'package:finances/utils/app_paths.dart';
 import 'package:finances/utils/money.dart';
 import 'package:finances/utils/transaction_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:sqflite/sqflite.dart' as sql;
 
 class EditTransactionPage extends StatefulWidget {
   final Transaction? transaction;
@@ -340,7 +343,6 @@ class _EditTransactionPageState extends State<EditTransactionPage> with SingleTi
             ],
           ),
         ),
-        // TODO gray out FABs when they are disabled
         floatingActionButton: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -359,11 +361,31 @@ class _EditTransactionPageState extends State<EditTransactionPage> with SingleTi
             FloatingActionButton(
               heroTag: 'add',
               onPressed: () async {
-                if (isEditing) {
-                  await update();
-                } else {
-                  await save();
+                try {
+                  if (isEditing) {
+                    await update();
+                  } else {
+                    await save();
+                  }
+                } on sql.DatabaseException catch (e) {
+                  // TODO add a catch for other entities
+                  logger.w('Call to the database failed', error: e);
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: const Text('Database conflict'),
+                      action: SnackBarAction(
+                        label: 'Reload database',
+                        onPressed: () async {
+                          await AppPaths.init();
+                        },
+                      ),
+                    ));
+                  }
+
+                  return;
                 }
+
                 if (context.mounted) {
                   Navigator.of(context).pop();
                 }

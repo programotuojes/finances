@@ -7,6 +7,7 @@ import 'package:fc_native_image_resize/fc_native_image_resize.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:finances/automation/service.dart';
 import 'package:finances/main.dart';
+import 'package:finances/utils/app_paths.dart';
 import 'package:finances/utils/money.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:money2/money2.dart';
@@ -101,7 +102,7 @@ class Attachment {
 
   Map<String, Object?> toMap() {
     return {
-      'path': file.path,
+      'path': p.basename(file.path),
       'attachmentText': text,
       'transactionId': transactionId,
     };
@@ -164,7 +165,7 @@ class Attachment {
   factory Attachment.fromMap(Map<String, Object?> map) {
     return Attachment(
       id: map['id'] as int,
-      file: XFile(map['path'] as String),
+      file: XFile(p.join(AppPaths.attachments, map['path'] as String)),
       text: map['attachmentText'] as String?,
       transactionId: map['transactionId'] as int,
     );

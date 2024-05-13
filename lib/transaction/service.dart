@@ -6,18 +6,19 @@ import 'package:finances/transaction/models/attachment.dart';
 import 'package:finances/transaction/models/bank_sync_info.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
+import 'package:finances/utils/app_paths.dart';
 import 'package:finances/utils/db.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 
 class TransactionService with ChangeNotifier {
   static final TransactionService instance = TransactionService._ctor();
 
-  final List<Transaction> transactions = [];
+  List<Transaction> _transactions = [];
 
   TransactionService._ctor();
 
+  Iterable<Transaction> get transactions => _transactions;
   Iterable<Expense> get expenses sync* {
     for (final transaction in transactions) {
       yield* transaction.expenses;
@@ -30,9 +31,9 @@ class TransactionService with ChangeNotifier {
   }) async {
     await _copyAttachments(transaction.attachments);
 
-    transaction.id = await Db.instance.db.insert('transactions', transaction.toMap());
+    transaction.id = await database.insert('transactions', transaction.toMap());
 
-    var batch = Db.instance.db.batch();
+    var batch = database.batch();
     for (var i in expenses) {
       i.transaction = transaction;
       batch.insert('expenses', i.toMap());
@@ -42,8 +43,9 @@ class TransactionService with ChangeNotifier {
       expenses[i].id = ids[i] as int;
     }
 
-    batch = Db.instance.db.batch();
+    batch = database.batch();
     for (var i in transaction.attachments) {
+      i.transactionId = transaction.id;
       batch.insert('attachments', i.toMap());
     }
     ids = await batch.commit();
@@ -53,22 +55,77 @@ class TransactionService with ChangeNotifier {
 
     if (transaction.bankInfo != null) {
       transaction.bankInfo!.dbTransactionId = transaction.id;
-      transaction.bankInfo!.id = await Db.instance.db.insert('bankSyncInfo', transaction.bankInfo!.toMap());
+      transaction.bankInfo!.id = await database.insert('bankSyncInfo', transaction.bankInfo!.toMap());
     }
 
     transaction.expenses = expenses;
-    transactions.add(transaction);
+    _transactions.add(transaction);
 
     // TODO don't sort on every insert
-    transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    _transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+
+    notifyListeners();
+  }
+
+  Future<void> addBulk(List<Transaction> transactions) async {
+    var batch1 = database.batch();
+
+    for (var transaction in transactions) {
+      await _copyAttachments(transaction.attachments);
+      batch1.insert('transactions', transaction.toMap());
+    }
+
+    var ids = await batch1.commit();
+
+    for (var i = 0; i < transactions.length; i++) {
+      transactions[i].id = ids[i] as int;
+    }
+
+    var batch2 = database.batch();
+
+    for (var transaction in transactions) {
+      for (var expense in transaction.expenses) {
+        expense.transaction = transaction;
+        batch2.insert('expenses', expense.toMap());
+      }
+
+      for (var attachment in transaction.attachments) {
+        attachment.transactionId = transaction.id;
+        batch2.insert('attachments', attachment.toMap());
+      }
+
+      if (transaction.bankInfo != null) {
+        transaction.bankInfo!.dbTransactionId = transaction.id;
+        batch2.insert('bankSyncInfo', transaction.bankInfo!.toMap());
+      }
+    }
+
+    ids = await batch2.commit();
+    var idIndex = 0;
+
+    for (var transaction in transactions) {
+      for (var expense in transaction.expenses) {
+        expense.id = ids[idIndex++] as int;
+      }
+      for (var attachment in transaction.attachments) {
+        attachment.id = ids[idIndex++] as int;
+      }
+      if (transaction.bankInfo != null) {
+        transaction.bankInfo!.dbTransactionId = ids[idIndex++] as int;
+      }
+    }
+
+    _transactions.addAll(transactions);
+
+    _transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
     notifyListeners();
   }
 
   Future<void> delete(Transaction transaction) async {
-    await Db.instance.db.delete('transactions', where: 'id = ?', whereArgs: [transaction.id]);
+    await database.delete('transactions', where: 'id = ?', whereArgs: [transaction.id]);
 
-    transactions.remove(transaction);
+    _transactions.remove(transaction);
 
     await _removeUnusedFiles([], transaction.attachments);
 
@@ -76,21 +133,23 @@ class TransactionService with ChangeNotifier {
   }
 
   Future<void> init() async {
-    var dbAttachments = await Db.instance.db.query('attachments');
+    var dbAttachments = await database.query('attachments');
     var attachments = dbAttachments.map((e) => Attachment.fromMap(e)).toList();
 
-    var dbBankInfos = await Db.instance.db.query('bankSyncInfo');
+    var dbBankInfos = await database.query('bankSyncInfo');
     var bankInfos = dbBankInfos.map((e) => BankSyncInfo.fromMap(e)).toList();
 
-    var dbTransactions = await Db.instance.db.query('transactions', orderBy: 'dateTimeMs desc');
-    transactions.addAll(dbTransactions.map((e) => Transaction.fromMap(e, attachments, bankInfos)));
+    var dbTransactions = await database.query('transactions', orderBy: 'dateTimeMs desc');
+    _transactions = dbTransactions.map((e) => Transaction.fromMap(e, attachments, bankInfos)).toList();
 
-    var dbExpenses = await Db.instance.db.query('expenses');
-    var expenses = dbExpenses.map((e) => Expense.fromMap(e, transactions)).toList();
+    var dbExpenses = await database.query('expenses');
+    var expenses = dbExpenses.map((e) => Expense.fromMap(e, _transactions)).toList();
 
-    for (var i in transactions) {
+    for (var i in _transactions) {
       i.expenses = expenses.where((element) => element.transaction.id == i.id).toList();
     }
+
+    notifyListeners();
   }
 
   Future<void> update(
@@ -107,42 +166,48 @@ class TransactionService with ChangeNotifier {
     if (attachments != null) {
       await _copyAttachments(attachments);
       await _removeUnusedFiles(attachments, target.attachments);
-
       await _upsertAttachments(target.id!, attachments, target.attachments);
-
       target.attachments = attachments;
     }
 
     if (expenses != null) {
       await _upsertExpenses(expenses, target.expenses);
+      target.expenses = expenses;
+    }
+
+    if (bankInfo != null) {
+      target.bankInfo = bankInfo;
+      bankInfo.dbTransactionId = target.id;
+
+      if (bankInfo.id == null) {
+        bankInfo.id = await database.insert('bankSyncInfo', bankInfo.toMap());
+      } else {
+        await database.update('bankSyncInfo', bankInfo.toMap(), where: 'id = ?', whereArgs: [bankInfo.id]);
+      }
     }
 
     target.account = account ?? target.account;
     target.dateTime = dateTime ?? target.dateTime;
-    target.expenses = expenses ?? target.expenses;
     target.type = type ?? target.type;
-    target.bankInfo = bankInfo ?? target.bankInfo;
 
-    await Db.instance.db.update('transactions', target.toMap(), where: 'id = ?', whereArgs: [target.id]);
+    await database.update('transactions', target.toMap(), where: 'id = ?', whereArgs: [target.id]);
 
     if (previousDateTime != target.dateTime) {
-      transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+      _transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime));
     }
 
     notifyListeners();
   }
 
   Future<void> _copyAttachments(List<Attachment> attachments) async {
-    var appDir = await getApplicationSupportDirectory();
-    var attachmentDir = join(appDir.path, 'attachments');
-    await Directory(attachmentDir).create();
+    await Directory(AppPaths.attachments).create();
 
     for (final attachment in attachments) {
-      if (attachment.file.path.startsWith(attachmentDir)) {
+      if (attachment.id != null) {
         continue;
       }
 
-      var newPath = await _getUniqueName(attachmentDir, attachment.file.path);
+      var newPath = await _getUniqueName(attachment.file.path);
 
       await attachment.file.saveTo(newPath);
       attachment.file = XFile(newPath);
@@ -150,15 +215,14 @@ class TransactionService with ChangeNotifier {
   }
 
   Future<String> _getUniqueName(
-    String attachmentsDir,
     String filePath,
   ) async {
     var name = basenameWithoutExtension(filePath);
     var ext = extension(filePath);
-    var newPath = join(attachmentsDir, '$name$ext');
+    var newPath = join(AppPaths.attachments, '$name$ext');
 
     for (var i = 1; await File(join(newPath)).exists(); i++) {
-      newPath = join(attachmentsDir, '${name}_$i$ext');
+      newPath = join(AppPaths.attachments, '${name}_$i$ext');
     }
 
     return newPath;
@@ -182,19 +246,20 @@ class TransactionService with ChangeNotifier {
     for (var i in curr) {
       var exists = prev.any((element) => element.id == i.id);
 
+      // TODO check if `exists` could be replaced with `i.id != null`
       if (exists) {
-        await Db.instance.db.update('attachments', i.toMap());
+        await database.update('attachments', i.toMap(), where: 'id = ?', whereArgs: [i.id]);
       } else {
         // TODO encapsulate the attachment list to avoid such issues
         i.transactionId = transactionId;
-        i.id = await Db.instance.db.insert('attachments', i.toMap());
+        i.id = await database.insert('attachments', i.toMap());
       }
     }
 
     for (var i in prev) {
       var contains = curr.any((element) => element.id == i.id);
       if (!contains) {
-        await Db.instance.db.delete('attachments', where: 'id = ?', whereArgs: [i.id]);
+        await database.delete('attachments', where: 'id = ?', whereArgs: [i.id]);
       }
     }
   }
@@ -203,17 +268,18 @@ class TransactionService with ChangeNotifier {
     for (var i in curr) {
       var exists = prev.any((element) => element.id == i.id);
 
+      // TODO check if `exists` could be replaced with `i.id != null`
       if (exists) {
-        await Db.instance.db.update('expenses', i.toMap());
+        await database.update('expenses', i.toMap(), where: 'id = ?', whereArgs: [i.id]);
       } else {
-        i.id = await Db.instance.db.insert('expenses', i.toMap());
+        i.id = await database.insert('expenses', i.toMap());
       }
     }
 
     for (var i in prev) {
       var contains = curr.any((element) => element.id == i.id);
       if (!contains) {
-        await Db.instance.db.delete('expenses', where: 'id = ?', whereArgs: [i.id]);
+        await database.delete('expenses', where: 'id = ?', whereArgs: [i.id]);
       }
     }
   }

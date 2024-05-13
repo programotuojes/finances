@@ -16,6 +16,7 @@ import 'package:finances/transaction/models/bank_sync_info.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/service.dart';
+import 'package:finances/utils/db.dart';
 import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -276,10 +277,15 @@ class GoCardlessSerivce with ChangeNotifier {
     }
 
     var transactions = await GoCardlessHttpClient.getTransactions(accountId);
+
     await transactions.match((error) {
       // TODO notify the user
       logger.e('Failed to get transactions', error: error);
+      return;
     }, (list) async {
+      var newTransactions = <Transaction>[];
+      var cateogryUpdates = database.batch();
+
       for (var bankTr in list.booked) {
         var amount = bankTr.transactionAmount!.amount;
         var money = amount!.replaceFirst('-', '').toMoney();
@@ -315,10 +321,14 @@ class GoCardlessSerivce with ChangeNotifier {
             .firstWhereOrNull((x) => x.bankInfo?.transactionId == bankTr.transactionId);
 
         if (previousImport != null) {
-          if (previousImport.mainExpense.category == category) {
-            continue;
+          var expense = previousImport.mainExpense;
+
+          if (expense.category != category) {
+            expense.category = category;
+            cateogryUpdates.update('expenses', expense.toMap(), where: 'id = ?', whereArgs: [expense.id]);
           }
-          await TransactionService.instance.delete(previousImport);
+
+          continue;
         }
 
         var transaction = Transaction(
@@ -333,11 +343,12 @@ class GoCardlessSerivce with ChangeNotifier {
           category: category,
           description: remittanceInfoAsDescription ? bankTr.remittanceInformationUnstructured : null,
         );
-        await TransactionService.instance.add(
-          transaction,
-          expenses: [expense],
-        );
+        transaction.expenses.add(expense);
+        newTransactions.add(transaction);
       }
+
+      await cateogryUpdates.commit(noResult: true);
+      await TransactionService.instance.addBulk(newTransactions);
     });
   }
 

@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:finances/account/pages/list.dart';
+import 'package:finances/account/service.dart';
 import 'package:finances/automation/pages/list.dart';
 import 'package:finances/bank_sync/pages/bank_setup.dart';
 import 'package:finances/bank_sync/pages/settings.dart';
@@ -13,12 +14,13 @@ import 'package:finances/components/cards/budget_card.dart';
 import 'package:finances/components/cards/pie_chart_card.dart';
 import 'package:finances/components/cards/recurring_transaction_card.dart';
 import 'package:finances/components/category_icon.dart';
+import 'package:finances/pages/first_run.dart';
 import 'package:finances/recurring/pages/list.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/pages/edit.dart';
 import 'package:finances/transaction/service.dart';
+import 'package:finances/utils/app_paths.dart';
 import 'package:finances/utils/date.dart';
-import 'package:finances/utils/db.dart';
 import 'package:finances/utils/money.dart';
 import 'package:finances/utils/periodicity.dart';
 import 'package:finances/utils/transaction_theme.dart';
@@ -48,6 +50,16 @@ class _HomePageState extends State<HomePage> {
   late TextStyle? _incomeStyle;
   late TextStyle? _expenseStyle;
   late TextStyle? _transferStyle;
+  @override
+  void initState() {
+    super.initState();
+
+    AppPaths.listenable.addListener(() {
+      setState(() {
+        // Listening for changes in `main.dart` does not work
+      });
+    });
+  }
 
   @override
   void dispose() {
@@ -66,6 +78,10 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (AccountService.instance.needsInput) {
+      return const FirstRunPage();
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Finances'),
@@ -216,23 +232,22 @@ class _HomePageState extends State<HomePage> {
                 );
               },
             ),
+            const Divider(),
             ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const BankSyncSettings(),
-                  ),
-                );
+              leading: const Icon(Icons.sync),
+              title: const Text('Reload database'),
+              onTap: () async {
+                await AppPaths.init();
               },
             ),
             ListTile(
-              leading: const Icon(Icons.delete),
-              title: const Text('Delete db'),
-              onTap: () {
-                Db.instance.delete();
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const BankSyncSettings()),
+                );
               },
             ),
           ],

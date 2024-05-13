@@ -1,21 +1,22 @@
 import 'package:collection/collection.dart';
 import 'package:finances/account/models/account.dart';
-import 'package:finances/main.dart';
 import 'package:finances/utils/db.dart';
+import 'package:finances/utils/money.dart';
 import 'package:flutter/foundation.dart';
 import 'package:money2/money2.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountService with ChangeNotifier {
   static final instance = AccountService._ctor();
-  late final SharedPreferences storage;
-
-  final List<Account> accounts = [];
+  late SharedPreferences _storage;
+  List<Account> _accounts = [];
   late Account _lastSelection;
-  Account? _selected;
 
+  Account? _selected;
+  bool needsInput = false;
   AccountService._ctor();
 
+  Iterable<Account> get accounts => _accounts;
   Account? get filter => _selected;
   Account get lastSelection => _lastSelection;
 
@@ -25,15 +26,14 @@ class AccountService with ChangeNotifier {
   }) async {
     var account = Account(name: name, initialMoney: initialMoney);
 
-    account.id = await Db.instance.db.insert(
+    account.id = await database.insert(
       'accounts',
       account.toMap(),
     );
 
     await setLastSelection(account);
 
-    accounts.add(account);
-    logger.t('Added account', error: account.toMap());
+    _accounts.add(account);
 
     notifyListeners();
   }
@@ -48,27 +48,35 @@ class AccountService with ChangeNotifier {
   }
 
   Future<void> initialize() async {
-    var dbAccounts = await Db.instance.db.query('accounts');
-    accounts.addAll(dbAccounts.map((e) => Account.fromTable(e)));
+    var dbAccounts = await database.query('accounts');
+    _accounts = dbAccounts.map((e) => Account.fromTable(e)).toList();
 
-    storage = await SharedPreferences.getInstance();
-    var lastSelectionId = storage.getInt('lastSelectionId');
+    if (_accounts.isEmpty) {
+      var account = Account(name: '', initialMoney: zeroEur);
+      account.id = await database.insert('accounts', account.toMap());
+      _accounts.add(account);
+    }
+
+    if (_accounts.first.name == '') {
+      needsInput = true;
+    }
+
+    _storage = await SharedPreferences.getInstance();
+    var lastSelectionId = _storage.getInt('lastSelectionId');
     var lastSelection = accounts.firstWhereOrNull((element) => element.id == lastSelectionId);
 
     if (lastSelection != null) {
       _lastSelection = lastSelection;
-    } else if (accounts.isNotEmpty) {
-      _lastSelection = accounts.first;
-      await storage.setInt('lastSelectionId', _lastSelection.id!);
     } else {
-      logger.i('''
-Could not set last account selection, because there are no accounts.
-This should only happen on the very first launch.''');
+      _lastSelection = accounts.first;
+      await _storage.setInt('lastSelectionId', _lastSelection.id!);
     }
+
+    notifyListeners();
   }
 
   Future<void> setLastSelection(Account account) async {
-    await storage.setInt('lastSelectionId', account.id!);
+    await _storage.setInt('lastSelectionId', account.id!);
     _lastSelection = account;
   }
 
@@ -80,12 +88,7 @@ This should only happen on the very first launch.''');
     target.name = name ?? target.name;
     target.initialMoney = initialMoney ?? target.initialMoney;
 
-    await Db.instance.db.update(
-      'accounts',
-      target.toMap(),
-      where: 'id = ?',
-      whereArgs: [target.id],
-    );
+    await database.update('accounts', target.toMap(), where: 'id = ?', whereArgs: [target.id]);
 
     await setLastSelection(target);
 

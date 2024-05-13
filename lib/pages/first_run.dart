@@ -75,10 +75,12 @@ class _FirstRunPageState extends State<FirstRunPage> {
                             return;
                           }
 
-                          await AccountService.instance.add(
+                          await AccountService.instance.update(
+                            AccountService.instance.accounts.first,
                             name: _nameCtrl.text,
                             initialMoney: _amountCtrl.text.toMoney()!,
                           );
+                          AccountService.instance.needsInput = false;
 
                           if (context.mounted) {
                             await Navigator.of(context).push(

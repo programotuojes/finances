@@ -12,19 +12,19 @@ class BudgetService with ChangeNotifier {
   BudgetService._ctor();
 
   Future<void> init() async {
-    var dbBudgetCategories = await Db.instance.db.query('budgetCategories');
+    var dbBudgetCategories = await database.query('budgetCategories');
     var budgetCategories = dbBudgetCategories.map((e) => BudgetCategory.fromMap(e)).toList();
 
-    var dbBudgets = await Db.instance.db.query('budgets');
+    var dbBudgets = await database.query('budgets');
     budgets.addAll(dbBudgets.map((e) => Budget.fromMap(e, budgetCategories)));
   }
 
   Future<void> add(Budget budget) async {
     budgets.add(budget);
 
-    budget.id = await Db.instance.db.insert('budgets', budget.toMap());
+    budget.id = await database.insert('budgets', budget.toMap());
 
-    var batch = Db.instance.db.batch();
+    var batch = database.batch();
     for (var i in budget.categories) {
       i.budgetId = budget.id;
       batch.insert('budgetCategories', i.toMap());
@@ -41,7 +41,7 @@ class BudgetService with ChangeNotifier {
   Future<void> delete(Budget budget) async {
     budgets.remove(budget);
 
-    await Db.instance.db.delete('budgets', where: 'id = ?', whereArgs: [budget.id]);
+    await database.delete('budgets', where: 'id = ?', whereArgs: [budget.id]);
 
     notifyListeners();
   }
@@ -57,7 +57,7 @@ class BudgetService with ChangeNotifier {
     target.limit = limit ?? target.limit;
     target.period = period ?? target.period;
 
-    await Db.instance.db.update('budgets', target.toMap(), where: 'id = ?', whereArgs: [target.id]);
+    await database.update('budgets', target.toMap(), where: 'id = ?', whereArgs: [target.id]);
 
     if (budgetCategories != null) {
       for (var i in budgetCategories) {
@@ -66,9 +66,9 @@ class BudgetService with ChangeNotifier {
         var exists = target.categories.any((element) => element.id == i.id);
 
         if (exists) {
-          await Db.instance.db.update('budgetCategories', i.toMap(), where: 'id = ?', whereArgs: [i.id]);
+          await database.update('budgetCategories', i.toMap(), where: 'id = ?', whereArgs: [i.id]);
         } else {
-          i.id = await Db.instance.db.insert('budgetCategories', i.toMap());
+          i.id = await database.insert('budgetCategories', i.toMap());
         }
       }
 
@@ -76,7 +76,7 @@ class BudgetService with ChangeNotifier {
       for (var old in target.categories) {
         var oldExists = budgetCategories.any((element) => element.id == old.id);
         if (!oldExists) {
-          await Db.instance.db.delete('budgetCategories', where: 'id = ?', whereArgs: [old.id]);
+          await database.delete('budgetCategories', where: 'id = ?', whereArgs: [old.id]);
         }
       }
 

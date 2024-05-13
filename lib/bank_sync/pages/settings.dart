@@ -1,12 +1,16 @@
 import 'dart:io';
 
+import 'package:file_selector/file_selector.dart';
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/bank_sync/services/bank_background_sync_service.dart';
 import 'package:finances/category/models/category.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
+import 'package:finances/utils/app_paths.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:workmanager/workmanager.dart';
 
 const _uniqueTaskName = backgroundBankSyncTaskName;
@@ -28,11 +32,57 @@ class _BankSyncSettingsState extends State<BankSyncSettings> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bank sync settings'),
+        title: const Text('Settings'),
       ),
       body: ListView(
         children: [
+          ListTile(
+            leading: const SizedBox.shrink(),
+            title: Text(
+              'General',
+              style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+            ),
+          ),
+          ListTile(
+            onTap: () async {
+              // `permission_handler` supported platforms
+              if ((Platform.isAndroid || Platform.isIOS || kIsWeb || Platform.isWindows) &&
+                  !await Permission.storage.request().isGranted &&
+                  !await Permission.manageExternalStorage.isGranted) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Don't have storage permissions")),
+                  );
+                }
+                return;
+              }
+
+              var dir = await getDirectoryPath();
+              if (dir != null) {
+                await AppPaths.setAppPath(dir);
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+              }
+            },
+            leading: const Icon(Icons.folder_open),
+            title: const Text('Location'),
+            subtitle: Text(AppPaths.base),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const SizedBox.shrink(),
+            title: Text(
+              'Automatic bank syncing',
+              style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+            ),
+          ),
           SwitchListTile(
+            secondary: const SizedBox.shrink(),
             title: const Text('Enable daily syncing'),
             subtitle: const Text('Only available on mobile'),
             value: _options.enabled,

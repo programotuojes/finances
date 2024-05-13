@@ -42,7 +42,7 @@ class RecurringService with ChangeNotifier {
       type: type,
     );
 
-    model.id = await Db.instance.db.insert('recurring', model.toMap());
+    model.id = await database.insert('recurring', model.toMap());
 
     transactions.add(model);
 
@@ -78,7 +78,7 @@ class RecurringService with ChangeNotifier {
 
     model.timesConfirmed++;
 
-    await Db.instance.db.rawUpdate(
+    await database.rawUpdate(
       'update recurring set timesConfirmed = ? where id = ?',
       [model.timesConfirmed, model.id],
     );
@@ -88,7 +88,7 @@ class RecurringService with ChangeNotifier {
   }
 
   Future<void> delete(RecurringModel model) async {
-    await Db.instance.db.delete('recurring', where: 'id = ?', whereArgs: [model.id]);
+    await database.delete('recurring', where: 'id = ?', whereArgs: [model.id]);
 
     transactions.remove(model);
 
@@ -96,7 +96,7 @@ class RecurringService with ChangeNotifier {
   }
 
   Future<void> init() async {
-    var dbRecurring = await Db.instance.db.query('recurring');
+    var dbRecurring = await database.query('recurring');
     transactions.addAll(dbRecurring.map((e) => RecurringModel.fromMap(e)));
   }
 
@@ -122,7 +122,7 @@ class RecurringService with ChangeNotifier {
     target.until = until ?? target.until;
     target.type = type ?? target.type;
 
-    await Db.instance.db.update('recurring', target.toMap(), where: 'id = ?', whereArgs: [target.id]);
+    await database.update('recurring', target.toMap(), where: 'id = ?', whereArgs: [target.id]);
 
     _sort();
     notifyListeners();

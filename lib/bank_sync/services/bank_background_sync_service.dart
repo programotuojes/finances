@@ -34,11 +34,10 @@ class BankBackgroundSyncService {
     _time = TimeOfDay(hour: hour, minute: minute);
 
     var accountId = storage.getInt(_Keys.accountId);
-    if (accountId != null) {
-      _account = AccountService.instance.accounts.firstWhere((element) => element.id == accountId);
-    } else {
-      _account = AccountService.instance.lastSelection;
-    }
+    _account = AccountService.instance.accounts.firstWhere(
+      (element) => element.id == accountId,
+      orElse: () => AccountService.instance.lastSelection,
+    );
 
     var categoryId = storage.getInt(_Keys.categoryId);
     if (categoryId != null) {

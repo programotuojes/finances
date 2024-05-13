@@ -8,7 +8,7 @@ import 'package:sqflite/sqflite.dart';
 
 class CategoryService with ChangeNotifier {
   static final instance = CategoryService._ctor();
-  late final SharedPreferences storage;
+  late SharedPreferences _storage;
 
   late CategoryModel rootCategory;
   late CategoryModel otherCategory;
@@ -30,10 +30,7 @@ class CategoryService with ChangeNotifier {
 
     parent.addChild(child);
 
-    child.id = await Db.instance.db.insert(
-      'categories',
-      child.toMap(setId: false),
-    );
+    child.id = await database.insert('categories', child.toMap(setId: false));
 
     notifyListeners();
   }
@@ -56,9 +53,9 @@ class CategoryService with ChangeNotifier {
   }
 
   Future<void> initialize() async {
-    storage = await SharedPreferences.getInstance();
+    _storage = await SharedPreferences.getInstance();
 
-    var dbCategories = await Db.instance.db.query('categories');
+    var dbCategories = await database.query('categories');
     var categories = dbCategories.map((e) => CategoryModel.fromMap(e)).toList();
 
     for (var category in categories) {
@@ -70,7 +67,7 @@ class CategoryService with ChangeNotifier {
     if (root == null) {
       var root = seedCategories();
 
-      var batch = Db.instance.db.batch();
+      var batch = database.batch();
       _dbInsertWithChildren(batch, root);
       await batch.commit(noResult: true);
 
@@ -81,13 +78,15 @@ class CategoryService with ChangeNotifier {
       rootCategory = root;
       otherCategory = categories.firstWhere((element) => element.id == CategoryIds.other);
 
-      var lastSelectionId = storage.getInt('lastSelectionId');
+      var lastSelectionId = _storage.getInt('lastSelectionId');
       if (lastSelectionId != null) {
         lastSelection = categories.firstWhere((element) => element.id == lastSelectionId);
       } else {
         lastSelection = rootCategory.children.first;
       }
     }
+
+    notifyListeners();
   }
 
   Future<void> update(
@@ -100,12 +99,7 @@ class CategoryService with ChangeNotifier {
     target.color = newColor ?? target.color;
     target.icon = newIcon ?? target.icon;
 
-    await Db.instance.db.update(
-      'categories',
-      target.toMap(),
-      where: 'id = ?',
-      whereArgs: [target.id],
-    );
+    await database.update('categories', target.toMap(), where: 'id = ?', whereArgs: [target.id]);
 
     notifyListeners();
   }
