@@ -19,8 +19,21 @@ class AutomationListPage extends StatelessWidget {
         builder: (context, child) {
           var automations = AutomationService.instance.automations;
           if (automations.isEmpty) {
-            return const Center(
-              child: Text('No automations'),
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('No automations found'),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      await AutomationService.instance.seedData();
+                    },
+                    icon: const Icon(Icons.file_download_outlined),
+                    label: const Text('Seed data'),
+                  ),
+                ],
+              ),
             );
           }
           return ListView.builder(

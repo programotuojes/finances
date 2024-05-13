@@ -1,5 +1,5 @@
 import 'package:finances/automation/models/automation.dart';
-import 'package:finances/automation/seed.dart';
+import 'package:finances/automation/seed.dart' as seed;
 import 'package:finances/category/models/category.dart';
 import 'package:finances/utils/db.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +18,6 @@ final lidlRegex = RegExp(
 
 class AutomationService with ChangeNotifier {
   static final instance = AutomationService._ctor();
-
   List<Automation> _automations = [];
 
   AutomationService._ctor();
@@ -28,10 +27,7 @@ class AutomationService with ChangeNotifier {
   Future<void> add(Automation automation) async {
     _automations.add(automation);
 
-    automation.id = await database.insert(
-      'automations',
-      automation.toMap(setId: false),
-    );
+    automation.id = await database.insert('automations', automation.toMap(setId: false));
 
     var batch = database.batch();
     for (var i in automation.rules) {
@@ -88,27 +84,44 @@ class AutomationService with ChangeNotifier {
 
     var sharedPrefs = await SharedPreferences.getInstance();
     if (sharedPrefs.getBool('automationsSeeded') != true) {
-      var seed = seedData().toList();
-
-      for (var automation in seed) {
-        automation.id = await database.insert('automations', automation.toMap(setId: false));
-
-        var batch = database.batch();
-        for (var rule in automation.rules) {
-          rule.automationId = automation.id;
-          batch.insert('automationRules', rule.toMap());
-        }
-
-        var ids = await batch.commit();
-        for (var i = 0; i < automation.rules.length; i++) {
-          automation.rules[i].id = ids[i] as int;
-        }
-      }
-
-      _automations.addAll(seed);
+      await seedData();
       await sharedPrefs.setBool('automationsSeeded', true);
     }
 
+    notifyListeners();
+  }
+
+  Future<void> seedData() async {
+    var automations = seed.seedData().toList();
+
+    var batch = database.batch();
+    for (var automation in automations) {
+      batch.insert('automations', automation.toMap(setId: false));
+    }
+
+    var ids = await batch.commit();
+    var batch2 = database.batch();
+
+    for (var i = 0; i < automations.length; i++) {
+      var id = ids[i] as int;
+      automations[i].id = id;
+
+      for (var rule in automations[i].rules) {
+        rule.automationId = id;
+        batch2.insert('automationRules', rule.toMap());
+      }
+    }
+
+    ids = await batch2.commit();
+    var idIndex = 0;
+
+    for (var automation in automations) {
+      for (var rule in automation.rules) {
+        rule.id = ids[idIndex++] as int;
+      }
+    }
+
+    _automations.addAll(automations);
     notifyListeners();
   }
 
