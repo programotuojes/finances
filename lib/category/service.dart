@@ -81,7 +81,7 @@ class CategoryService with ChangeNotifier {
 
     var lastSelectionId = _storage.getInt(_lastSelectedKey);
     if (lastSelectionId != null) {
-      _lastSelection = findById(lastSelectionId)!;
+      _lastSelection = findById(lastSelectionId) ?? root.children.first;
     } else {
       _lastSelection = root.children.first;
     }
