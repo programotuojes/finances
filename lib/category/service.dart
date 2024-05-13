@@ -6,15 +6,20 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
+const _lastSelectedKey = 'lastSelectedCategoryId';
+
 class CategoryService with ChangeNotifier {
   static final instance = CategoryService._ctor();
   late SharedPreferences _storage;
-
-  late CategoryModel rootCategory;
-  late CategoryModel otherCategory;
-  late CategoryModel lastSelection;
+  late CategoryModel _lastSelection;
+  late CategoryModel _otherCategory;
+  late CategoryModel _rootCategory;
 
   CategoryService._ctor();
+
+  CategoryModel get lastSelection => _lastSelection;
+  CategoryModel get otherCategory => _otherCategory;
+  CategoryModel get rootCategory => _rootCategory;
 
   Future<void> addChild(
     CategoryModel parent, {
@@ -36,7 +41,7 @@ class CategoryService with ChangeNotifier {
   }
 
   CategoryModel? findById(int id, {CategoryModel? startingFrom}) {
-    CategoryModel current = startingFrom ?? rootCategory;
+    CategoryModel current = startingFrom ?? _rootCategory;
 
     if (current.id == id) {
       return current;
@@ -63,30 +68,30 @@ class CategoryService with ChangeNotifier {
     }
 
     var root = categories.firstWhereOrNull((category) => category.id == CategoryIds.root);
-
     if (root == null) {
-      var root = seedCategories();
+      root = seedCategories();
 
       var batch = database.batch();
       _dbInsertWithChildren(batch, root);
       await batch.commit(noResult: true);
+    }
 
-      rootCategory = root;
-      otherCategory = root.children.firstWhere((element) => element.id == CategoryIds.other);
-      lastSelection = root.children.first;
+    _rootCategory = root;
+    _otherCategory = findById(CategoryIds.other)!;
+
+    var lastSelectionId = _storage.getInt(_lastSelectedKey);
+    if (lastSelectionId != null) {
+      _lastSelection = findById(lastSelectionId)!;
     } else {
-      rootCategory = root;
-      otherCategory = categories.firstWhere((element) => element.id == CategoryIds.other);
-
-      var lastSelectionId = _storage.getInt('lastSelectionId');
-      if (lastSelectionId != null) {
-        lastSelection = categories.firstWhere((element) => element.id == lastSelectionId);
-      } else {
-        lastSelection = rootCategory.children.first;
-      }
+      _lastSelection = root.children.first;
     }
 
     notifyListeners();
+  }
+
+  Future<void> setLastSelection(CategoryModel category) async {
+    await _storage.setInt(_lastSelectedKey, category.id);
+    _lastSelection = category;
   }
 
   Future<void> update(

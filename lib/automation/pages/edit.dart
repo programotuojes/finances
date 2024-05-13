@@ -118,7 +118,9 @@ class _AutomationEditPageState extends State<AutomationEditPage> {
                   if (selected == null) {
                     return;
                   }
-                  CategoryService.instance.lastSelection = selected;
+
+                  await CategoryService.instance.setLastSelection(selected);
+
                   setState(() {
                     tempModel.category = selected;
                   });

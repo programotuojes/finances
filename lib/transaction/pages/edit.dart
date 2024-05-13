@@ -804,7 +804,8 @@ class _CategoryListTileState extends State<CategoryListTile> {
           return;
         }
 
-        CategoryService.instance.lastSelection = selectedCategory;
+        await CategoryService.instance.setLastSelection(selectedCategory);
+
         widget.onCategorySelected(selectedCategory);
         setState(() {
           category = selectedCategory;

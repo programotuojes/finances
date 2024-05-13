@@ -282,7 +282,8 @@ class _BankTransactionListState extends State<BankTransactionList> {
                         return;
                       }
 
-                      CategoryService.instance.lastSelection = selectedCategory;
+                      await CategoryService.instance.setLastSelection(selectedCategory);
+
                       setter(() {
                         _importCategory = selectedCategory;
                       });

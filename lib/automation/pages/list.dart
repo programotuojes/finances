@@ -26,7 +26,7 @@ class AutomationListPage extends StatelessWidget {
           return ListView.builder(
             itemCount: automations.length,
             itemBuilder: (context, index) {
-              var automation = automations[index];
+              var automation = automations.elementAt(index);
               return ListTile(
                 leading: CategoryIcon(
                   icon: automation.category.icon,

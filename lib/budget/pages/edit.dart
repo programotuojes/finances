@@ -207,8 +207,8 @@ class _BudgetEditPageState extends State<BudgetEditPage> {
             children: [
               CategoryListTile(
                 initialCategory: budgetCategory.category,
-                onCategorySelected: (newCategory) {
-                  CategoryService.instance.lastSelection = newCategory;
+                onCategorySelected: (newCategory) async {
+                  await CategoryService.instance.setLastSelection(newCategory);
                   budgetCategory.category = newCategory;
                 },
                 morePadding: false,

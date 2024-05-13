@@ -19,12 +19,14 @@ final lidlRegex = RegExp(
 class AutomationService with ChangeNotifier {
   static final instance = AutomationService._ctor();
 
-  final List<Automation> automations = [];
+  List<Automation> _automations = [];
 
   AutomationService._ctor();
 
+  Iterable<Automation> get automations => _automations;
+
   Future<void> add(Automation automation) async {
-    automations.add(automation);
+    _automations.add(automation);
 
     automation.id = await database.insert(
       'automations',
@@ -46,13 +48,9 @@ class AutomationService with ChangeNotifier {
   }
 
   Future<void> delete(Automation automation) async {
-    automations.remove(automation);
+    _automations.remove(automation);
 
-    await database.delete(
-      'automations',
-      where: 'id = ?',
-      whereArgs: [automation.id],
-    );
+    await database.delete('automations', where: 'id = ?', whereArgs: [automation.id]);
 
     notifyListeners();
   }
@@ -62,7 +60,7 @@ class AutomationService with ChangeNotifier {
     String? creditorName,
     String? creditorIban,
   }) {
-    for (final automation in automations) {
+    for (final automation in _automations) {
       for (final rule in automation.rules) {
         if (_ruleMatches(rule.remittanceInfo, remittanceInfo)) {
           return automation.category;
@@ -86,7 +84,7 @@ class AutomationService with ChangeNotifier {
     var rules = dbRules.map((e) => Rule.fromMap(e)).toList();
 
     var dbAutomations = await database.query('automations');
-    automations.addAll(dbAutomations.map((e) => Automation.fromMap(e, rules)));
+    _automations = dbAutomations.map((e) => Automation.fromMap(e, rules)).toList();
 
     var sharedPrefs = await SharedPreferences.getInstance();
     if (sharedPrefs.getBool('automationsSeeded') != true) {
@@ -107,7 +105,7 @@ class AutomationService with ChangeNotifier {
         }
       }
 
-      automations.addAll(seed);
+      _automations.addAll(seed);
       await sharedPrefs.setBool('automationsSeeded', true);
     }
 

@@ -7,20 +7,24 @@ import 'package:money2/money2.dart';
 class BudgetService with ChangeNotifier {
   static final instance = BudgetService._ctor();
 
-  final List<Budget> budgets = [];
+  List<Budget> _budgets = [];
 
   BudgetService._ctor();
+
+  Iterable<Budget> get budgets => _budgets;
 
   Future<void> init() async {
     var dbBudgetCategories = await database.query('budgetCategories');
     var budgetCategories = dbBudgetCategories.map((e) => BudgetCategory.fromMap(e)).toList();
 
     var dbBudgets = await database.query('budgets');
-    budgets.addAll(dbBudgets.map((e) => Budget.fromMap(e, budgetCategories)));
+    _budgets = dbBudgets.map((e) => Budget.fromMap(e, budgetCategories)).toList();
+
+    notifyListeners();
   }
 
   Future<void> add(Budget budget) async {
-    budgets.add(budget);
+    _budgets.add(budget);
 
     budget.id = await database.insert('budgets', budget.toMap());
 
@@ -39,7 +43,7 @@ class BudgetService with ChangeNotifier {
   }
 
   Future<void> delete(Budget budget) async {
-    budgets.remove(budget);
+    _budgets.remove(budget);
 
     await database.delete('budgets', where: 'id = ?', whereArgs: [budget.id]);
 

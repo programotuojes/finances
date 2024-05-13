@@ -13,11 +13,12 @@ import 'package:money2/money2.dart';
 class RecurringService with ChangeNotifier {
   static final instance = RecurringService._ctor();
 
-  final List<RecurringModel> transactions = [];
+  List<RecurringModel> _transactions = [];
 
   RecurringService._ctor();
 
-  Iterable<RecurringModel> get activeTransactions => transactions.where((x) => x.nextDate() != null);
+  Iterable<RecurringModel> get activeTransactions => _transactions.where((x) => x.nextDate() != null);
+  Iterable<RecurringModel> get transactions => _transactions;
 
   Future<void> add({
     required Account account,
@@ -44,7 +45,7 @@ class RecurringService with ChangeNotifier {
 
     model.id = await database.insert('recurring', model.toMap());
 
-    transactions.add(model);
+    _transactions.add(model);
 
     _sort();
     notifyListeners();
@@ -90,14 +91,15 @@ class RecurringService with ChangeNotifier {
   Future<void> delete(RecurringModel model) async {
     await database.delete('recurring', where: 'id = ?', whereArgs: [model.id]);
 
-    transactions.remove(model);
+    _transactions.remove(model);
 
     notifyListeners();
   }
 
   Future<void> init() async {
     var dbRecurring = await database.query('recurring');
-    transactions.addAll(dbRecurring.map((e) => RecurringModel.fromMap(e)));
+    _transactions = dbRecurring.map((e) => RecurringModel.fromMap(e)).toList();
+    notifyListeners();
   }
 
   Future<void> update(
@@ -129,7 +131,7 @@ class RecurringService with ChangeNotifier {
   }
 
   void _sort() {
-    transactions.sort((a, b) {
+    _transactions.sort((a, b) {
       final aDate = a.nextDate();
       final bDate = b.nextDate();
 

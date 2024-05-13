@@ -208,7 +208,9 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
                     if (selection == null) {
                       return;
                     }
-                    CategoryService.instance.lastSelection = selection;
+
+                    await CategoryService.instance.setLastSelection(selection);
+
                     setState(() {
                       _category = selection;
                     });
