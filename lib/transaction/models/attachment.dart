@@ -64,7 +64,7 @@ class Attachment {
     // This is >3 times faster than using the `image` lib
     await FcNativeImageResize().resizeFile(
       srcFile: file.path,
-      srcFileUri: true,
+      srcFileUri: false,
       destFile: scaledImagePath,
       width: 550,
       height: 10000,
