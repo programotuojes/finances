@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:fc_native_image_resize/fc_native_image_resize.dart';
@@ -13,8 +12,6 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:money2/money2.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
-
-List<Rect> boundingBoxes = [];
 
 class Attachment {
   int? id;
@@ -78,7 +75,6 @@ class Attachment {
     await textRecognizer.close();
 
     var lines = recognizedText.blocks.expand((element) => element.lines).sorted(_lineComparer);
-    boundingBoxes = lines.map((e) => e.boundingBox).toList();
 
     if (lines.isEmpty) {
       logger.w('Did not extract any text from the image');
