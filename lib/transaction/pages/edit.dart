@@ -11,7 +11,6 @@ import 'package:finances/components/common_values.dart';
 import 'package:finances/components/image_viewer.dart';
 import 'package:finances/components/square_button.dart';
 import 'package:finances/main.dart';
-import 'package:finances/transaction/models/attachment.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/service.dart';
@@ -22,6 +21,7 @@ import 'package:finances/utils/money.dart';
 import 'package:finances/utils/transaction_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:money2/money2.dart';
 import 'package:sqflite/sqflite.dart' as sql;
 
 class EditTransactionPage extends StatefulWidget {
@@ -251,6 +251,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> with SingleTi
                   },
                   allowOcr: () {
                     if (isEditing) {
+                      // TODO remove this limitation
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Only supported for new transactions'),
@@ -259,20 +260,32 @@ class _EditTransactionPageState extends State<EditTransactionPage> with SingleTi
                       return false;
                     }
 
-                    var money = mainExpense.money;
-                    if (money == zeroEur) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please enter the total amount'),
-                        ),
-                      );
-                      return false;
-                    }
-
                     return true;
                   },
                   onAutoCategorize: (attachment) async {
-                    var auto = await _autoExpenses(attachment).toList();
+                    var lineItems = await attachment.extractLineItems().toList();
+                    var sum = lineItems.fold(zeroEur, (acc, x) => acc + x.money);
+
+                    var expected = '${sum.integerPart},${sum.decimalPart}';
+                    logger.i('Expecting to find $expected in receipt');
+
+                    if (attachment.text?.contains(expected) != true) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please enter the total amount'),
+                          ),
+                        );
+                      }
+                      return;
+                    }
+
+                    setState(() {
+                      mainExpense.money = sum;
+                    });
+
+                    var auto = await _autoExpenses(lineItems).toList();
+
                     if (auto.isEmpty && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -281,6 +294,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> with SingleTi
                       );
                       return;
                     }
+
                     var combinedMoney = auto.map((e) => e.money).reduce((total, expense) => total + expense);
 
                     setState(() {
@@ -309,8 +323,8 @@ class _EditTransactionPageState extends State<EditTransactionPage> with SingleTi
                 _ExpenseCard(
                   key: ObjectKey(expense),
                   expense: expense,
-                  onDelete: () {
-                    _deleteExpense(context, expense);
+                  onDelete: () async {
+                    await _deleteExpense(context, expense);
                   },
                 ),
               Visibility(
@@ -417,10 +431,8 @@ class _EditTransactionPageState extends State<EditTransactionPage> with SingleTi
     );
   }
 
-  Stream<Expense> _autoExpenses(Attachment attachment) async* {
-    var lineItems = attachment.extractLineItems();
-
-    await for (var lineItem in lineItems) {
+  Stream<Expense> _autoExpenses(List<({Money money, String text})> lineItems) async* {
+    for (var lineItem in lineItems) {
       var category = AutomationService.instance.getCategory(remittanceInfo: lineItem.text);
 
       if (category != null) {
@@ -443,6 +455,7 @@ class _EditTransactionPageState extends State<EditTransactionPage> with SingleTi
       setState(() {
         transaction.expenses.remove(expense);
         mainExpense.money += moneySplitOff;
+        _rerenderMainExpense();
       });
       return;
     }

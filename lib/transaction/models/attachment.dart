@@ -133,7 +133,7 @@ class Attachment {
       return null;
     }
 
-    var money = match.group(2)?.toMoney();
+    var money = match.group(2)?.replaceAll(' ', '').toMoney();
     if (money == null) {
       return null;
     }

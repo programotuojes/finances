@@ -202,4 +202,47 @@ void main() {
 
     expect(matches.length, 0);
   });
+
+  test('Lidl 7', () async {
+    final receipt = await testFile(7).readAsString();
+    final matches = lidlRegex.allMatches(receipt).toList();
+
+    expect(matches.length, 7);
+
+    assertMatch(
+      matches[0],
+      '7503078 Tofu rükytas',
+      '5,94',
+    );
+    assertMatch(
+      matches[1],
+      '0080000 Bananai',
+      '0,81',
+    );
+    assertMatch(
+      matches[2],
+      '0082755 Morkos',
+      '0,15',
+    );
+    assertMatch(
+      matches[3],
+      '0082440 Pomidorai slyvinia',
+      '1, 04',
+    );
+    assertMatch(
+      matches[4],
+      '5504481 Miel.bandele su ag.',
+      '0,59',
+    );
+    assertMatch(
+      matches[5],
+      '7609133 Kibinas su vištiena',
+      '2,30',
+    );
+    assertMatch(
+      matches[6],
+      '6704839 Batonel is żemés rieśutų sk.',
+      '6,32',
+    );
+  });
 }
