@@ -234,6 +234,13 @@ class _BanksTabState extends State<_BanksTab> with AutomaticKeepAliveClientMixin
   @override
   void initState() {
     super.initState();
+
+    GoCardlessSerivce.instance.getInstitutions(countryCode: _countryCtrl.text).then((value) {
+      setState(() {
+        _filteredBanks = GoCardlessSerivce.instance.institutions;
+      });
+    });
+
     _searchCtrl.addListener(() {
       setState(() {
         var searchStr = _searchCtrl.text.toLowerCase();
