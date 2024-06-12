@@ -19,6 +19,7 @@ final _category = CategoryModel(
   name: 'Food',
   icon: Symbols.restaurant,
   color: Colors.green,
+  orderIndex: 0,
 );
 final _sut = RecurringModel(
   account: _account,

@@ -31,6 +31,7 @@ class CategoryService with ChangeNotifier {
       name: name,
       color: color,
       icon: icon,
+      orderIndex: parent.children.length,
     );
 
     parent.addChild(child);
@@ -60,7 +61,7 @@ class CategoryService with ChangeNotifier {
   Future<void> initialize() async {
     _storage = await SharedPreferences.getInstance();
 
-    var dbCategories = await database.query('categories');
+    var dbCategories = await database.query('categories', orderBy: 'orderIndex');
     var categories = dbCategories.map((e) => CategoryModel.fromMap(e)).toList();
 
     for (var category in categories) {
@@ -103,6 +104,13 @@ class CategoryService with ChangeNotifier {
     target.name = newName ?? target.name;
     target.color = newColor ?? target.color;
     target.icon = newIcon ?? target.icon;
+
+    final batch = database.batch();
+    for (var i = 0; i < target.children.length; i++) {
+      target.children[i].orderIndex = i;
+      batch.rawUpdate('update categories set orderIndex = ? where id = ?', [i, target.children[i].id]);
+    }
+    await batch.commit(noResult: true);
 
     await database.update('categories', target.toMap(), where: 'id = ?', whereArgs: [target.id]);
 

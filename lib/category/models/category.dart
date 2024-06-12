@@ -10,6 +10,7 @@ class CategoryModel {
   int? parentId;
   CategoryModel? parent;
   final List<CategoryModel> children = [];
+  int orderIndex;
 
   CategoryModel({
     this.id = -1,
@@ -18,6 +19,7 @@ class CategoryModel {
     required this.icon,
     this.parentId,
     this.parent,
+    required this.orderIndex,
   }) {
     if (parent != null) {
       parentId = parent?.id;
@@ -39,6 +41,7 @@ class CategoryModel {
       color: Color(map['color'] as int),
       icon: icon,
       parentId: map['parentId'] as int?,
+      orderIndex: map['orderIndex'] as int,
     );
   }
 
@@ -76,6 +79,7 @@ class CategoryModel {
       'iconPack': icon['pack'],
       'iconKey': icon['key'],
       'parentId': parent?.id,
+      'orderIndex': orderIndex,
     };
   }
 
@@ -88,6 +92,7 @@ class CategoryModel {
         iconPack text not null,
         iconKey text not null,
         parentId integer,
+        orderIndex integer not null,
         foreign key (parentId) references categories(id) on delete cascade
       )
     ''');

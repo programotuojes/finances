@@ -53,6 +53,8 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    final subcategories = widget.category.children;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit category'),
@@ -100,16 +102,62 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
             ),
           ),
           Expanded(
-            child: ListView(
+            child: ReorderableListView(
               padding: const EdgeInsets.only(top: 16),
-              children: [
-                for (var i in widget.category.children)
+              onReorder: (oldIndex, newIndex) {
+                if (oldIndex < newIndex) {
+                  newIndex -= 1;
+                }
+                final movedItem = subcategories.removeAt(oldIndex);
+
+                setState(() {
+                  subcategories.insert(newIndex, movedItem);
+                });
+              },
+              footer: Column(
+                children: [
+                  const Divider(),
                   ListTile(
+                    leading: CategoryIcon(
+                      color: _childColor,
+                      icon: _childIcon,
+                      onChange: (newColor, newIcon) {
+                        setState(() {
+                          _childColor = newColor;
+                          _childIcon = newIcon;
+                        });
+                      },
+                    ),
+                    title: TextField(
+                      controller: _childNameCtrl,
+                      decoration: const InputDecoration(
+                        hintText: 'New category name',
+                        border: UnderlineInputBorder(),
+                      ),
+                      textCapitalization: TextCapitalization.sentences,
+                      scrollPadding: const EdgeInsets.only(top: double.infinity),
+                    ),
+                    trailing: FilledButton(
+                      onPressed: !_childNameEmpty
+                          ? () async {
+                              await _addCategory();
+                            }
+                          : null,
+                      child: const Text('Add'),
+                    ),
+                  ),
+                  const SizedBox(height: fabHeight),
+                ],
+              ),
+              children: [
+                for (var category in subcategories)
+                  ListTile(
+                    key: ObjectKey(category),
                     onTap: () async {
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => CategoryEditPage(i),
+                          builder: (context) => CategoryEditPage(category),
                         ),
                       );
 
@@ -117,43 +165,12 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
                         setState(() {});
                       }
                     },
-                    title: Text(i.name),
+                    title: Text(category.name),
                     leading: CategoryIcon(
-                      icon: i.icon,
-                      color: i.color,
+                      icon: category.icon,
+                      color: category.color,
                     ),
                   ),
-                const Divider(),
-                ListTile(
-                  leading: CategoryIcon(
-                    color: _childColor,
-                    icon: _childIcon,
-                    onChange: (newColor, newIcon) {
-                      setState(() {
-                        _childColor = newColor;
-                        _childIcon = newIcon;
-                      });
-                    },
-                  ),
-                  title: TextField(
-                    controller: _childNameCtrl,
-                    decoration: const InputDecoration(
-                      hintText: 'New category name',
-                      border: UnderlineInputBorder(),
-                    ),
-                    textCapitalization: TextCapitalization.sentences,
-                    scrollPadding: const EdgeInsets.only(top: double.infinity),
-                  ),
-                  trailing: FilledButton(
-                    onPressed: !_childNameEmpty
-                        ? () async {
-                            await _addCategory();
-                          }
-                        : null,
-                    child: const Text('Add'),
-                  ),
-                ),
-                const SizedBox(height: fabHeight),
               ],
             ),
           ),
