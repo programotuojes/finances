@@ -48,6 +48,7 @@ class _FirstRunPageState extends State<FirstRunPage> {
                       const SizedBox(height: 24),
                       TextFormField(
                         controller: _nameCtrl,
+                        textCapitalization: TextCapitalization.sentences,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Please enter a name';

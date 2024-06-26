@@ -68,6 +68,7 @@ class _BudgetEditPageState extends State<BudgetEditPage> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: TextFormField(
+                  textCapitalization: TextCapitalization.sentences,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter a name';
