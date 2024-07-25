@@ -4,7 +4,7 @@ import 'package:finances/category/service.dart';
 import 'package:finances/components/amount_text_field.dart';
 import 'package:finances/components/category_icon.dart';
 import 'package:finances/components/period_dropdown.dart';
-import 'package:finances/transaction/pages/edit.dart';
+import 'package:finances/transaction/components/category_list_tile.dart';
 import 'package:finances/utils/app_bar_delete.dart';
 import 'package:finances/utils/money.dart';
 import 'package:finances/utils/periodicity.dart';

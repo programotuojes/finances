@@ -6,6 +6,7 @@ import 'package:finances/transaction/models/attachment.dart';
 import 'package:finances/transaction/models/bank_sync_info.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
+import 'package:finances/transaction/models/transfer.dart';
 import 'package:finances/utils/app_paths.dart';
 import 'package:finances/utils/db.dart';
 import 'package:flutter/foundation.dart';
@@ -15,14 +16,22 @@ class TransactionService with ChangeNotifier {
   static final TransactionService instance = TransactionService._ctor();
 
   List<Transaction> _transactions = [];
+  List<Transfer> _transfers = [];
 
   TransactionService._ctor();
 
   Iterable<Transaction> get transactions => _transactions;
+  Iterable<Transfer> get transfers => _transfers;
   Iterable<Expense> get expenses sync* {
     for (final transaction in transactions) {
       yield* transaction.expenses;
     }
+  }
+
+  Future<void> addTransfer(Transfer transfer) async {
+    transfer.id = await database.insert('transfers', transfer.toMap());
+    _transfers.add(transfer);
+    notifyListeners();
   }
 
   Future<void> add(
@@ -132,9 +141,18 @@ class TransactionService with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> deleteTransfer(Transfer transfer) async {
+    await database.delete('transfers', where: 'id = ?', whereArgs: [transfer.id]);
+    _transfers.remove(transfer);
+    notifyListeners();
+  }
+
   Future<void> init() async {
     var dbAttachments = await database.query('attachments');
     var attachments = dbAttachments.map((e) => Attachment.fromMap(e)).toList();
+
+    final dbTransfers = await database.query('transfers', orderBy: 'dateTimeMs desc');
+    _transfers = dbTransfers.map((e) => Transfer.fromMap(e)).toList();
 
     var dbBankInfos = await database.query('bankSyncInfo');
     var bankInfos = dbBankInfos.map((e) => BankSyncInfo.fromMap(e)).toList();
@@ -147,6 +165,24 @@ class TransactionService with ChangeNotifier {
 
     for (var i in _transactions) {
       i.expenses = expenses.where((element) => element.transaction.id == i.id).toList();
+    }
+
+    notifyListeners();
+  }
+
+  Future<void> updateTransfer(Transfer target, Transfer newValues) async {
+    final previousDateTime = target.dateTime;
+
+    target.money = newValues.money;
+    target.description = newValues.description;
+    target.from = newValues.from;
+    target.to = newValues.to;
+    target.dateTime = newValues.dateTime;
+
+    await database.update('transfers', target.toMap(), where: 'id = ?', whereArgs: [target.id]);
+
+    if (previousDateTime != target.dateTime) {
+      _transfers.sort((a, b) => b.dateTime.compareTo(a.dateTime));
     }
 
     notifyListeners();

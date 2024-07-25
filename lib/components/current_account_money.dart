@@ -15,11 +15,22 @@ class CurrentAccountMoney extends StatelessWidget {
     return ListenableBuilder(
       listenable: TransactionService.instance,
       builder: (context, child) {
-        var total = TransactionService.instance.expenses
+        final expenses = TransactionService.instance.expenses
             .where((x) => x.transaction.account == account)
             .map((x) => x.signedMoney)
             .fold(account.initialMoney, (acc, x) => acc + x);
 
+        final incoming = TransactionService.instance.transfers
+            .where((x) => x.to == account)
+            .map((x) => x.money)
+            .fold(expenses, (acc, x) => acc + x);
+
+        final total = TransactionService.instance.transfers
+            .where((x) => x.from == account)
+            .map((x) => -x.money)
+            .fold(incoming, (acc, x) => acc + x);
+
+        // TODO move this into a method in `Account`
         return Text(total.toString());
       },
     );

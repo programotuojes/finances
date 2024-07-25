@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:finances/account/service.dart';
 import 'package:finances/automation/service.dart';
 import 'package:finances/bank_sync/services/bank_background_sync_service.dart';
@@ -57,16 +59,24 @@ Will use the default path $_baseDefault.''', error: e);
       // On first run, database hasn't been initialized yet
     }
 
-    await initializeDatabase();
-    await AccountService.instance.initialize();
-    await CategoryService.instance.initialize();
-    await AutomationService.instance.init();
-    await BudgetService.instance.init();
-    await RecurringService.instance.init();
-    await TransactionService.instance.init();
+    try {
+      await initializeDatabase();
+      await AccountService.instance.initialize();
+      await CategoryService.instance.initialize();
+      await AutomationService.instance.init();
+      await BudgetService.instance.init();
+      await RecurringService.instance.init();
+      await TransactionService.instance.init();
 
-    await GoCardlessSerivce.instance.initialize();
-    await BankBackgroundSyncService.instance.initialize();
+      await GoCardlessSerivce.instance.initialize();
+      await BankBackgroundSyncService.instance.initialize();
+    } catch (e) {
+      if (kDebugMode) {
+        logger.w('Failed to initialize the database. Deleting, since in debug mode');
+        await File(_db).delete();
+      }
+      rethrow;
+    }
   }
 
   static Future<void> _setPaths(String path) async {

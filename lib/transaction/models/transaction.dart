@@ -22,10 +22,14 @@ class Transaction {
     required this.dateTime,
     required this.type,
     List<Attachment>? attachments,
+    List<Expense>? expenses,
     this.bankInfo,
   }) {
     if (attachments != null) {
       this.attachments = attachments;
+    }
+    if (expenses != null) {
+      this.expenses = expenses;
     }
   }
 

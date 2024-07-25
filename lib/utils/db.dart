@@ -9,6 +9,7 @@ import 'package:finances/transaction/models/attachment.dart';
 import 'package:finances/transaction/models/bank_sync_info.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transaction.dart' as finances;
+import 'package:finances/transaction/models/transfer.dart';
 import 'package:finances/utils/app_paths.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -40,6 +41,7 @@ Future<void> initializeDatabase() async {
       Expense.createTable(batch);
       BankSyncInfo.createTable(batch);
       finances.Transaction.createTable(batch);
+      Transfer.createTable(batch);
 
       await batch.commit();
     },

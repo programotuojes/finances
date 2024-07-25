@@ -13,11 +13,14 @@ import 'package:finances/components/cards/budget_card.dart';
 import 'package:finances/components/cards/pie_chart_card.dart';
 import 'package:finances/components/cards/recurring_transaction_card.dart';
 import 'package:finances/components/category_icon.dart';
+import 'package:finances/components/home_fab.dart';
 import 'package:finances/pages/first_run.dart';
 import 'package:finances/pages/settings.dart';
 import 'package:finances/recurring/pages/list.dart';
+import 'package:finances/transaction/models/temp_combined.dart';
 import 'package:finances/transaction/models/transaction.dart';
-import 'package:finances/transaction/pages/edit.dart';
+import 'package:finances/transaction/pages/edit_transaction.dart';
+import 'package:finances/transaction/pages/edit_transfer.dart';
 import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/app_paths.dart';
 import 'package:finances/utils/date.dart';
@@ -124,18 +127,7 @@ class _HomePageState extends State<HomePage> {
           )
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'home',
-        child: const Icon(Icons.add),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const EditTransactionPage(),
-            ),
-          );
-        },
-      ),
+      floatingActionButton: const HomeFab(),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -337,13 +329,20 @@ class _HomePageState extends State<HomePage> {
       listenable: Listenable.merge([TransactionService.instance, _searchCtrl]),
       builder: (context, child) {
         var regex = RegExp(_searchCtrl.text, caseSensitive: false);
+
         var expenses = TransactionService.instance.expenses
             .where((expense) => expense.transaction.dateTime.isIn(_dateRange) && expense.matchesFilter(regex))
-            .toList();
+            .map((e) => TempCombined.fromExpense(e));
 
-        var moneyPerPeriod = expenses.groupFoldBy<String, Money>(
-          (expense) => expense.transaction.dateTime.getGrouping(_historyGroupingPeriod).display,
-          (acc, expense) => (acc ?? zeroEur) + expense.signedMoney,
+        final transfers = TransactionService.instance.transfers
+            .where((transfer) => transfer.dateTime.isIn(_dateRange) && transfer.matchesFilter(regex))
+            .map((e) => TempCombined.fromTransfer(e));
+
+        final combined = [...expenses, ...transfers].sortedBy((element) => element.dateTime);
+
+        var moneyPerPeriod = combined.groupFoldBy<String, Money>(
+          (x) => x.dateTime.getGrouping(_historyGroupingPeriod).display,
+          (acc, x) => (acc ?? zeroEur) + x.signedMoney,
         );
 
         return CustomScrollView(
@@ -355,19 +354,19 @@ class _HomePageState extends State<HomePage> {
               floating: true,
             ),
             SliverVisibility(
-              visible: expenses.isEmpty,
+              visible: combined.isEmpty,
               sliver: const SliverFillRemaining(
                 hasScrollBody: false,
-                child: Center(child: Text('No expenses found')),
+                child: Center(child: Text('No entries found')),
               ),
             ),
             SliverPadding(
-              padding: EdgeInsets.only(bottom: expenses.isNotEmpty ? 88 : 0),
+              padding: EdgeInsets.only(bottom: combined.isNotEmpty ? 88 : 0),
               sliver: SliverGroupedListView(
-                elements: expenses,
+                elements: combined,
                 order: GroupedListOrder.DESC,
-                itemComparator: (a, b) => a.transaction.dateTime.compareTo(b.transaction.dateTime),
-                groupBy: (expense) => expense.transaction.dateTime.getGrouping(_historyGroupingPeriod),
+                itemComparator: (a, b) => a.dateTime.compareTo(b.dateTime),
+                groupBy: (x) => x.dateTime.getGrouping(_historyGroupingPeriod),
                 groupSeparatorBuilder: (format) {
                   var dateGroup = format.display;
                   return Container(
@@ -389,12 +388,12 @@ class _HomePageState extends State<HomePage> {
                     ),
                   );
                 },
-                itemBuilder: (context, expense) {
+                itemBuilder: (context, x) {
                   return ListTile(
-                    title: Text(expense.category.name),
+                    title: Text(x.category.name),
                     leading: CategoryIcon(
-                      icon: expense.category.icon,
-                      color: expense.category.color,
+                      icon: x.category.icon,
+                      color: x.category.color,
                     ),
                     trailing: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -402,44 +401,51 @@ class _HomePageState extends State<HomePage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text.rich(
-                          style: _textStyle(expense.transaction.type),
+                          style: _textStyle(x.type),
                           TextSpan(
                             children: [
                               WidgetSpan(
                                 child: Icon(
-                                  _amountSymbol(expense.transaction.type),
-                                  color: _textStyle(expense.transaction.type)?.color,
+                                  _amountSymbol(x.type),
+                                  color: _textStyle(x.type)?.color,
                                 ),
                                 alignment: PlaceholderAlignment.middle,
                               ),
-                              TextSpan(text: expense.money.toString()),
+                              TextSpan(text: x.money.toString()),
                             ],
                           ),
                         ),
-                        Text(expense.transaction.account.name),
+                        Text(x.accountName),
                       ],
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(expense.transaction.dateTime.toString().substring(0, 16)),
-                        if (expense.description != null)
+                        Text(x.dateTime.toString().substring(0, 16)),
+                        if (x.description != null && x.description!.isNotEmpty)
                           Text(
-                            expense.description!,
+                            x.description!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                       ],
                     ),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditTransactionPage(
-                            transaction: expense.transaction,
+                      if (x.type == TransactionType.transfer) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditTransferPage(transfer: x.transfer),
                           ),
-                        ),
-                      );
+                        );
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TransactionEditPage(transaction: x.transaction),
+                          ),
+                        );
+                      }
                     },
                   );
                 },
