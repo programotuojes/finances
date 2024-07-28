@@ -24,6 +24,28 @@ class _FirstRunPageState extends State<FirstRunPage> {
     super.dispose();
   }
 
+  Future<void> _sumbitForm(BuildContext context) async {
+    if (!_formKey.currentState!.validate()) {
+      setState(() {
+        _autoValidateMode = AutovalidateMode.onUserInteraction;
+      });
+      return;
+    }
+
+    await AccountService.instance.update(
+      AccountService.instance.accounts.first,
+      name: _nameCtrl.text,
+      initialMoney: _amountCtrl.text.toMoney()!,
+    );
+    AccountService.instance.needsInput = false;
+
+    if (context.mounted) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,6 +78,7 @@ class _FirstRunPageState extends State<FirstRunPage> {
 
                           return null;
                         },
+                        onFieldSubmitted: (value) => _sumbitForm(context),
                         decoration: const InputDecoration(
                           labelText: 'Name',
                           hintText: 'Cash, bank...',
@@ -65,30 +88,11 @@ class _FirstRunPageState extends State<FirstRunPage> {
                       AmountTextField(
                         controller: _amountCtrl,
                         labelText: 'Initial amount',
+                        onFieldSubmitted: (value) => _sumbitForm(context),
                       ),
                       const SizedBox(height: 24),
                       FilledButton.icon(
-                        onPressed: () async {
-                          if (!_formKey.currentState!.validate()) {
-                            setState(() {
-                              _autoValidateMode = AutovalidateMode.onUserInteraction;
-                            });
-                            return;
-                          }
-
-                          await AccountService.instance.update(
-                            AccountService.instance.accounts.first,
-                            name: _nameCtrl.text,
-                            initialMoney: _amountCtrl.text.toMoney()!,
-                          );
-                          AccountService.instance.needsInput = false;
-
-                          if (context.mounted) {
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const HomePage()),
-                            );
-                          }
-                        },
+                        onPressed: () => _sumbitForm(context),
                         icon: const Icon(Icons.save),
                         label: const Text('Save'),
                       ),
