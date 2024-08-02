@@ -20,7 +20,7 @@ class AccountService with ChangeNotifier {
   Account? get filter => _selected;
   Account get lastSelection => _lastSelection;
 
-  Future<void> add({
+  Future<Account> add({
     required String name,
     required Money initialMoney,
   }) async {
@@ -36,6 +36,8 @@ class AccountService with ChangeNotifier {
     _accounts.add(account);
 
     notifyListeners();
+
+    return account;
   }
 
   void filterBy(Account account) {

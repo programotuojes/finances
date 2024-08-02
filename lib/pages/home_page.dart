@@ -14,6 +14,7 @@ import 'package:finances/components/cards/pie_chart_card.dart';
 import 'package:finances/components/cards/recurring_transaction_card.dart';
 import 'package:finances/components/category_icon.dart';
 import 'package:finances/components/home_fab.dart';
+import 'package:finances/importers/pages/importer_list_page.dart';
 import 'package:finances/pages/first_run.dart';
 import 'package:finances/pages/settings.dart';
 import 'package:finances/recurring/pages/list.dart';
@@ -245,6 +246,18 @@ class _HomePageState extends State<HomePage> {
               title: const Text('Reload database'),
               onTap: () async {
                 await AppPaths.init();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.file_download_outlined),
+              title: const Text('Import'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ImporterListPage(),
+                  ),
+                );
               },
             ),
             ListTile(
