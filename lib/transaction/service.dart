@@ -5,6 +5,8 @@ import 'package:finances/account/models/account.dart';
 import 'package:finances/transaction/models/attachment.dart';
 import 'package:finances/transaction/models/bank_sync_info.dart';
 import 'package:finances/transaction/models/expense.dart';
+import 'package:finances/transaction/models/import_detais/imported_wallet_db_expense.dart';
+import 'package:finances/transaction/models/import_detais/imported_wallet_db_transfer.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/models/transfer.dart';
 import 'package:finances/utils/app_paths.dart';
@@ -90,44 +92,90 @@ class TransactionService with ChangeNotifier {
       transactions[i].id = ids[i] as int;
     }
 
-    var batch2 = database.batch();
+    var childrenBatch = database.batch();
 
     for (var transaction in transactions) {
       for (var expense in transaction.expenses) {
         expense.transaction = transaction;
-        batch2.insert('expenses', expense.toMap());
+        childrenBatch.insert('expenses', expense.toMap());
       }
 
       for (var attachment in transaction.attachments) {
         attachment.transactionId = transaction.id;
-        batch2.insert('attachments', attachment.toMap());
+        childrenBatch.insert('attachments', attachment.toMap());
       }
 
       if (transaction.bankInfo != null) {
         transaction.bankInfo!.dbTransactionId = transaction.id;
-        batch2.insert('bankSyncInfo', transaction.bankInfo!.toMap());
+        childrenBatch.insert('bankSyncInfo', transaction.bankInfo!.toMap());
       }
     }
 
-    ids = await batch2.commit();
+    ids = await childrenBatch.commit();
     var idIndex = 0;
+    final batchImportedWallet = database.batch();
 
     for (var transaction in transactions) {
       for (var expense in transaction.expenses) {
         expense.id = ids[idIndex++] as int;
+        if (expense.importedWalletDbExpense != null) {
+          expense.importedWalletDbExpense!.parentId = expense.id;
+          batchImportedWallet.insert(ImportedWalletDbExpense.tableName, expense.importedWalletDbExpense!.toMap());
+        }
       }
       for (var attachment in transaction.attachments) {
         attachment.id = ids[idIndex++] as int;
       }
       if (transaction.bankInfo != null) {
-        transaction.bankInfo!.dbTransactionId = ids[idIndex++] as int;
+        transaction.bankInfo!.id = ids[idIndex++] as int;
+      }
+    }
+
+    final importedWalletIds = await batchImportedWallet.commit();
+    var importedWalletIndex = 0;
+    for (var transaction in transactions) {
+      for (var expense in transaction.expenses) {
+        if (expense.importedWalletDbExpense != null) {
+          expense.importedWalletDbExpense!.id = importedWalletIds[importedWalletIndex++] as int;
+        }
       }
     }
 
     _transactions.addAll(transactions);
-
     _transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    notifyListeners();
+  }
 
+  Future<void> addBulkTransfers(List<Transfer> transfers) async {
+    var addTransfersBatch = database.batch();
+
+    for (var transfer in transfers) {
+      addTransfersBatch.insert('transfers', transfer.toMap());
+    }
+
+    final transferIds = await addTransfersBatch.commit();
+    for (var i = 0; i < transfers.length; i++) {
+      transfers[i].id = transferIds[i] as int;
+    }
+
+    var childrenBatch = database.batch();
+    for (final transfer in transfers) {
+      if (transfer.importedWalletDbTransfer != null) {
+        transfer.importedWalletDbTransfer!.parentId = transfer.id;
+        childrenBatch.insert(ImportedWalletDbTransfer.tableName, transfer.importedWalletDbTransfer!.toMap());
+      }
+    }
+
+    final childrenIds = await childrenBatch.commit();
+    var idIndex = 0;
+    for (final transaction in transfers) {
+      if (transaction.importedWalletDbTransfer != null) {
+        transaction.importedWalletDbTransfer!.id = childrenIds[idIndex++] as int;
+      }
+    }
+
+    _transfers.addAll(transfers);
+    _transfers.sort((a, b) => b.dateTime.compareTo(a.dateTime));
     notifyListeners();
   }
 
@@ -151,8 +199,15 @@ class TransactionService with ChangeNotifier {
     var dbAttachments = await database.query('attachments');
     var attachments = dbAttachments.map((e) => Attachment.fromMap(e)).toList();
 
+    final dbImportedWalletDbExpenses = await database.query(ImportedWalletDbExpense.tableName);
+    final importedWalletDbExpenses = dbImportedWalletDbExpenses.map((x) => ImportedWalletDbExpense.fromMap(x)).toList();
+
+    final dbImportedWalletDbTransfers = await database.query(ImportedWalletDbTransfer.tableName);
+    final importedWalletDbTransfers =
+        dbImportedWalletDbTransfers.map((x) => ImportedWalletDbTransfer.fromMap(x)).toList();
+
     final dbTransfers = await database.query('transfers', orderBy: 'dateTimeMs desc');
-    _transfers = dbTransfers.map((e) => Transfer.fromMap(e)).toList();
+    _transfers = dbTransfers.map((e) => Transfer.fromMap(e, importedWalletDbTransfers)).toList();
 
     var dbBankInfos = await database.query('bankSyncInfo');
     var bankInfos = dbBankInfos.map((e) => BankSyncInfo.fromMap(e)).toList();
@@ -161,7 +216,7 @@ class TransactionService with ChangeNotifier {
     _transactions = dbTransactions.map((e) => Transaction.fromMap(e, attachments, bankInfos)).toList();
 
     var dbExpenses = await database.query('expenses');
-    var expenses = dbExpenses.map((e) => Expense.fromMap(e, _transactions)).toList();
+    var expenses = dbExpenses.map((e) => Expense.fromMap(e, _transactions, importedWalletDbExpenses)).toList();
 
     for (var i in _transactions) {
       i.expenses = expenses.where((element) => element.transaction.id == i.id).toList();

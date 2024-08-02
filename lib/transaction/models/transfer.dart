@@ -1,5 +1,7 @@
+import 'package:collection/collection.dart';
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
+import 'package:finances/transaction/models/import_detais/imported_wallet_db_transfer.dart';
 import 'package:money2/money2.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -10,6 +12,7 @@ class Transfer {
   Account? from;
   Account? to;
   DateTime dateTime;
+  ImportedWalletDbTransfer? importedWalletDbTransfer;
 
   Transfer({
     this.id,
@@ -18,10 +21,12 @@ class Transfer {
     required this.from,
     required this.to,
     required this.dateTime,
+    this.importedWalletDbTransfer,
   });
 
   factory Transfer.fromMap(
     Map<String, Object?> map,
+    List<ImportedWalletDbTransfer> importedWalletDbTransfers,
   ) {
     final id = map['id'] as int;
     final accounts = AccountService.instance.accounts;
@@ -34,9 +39,10 @@ class Transfer {
         isoCode: map['currencyIsoCode'] as String,
       ),
       description: map['description'] as String?,
-      from: accounts.firstWhere((x) => x.id == map['fromAccountId'] as int),
-      to: accounts.firstWhere((x) => x.id == map['toAccountId'] as int),
+      from: accounts.firstWhereOrNull((x) => x.id == map['fromAccountId'] as int?),
+      to: accounts.firstWhereOrNull((x) => x.id == map['toAccountId'] as int?),
       dateTime: DateTime.fromMillisecondsSinceEpoch(map['dateTimeMs'] as int),
+      importedWalletDbTransfer: importedWalletDbTransfers.firstWhereOrNull((x) => x.parentId == id),
     );
   }
 

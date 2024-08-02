@@ -38,10 +38,13 @@ sealed class AppPaths {
 
     try {
       await _setPaths(path);
-    } catch (e) {
-      logger.e('''
-Failed to set $path as the app path.
-Will use the default path $_baseDefault.''', error: e);
+    } on Error catch (e) {
+      logger.e(
+        'Failed to set $path as the app path. '
+        'Will use the default path $_baseDefault.',
+        error: e,
+        stackTrace: e.stackTrace,
+      );
       await _setPaths(_baseDefault);
     }
   }

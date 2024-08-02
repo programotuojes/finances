@@ -8,6 +8,8 @@ import 'package:finances/recurring/models/recurring_model.dart';
 import 'package:finances/transaction/models/attachment.dart';
 import 'package:finances/transaction/models/bank_sync_info.dart';
 import 'package:finances/transaction/models/expense.dart';
+import 'package:finances/transaction/models/import_detais/imported_wallet_db_expense.dart';
+import 'package:finances/transaction/models/import_detais/imported_wallet_db_transfer.dart';
 import 'package:finances/transaction/models/transaction.dart' as finances;
 import 'package:finances/transaction/models/transfer.dart';
 import 'package:finances/utils/app_paths.dart';
@@ -40,6 +42,8 @@ Future<void> initializeDatabase() async {
       Attachment.createTable(batch);
       Expense.createTable(batch);
       BankSyncInfo.createTable(batch);
+      ImportedWalletDbExpense.createTable(batch);
+      ImportedWalletDbTransfer.createTable(batch);
       finances.Transaction.createTable(batch);
       Transfer.createTable(batch);
 

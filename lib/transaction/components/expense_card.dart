@@ -96,6 +96,19 @@ class _ExpenseCardState extends State<ExpenseCard> {
                     ),
                   ),
                 ),
+                Visibility(
+                  visible: widget.entity.expense?.importedWalletDbExpense != null,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: IconButton(
+                      onPressed: () {
+                        _showWalletDbImportInfo(context);
+                      },
+                      tooltip: 'Wallet info',
+                      icon: const Icon(Symbols.info),
+                    ),
+                  ),
+                ),
               ],
             ),
           ],
@@ -134,6 +147,43 @@ class _ExpenseCardState extends State<ExpenseCard> {
                   _fieldRow('Debtor IBAN', widget.entity.transaction!.bankInfo!.debtorIban!),
                 if (widget.entity.transaction?.bankInfo?.remittanceInfo != null)
                   _fieldRow('Remittance info', widget.entity.transaction!.bankInfo!.remittanceInfo!),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showWalletDbImportInfo(BuildContext context) {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Wallet import info'),
+        content: SingleChildScrollView(
+          child: SelectionArea(
+            child: DataTable(
+              dataRowMinHeight: 50,
+              dataRowMaxHeight: double.infinity,
+              clipBehavior: Clip.hardEdge,
+              headingTextStyle: const TextStyle(fontWeight: FontWeight.w600),
+              horizontalMargin: 0,
+              columns: const [
+                DataColumn(label: Text('Field')),
+                DataColumn(label: Text('Value')),
+              ],
+              rows: [
+                _fieldRow('Record ID', widget.entity.expense!.importedWalletDbExpense!.recordId),
+                _fieldRow('Account ID', widget.entity.expense!.importedWalletDbExpense!.accountId),
+                _fieldRow('Category ID', widget.entity.expense!.importedWalletDbExpense!.categoryId),
               ],
             ),
           ),

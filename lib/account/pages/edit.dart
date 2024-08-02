@@ -92,6 +92,8 @@ class _AccountEditPageState extends State<AccountEditPage> {
             return;
           }
 
+          Account? createdAccount;
+
           if (_editing) {
             await AccountService.instance.update(
               widget.account!,
@@ -99,14 +101,14 @@ class _AccountEditPageState extends State<AccountEditPage> {
               initialMoney: _initialAmountCtrl.text.toMoney()!,
             );
           } else {
-            await AccountService.instance.add(
+            createdAccount = await AccountService.instance.add(
               name: _nameCtrl.text,
               initialMoney: _initialAmountCtrl.text.toMoney()!,
             );
           }
 
           if (context.mounted) {
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(createdAccount);
           }
         },
         child: const Icon(Icons.save),

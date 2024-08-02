@@ -1,5 +1,7 @@
+import 'package:collection/collection.dart';
 import 'package:finances/category/models/category.dart';
 import 'package:finances/category/service.dart';
+import 'package:finances/transaction/models/import_detais/imported_wallet_db_expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/utils/money.dart';
 import 'package:money2/money2.dart';
@@ -11,6 +13,7 @@ class Expense {
   String? _description;
   Transaction transaction;
   CategoryModel category;
+  ImportedWalletDbExpense? importedWalletDbExpense;
 
   Expense({
     this.id,
@@ -18,6 +21,7 @@ class Expense {
     required this.money,
     required this.category,
     required String? description,
+    this.importedWalletDbExpense,
   }) {
     this.description = description;
   }
@@ -25,6 +29,7 @@ class Expense {
   factory Expense.fromMap(
     Map<String, Object?> map,
     List<Transaction> transactions,
+    List<ImportedWalletDbExpense> importedWalletDbExpenses,
   ) {
     var id = map['id'] as int;
 
@@ -38,6 +43,7 @@ class Expense {
       category: CategoryService.instance.findById(map['categoryId'] as int)!,
       transaction: transactions.firstWhere((x) => x.id == map['transactionId'] as int),
       description: map['description'] as String?,
+      importedWalletDbExpense: importedWalletDbExpenses.firstWhereOrNull((x) => x.parentId == id),
     );
   }
 
