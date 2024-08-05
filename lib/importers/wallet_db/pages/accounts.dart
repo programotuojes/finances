@@ -10,10 +10,14 @@ final _createNew = Account(name: '', initialMoney: zeroEur);
 
 class WalletDbAccountPage extends StatefulWidget {
   final List<wallet_db.Account> walletAccounts;
+  final List<wallet_db.Category> walletCategories;
+  final List<wallet_db.Record> records;
 
   const WalletDbAccountPage({
     super.key,
     required this.walletAccounts,
+    required this.walletCategories,
+    required this.records,
   });
 
   @override
@@ -21,14 +25,12 @@ class WalletDbAccountPage extends StatefulWidget {
 }
 
 class _WalletDbAccountPageState extends State<WalletDbAccountPage> {
-  final Map<wallet_db.Account, Account> _accountMap = {};
+  final Map<String, Account> _accountMap = {};
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Map accounts'),
-      ),
+      appBar: AppBar(title: const Text('Map accounts')),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -56,10 +58,10 @@ class _WalletDbAccountPageState extends State<WalletDbAccountPage> {
             for (final walletAccount in widget.walletAccounts)
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                      child: Text('Bank'),
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      child: Text(walletAccount.name),
                     ),
                   ),
                   const Icon(Icons.arrow_right),
@@ -72,7 +74,7 @@ class _WalletDbAccountPageState extends State<WalletDbAccountPage> {
                           return DropdownMenu<Account>(
                             key: UniqueKey(),
                             expandedInsets: EdgeInsets.zero,
-                            initialSelection: _accountMap[walletAccount],
+                            initialSelection: _accountMap[walletAccount.id],
                             hintText: 'Select an account',
                             onSelected: (selected) async {
                               if (selected == null) {
@@ -88,14 +90,14 @@ class _WalletDbAccountPageState extends State<WalletDbAccountPage> {
                                 );
                                 setState(() {
                                   if (createdAccount != null) {
-                                    _accountMap[walletAccount] = createdAccount;
+                                    _accountMap[walletAccount.id] = createdAccount;
                                   }
                                 });
                                 return;
                               }
 
                               setState(() {
-                                _accountMap[walletAccount] = selected;
+                                _accountMap[walletAccount.id] = selected;
                               });
                             },
                             dropdownMenuEntries: [
@@ -110,22 +112,26 @@ class _WalletDbAccountPageState extends State<WalletDbAccountPage> {
                   ),
                 ],
               ),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => WalletDbCategoryPage(
-                      walletCategories: [
-                        wallet_db.Category(id: 'kek', name: 'Groceries'),
-                        wallet_db.Category(id: 'aya', name: 'Entertainment'),
-                      ],
-                    ),
-                  ),
-                );
-              },
-              child: const Text('Next'),
+            Padding(
+              padding: const EdgeInsets.only(top: 16, bottom: 24),
+              child: FilledButton(
+                onPressed: _accountMap.length != widget.walletAccounts.length
+                    ? null
+                    : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => WalletDbCategoryPage(
+                              walletAccounts: widget.walletAccounts,
+                              walletCategories: widget.walletCategories,
+                              records: widget.records,
+                              accountMap: _accountMap,
+                            ),
+                          ),
+                        );
+                      },
+                child: const Text('Next'),
+              ),
             ),
           ],
         ),

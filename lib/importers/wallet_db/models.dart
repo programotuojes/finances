@@ -1,25 +1,18 @@
-/// Database `db.sqlite3`.
+/// Database file `/data/data/com.droid4you.application.wallet/files/local-<guid>.cblite2/db.sqlite3`.
 /// Table `maps_6`.
 class Account {
-  /// JSON prop name `_id`.
   String id;
-
-  bool archived;
-  int initAmount;
   String name;
 
   Account({
     required this.id,
-    required this.archived,
-    required this.initAmount,
     required this.name,
   });
 }
 
-/// Database `db.sqlite3`.
+/// Database file `/data/data/com.droid4you.application.wallet/files/local-<guid>.cblite2/db.sqlite3`.
 /// Table `maps_7`.
 class Category {
-  // _id
   String id;
   String name;
 
@@ -29,10 +22,9 @@ class Category {
   });
 }
 
-/// Database `uuid-records.db`.
+/// Database file `/data/data/com.droid4you.application.wallet/databases/<guid>-records.db`.
 /// Table `records`.
 class Record {
-  RecordType type;
   String note;
   String accountId;
   String categoryId;
@@ -43,7 +35,6 @@ class Record {
   String? transferId;
 
   Record({
-    required this.type,
     required this.note,
     required this.accountId,
     required this.categoryId,
@@ -53,11 +44,4 @@ class Record {
     required this.transferAccountId,
     required this.transferId,
   });
-}
-
-/// 0 = income.
-/// 1 = expense.
-enum RecordType {
-  income,
-  expense,
 }
