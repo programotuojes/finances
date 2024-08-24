@@ -37,6 +37,14 @@
       ]);
     in
     {
+      packages.${system}.default = unstable-pkgs.flutter.buildFlutterApplication {
+        pname = "finances";
+        version = "0.1.0";
+        src = ./.;
+        autoPubspecLock = ./pubspec.lock;
+        extraWrapProgramArgs = "--suffix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath [ pkgs.sqlite ]}";
+      };
+
       devShells.${system}.default = with pkgs; mkShell {
         packages = [
           unstable-pkgs.flutter
