@@ -1,26 +1,19 @@
 {
-  description = "Flutter project for tracking finances";
+  description = "A program for tracking personal finances";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/23.11";
-    unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    android.url = "github:tadfisher/android-nixpkgs/stable";
+    nixpkgs.url = "github:NixOS/nixpkgs/24.05";
+    android = {
+      url = "github:tadfisher/android-nixpkgs/stable";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, unstable, android }:
+  outputs = { self, nixpkgs, android }:
     let
       system = "x86_64-linux";
-
-      pkgs = import nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
-      };
-
-      unstable-pkgs = import unstable {
-        inherit system;
-        config.allowUnfree = true;
-      };
-
+      pkgs = nixpkgs.legacyPackages.${system};
+      flutter = pkgs.flutter319;
       android-sdk = android.sdk.${system} (sdkPkgs: with sdkPkgs; [
         cmdline-tools-latest
         emulator
@@ -37,31 +30,30 @@
       ]);
     in
     {
-      packages.${system}.default = unstable-pkgs.flutter.buildFlutterApplication {
+      packages.${system}.default = with pkgs; flutter.buildFlutterApplication {
         pname = "finances";
         version = "0.1.0";
         src = ./.;
         autoPubspecLock = ./pubspec.lock;
-        extraWrapProgramArgs = "--suffix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath [ pkgs.sqlite ]}";
+        extraWrapProgramArgs = "--suffix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ sqlite ]}";
       };
 
       devShells.${system}.default = with pkgs; mkShell {
         packages = [
-          unstable-pkgs.flutter
           android-sdk
-          androidStudioPackages.stable
+          flutter
         ];
 
-        FLUTTER_SDK = unstable-pkgs.flutter;
+        FLUTTER_SDK = flutter;
 
         shellHook = ''
-          ${unstable-pkgs.flutter}/bin/flutter --disable-analytics > /dev/null
-          source <(${unstable-pkgs.flutter}/bin/flutter bash-completion)
+          ${flutter}/bin/flutter --disable-analytics > /dev/null
+          source <(${flutter}/bin/flutter bash-completion)
           export PS1='\[\e[1;93m\][Finances]\[\e[m\] \$ '
 
           # Avoid crashing when opening file picker
           export XDG_DATA_DIRS=${gtk3}/share/gsettings-schemas/${gtk3.name}:$XDG_DATA_DIRS
-          export LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [ sqlite ]}:$LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH=${lib.makeLibraryPath [ sqlite ]}:$LD_LIBRARY_PATH
         '';
       };
     };
