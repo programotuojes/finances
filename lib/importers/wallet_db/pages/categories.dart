@@ -32,6 +32,7 @@ class _WalletDbCategoryPageState extends State<WalletDbCategoryPage> {
   final Map<String, CategoryModel> _categoryMap = {};
   var _sortBy = _SortBy.totalMoney;
   late final List<_CalculatedCategory> _sortedCategories = widget.walletCategories
+      .whereNot((x) => x.name == 'Transfer')
       .map((e) => _CalculatedCategory(e, widget.records))
       .where((element) => element.numOfRecords > 0)
       .sorted((a, b) => b.totalMoney.amount.abs.compareTo(a.totalMoney.amount.abs))
