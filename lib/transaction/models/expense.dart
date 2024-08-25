@@ -88,11 +88,6 @@ class Expense {
       return true;
     }
 
-    var creditorNameMatches = transaction.bankInfo?.creditorName?.contains(regex) == true;
-    if (creditorNameMatches) {
-      return true;
-    }
-
     return false;
   }
 

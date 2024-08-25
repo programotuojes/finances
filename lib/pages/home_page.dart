@@ -2,8 +2,6 @@ import 'package:collection/collection.dart';
 import 'package:finances/account/pages/list.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/automation/pages/list.dart';
-import 'package:finances/bank_sync/pages/bank_setup.dart';
-import 'package:finances/bank_sync/pages/transaction_list.dart';
 import 'package:finances/budget/pages/list.dart';
 import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
@@ -207,47 +205,6 @@ class _HomePageState extends State<HomePage> {
               },
             ),
             const Divider(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                'Bank sync',
-                style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.admin_panel_settings_rounded),
-              title: const Text('Secrets'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const BankSetupPage(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.receipt_long_rounded),
-              title: const Text('Transactions'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const BankTransactionList(),
-                  ),
-                );
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.sync),
-              title: const Text('Reload database'),
-              onTap: () async {
-                await AppPaths.init();
-              },
-            ),
             ListTile(
               leading: const Icon(Icons.file_download_outlined),
               title: const Text('Import'),
@@ -258,6 +215,13 @@ class _HomePageState extends State<HomePage> {
                     builder: (context) => const ImporterListPage(),
                   ),
                 );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.sync),
+              title: const Text('Reload database'),
+              onTap: () async {
+                await AppPaths.init();
               },
             ),
             ListTile(

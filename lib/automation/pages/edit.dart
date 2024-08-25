@@ -205,7 +205,6 @@ class _RuleListItem extends StatefulWidget {
 class _RuleListItemState extends State<_RuleListItem> {
   late final _remittanceInfoCtrl = TextEditingController(text: widget.rule?.remittanceInfo?.pattern);
   late final _creditorNameCtrl = TextEditingController(text: widget.rule?.creditorName?.pattern);
-  late final _creditorIbanCtrl = TextEditingController(text: widget.rule?.creditorIban?.pattern);
   late final _isEditing = widget.rule != null;
   bool _showBottomError = false;
 
@@ -215,7 +214,6 @@ class _RuleListItemState extends State<_RuleListItem> {
     Listenable.merge([
       _remittanceInfoCtrl,
       _creditorNameCtrl,
-      _creditorIbanCtrl,
     ]).addListener(() {
       if (_showBottomError) {
         setState(() {
@@ -229,7 +227,6 @@ class _RuleListItemState extends State<_RuleListItem> {
   void dispose() {
     _remittanceInfoCtrl.dispose();
     _creditorNameCtrl.dispose();
-    _creditorIbanCtrl.dispose();
     super.dispose();
   }
 
@@ -273,21 +270,6 @@ class _RuleListItemState extends State<_RuleListItem> {
                 ),
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                onSaved: (value) {
-                  if (_isEditing && _creditorIbanCtrl.text.isNotEmpty) {
-                    widget.rule!.creditorIban = RegExp(_creditorIbanCtrl.text);
-                  } else {
-                    widget.rule!.creditorIban = null;
-                  }
-                },
-                validator: _isValidRegex,
-                controller: _creditorIbanCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Creditor IBAN',
-                ),
-              ),
-              const SizedBox(height: 16),
               Row(
                 children: [
                   FilledButton.icon(
@@ -299,9 +281,7 @@ class _RuleListItemState extends State<_RuleListItem> {
                         return;
                       }
 
-                      if (_remittanceInfoCtrl.text.isEmpty &&
-                          _creditorNameCtrl.text.isEmpty &&
-                          _creditorIbanCtrl.text.isEmpty) {
+                      if (_remittanceInfoCtrl.text.isEmpty && _creditorNameCtrl.text.isEmpty) {
                         setState(() {
                           _showBottomError = true;
                         });
@@ -312,12 +292,10 @@ class _RuleListItemState extends State<_RuleListItem> {
                         widget.onAction(Rule.fromStrings(
                           remittanceInfo: _remittanceInfoCtrl.text,
                           creditorName: _creditorNameCtrl.text,
-                          creditorIban: _creditorIbanCtrl.text,
                         ));
                         setState(() {
                           _remittanceInfoCtrl.clear();
                           _creditorNameCtrl.clear();
-                          _creditorIbanCtrl.clear();
                         });
                       }
                     },

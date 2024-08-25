@@ -64,21 +64,18 @@ class Rule {
   int? id;
   int? automationId;
   RegExp? creditorName;
-  RegExp? creditorIban;
   RegExp? remittanceInfo;
 
   Rule({
     this.id,
     this.automationId,
     this.creditorName,
-    this.creditorIban,
     this.remittanceInfo,
   });
 
   factory Rule.fromMap(Map<String, Object?> map) {
     var rule = Rule.fromStrings(
       creditorName: map['creditorName'] as String?,
-      creditorIban: map['creditorIban'] as String?,
       remittanceInfo: map['remittanceInfo'] as String?,
     );
 
@@ -90,21 +87,18 @@ class Rule {
 
   factory Rule.fromStrings({
     String? creditorName,
-    String? creditorIban,
     String? remittanceInfo,
   }) {
     var creditorNameProvided = creditorName != null && creditorName.isNotEmpty;
-    var creditorIbanProvided = creditorIban != null && creditorIban.isNotEmpty;
     var remittanceInfoProvided = remittanceInfo != null && remittanceInfo.isNotEmpty;
 
     assert(
-      creditorNameProvided || creditorIbanProvided || remittanceInfoProvided,
+      creditorNameProvided || remittanceInfoProvided,
       'At least one field must be provided',
     );
 
     return Rule(
       creditorName: creditorNameProvided ? RegExp(creditorName) : null,
-      creditorIban: creditorIbanProvided ? RegExp(creditorIban) : null,
       remittanceInfo: remittanceInfoProvided ? RegExp(remittanceInfo) : null,
     );
   }
@@ -113,7 +107,6 @@ class Rule {
     return {
       'id': id,
       'creditorName': creditorName?.pattern,
-      'creditorIban': creditorIban?.pattern,
       'remittanceInfo': remittanceInfo?.pattern,
       'automationId': automationId,
     };
@@ -124,7 +117,6 @@ class Rule {
       create table automationRules (
         id integer primary key autoincrement,
         creditorName text,
-        creditorIban text,
         remittanceInfo text,
         automationId integer not null,
         foreign key (automationId) references automations(id) on delete cascade

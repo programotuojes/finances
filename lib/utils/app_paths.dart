@@ -2,8 +2,6 @@ import 'dart:io';
 
 import 'package:finances/account/service.dart';
 import 'package:finances/automation/service.dart';
-import 'package:finances/bank_sync/services/bank_background_sync_service.dart';
-import 'package:finances/bank_sync/services/go_cardless_service.dart';
 import 'package:finances/budget/service.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/main.dart';
@@ -70,9 +68,6 @@ sealed class AppPaths {
       await BudgetService.instance.init();
       await RecurringService.instance.init();
       await TransactionService.instance.init();
-
-      await GoCardlessSerivce.instance.initialize();
-      await BankBackgroundSyncService.instance.initialize();
     } catch (e) {
       if (kDebugMode) {
         logger.w('Failed to initialize the database. Deleting, since in debug mode');

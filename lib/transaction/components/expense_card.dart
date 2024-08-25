@@ -84,19 +84,6 @@ class _ExpenseCardState extends State<ExpenseCard> {
                   ),
                 ),
                 Visibility(
-                  visible: widget.entity.transaction?.bankInfo != null,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: IconButton(
-                      onPressed: () {
-                        _showBankInfo(context);
-                      },
-                      tooltip: 'Bank info',
-                      icon: const Icon(Symbols.info),
-                    ),
-                  ),
-                ),
-                Visibility(
                   visible: widget.entity.expense?.importedWalletDbExpense != null,
                   child: Padding(
                     padding: const EdgeInsets.only(right: 8),
@@ -113,52 +100,6 @@ class _ExpenseCardState extends State<ExpenseCard> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Future<void> _showBankInfo(BuildContext context) {
-    return showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Bank info'),
-        content: SingleChildScrollView(
-          child: SelectionArea(
-            child: DataTable(
-              dataRowMinHeight: 50,
-              dataRowMaxHeight: double.infinity,
-              clipBehavior: Clip.hardEdge,
-              headingTextStyle: const TextStyle(fontWeight: FontWeight.w600),
-              horizontalMargin: 0,
-              columns: const [
-                DataColumn(label: Text('Field')),
-                DataColumn(label: Text('Value')),
-              ],
-              rows: [
-                if (widget.entity.transaction?.bankInfo?.transactionId != null)
-                  _fieldRow('Transaction ID', widget.entity.transaction!.bankInfo!.transactionId),
-                if (widget.entity.transaction?.bankInfo?.creditorName != null)
-                  _fieldRow('Creditor name', widget.entity.transaction!.bankInfo!.creditorName!),
-                if (widget.entity.transaction?.bankInfo?.creditorIban != null)
-                  _fieldRow('Creditor IBAN', widget.entity.transaction!.bankInfo!.creditorIban!),
-                if (widget.entity.transaction?.bankInfo?.debtorName != null)
-                  _fieldRow('Debtor name', widget.entity.transaction!.bankInfo!.debtorName!),
-                if (widget.entity.transaction?.bankInfo?.debtorIban != null)
-                  _fieldRow('Debtor IBAN', widget.entity.transaction!.bankInfo!.debtorIban!),
-                if (widget.entity.transaction?.bankInfo?.remittanceInfo != null)
-                  _fieldRow('Remittance info', widget.entity.transaction!.bankInfo!.remittanceInfo!),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('OK'),
-          ),
-        ],
       ),
     );
   }

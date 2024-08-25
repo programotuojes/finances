@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:file_selector/file_selector.dart';
 import 'package:finances/account/models/account.dart';
 import 'package:finances/transaction/models/attachment.dart';
-import 'package:finances/transaction/models/bank_sync_info.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/import_detais/imported_wallet_db_expense.dart';
 import 'package:finances/transaction/models/import_detais/imported_wallet_db_transfer.dart';
@@ -64,11 +63,6 @@ class TransactionService with ChangeNotifier {
       transaction.attachments[i].id = ids[i] as int;
     }
 
-    if (transaction.bankInfo != null) {
-      transaction.bankInfo!.dbTransactionId = transaction.id;
-      transaction.bankInfo!.id = await database.insert('bankSyncInfo', transaction.bankInfo!.toMap());
-    }
-
     transaction.expenses = expenses;
     _transactions.add(transaction);
 
@@ -104,11 +98,6 @@ class TransactionService with ChangeNotifier {
         attachment.transactionId = transaction.id;
         childrenBatch.insert('attachments', attachment.toMap());
       }
-
-      if (transaction.bankInfo != null) {
-        transaction.bankInfo!.dbTransactionId = transaction.id;
-        childrenBatch.insert('bankSyncInfo', transaction.bankInfo!.toMap());
-      }
     }
 
     ids = await childrenBatch.commit();
@@ -125,9 +114,6 @@ class TransactionService with ChangeNotifier {
       }
       for (var attachment in transaction.attachments) {
         attachment.id = ids[idIndex++] as int;
-      }
-      if (transaction.bankInfo != null) {
-        transaction.bankInfo!.id = ids[idIndex++] as int;
       }
     }
 
@@ -209,11 +195,8 @@ class TransactionService with ChangeNotifier {
     final dbTransfers = await database.query('transfers', orderBy: 'dateTimeMs desc');
     _transfers = dbTransfers.map((e) => Transfer.fromMap(e, importedWalletDbTransfers)).toList();
 
-    var dbBankInfos = await database.query('bankSyncInfo');
-    var bankInfos = dbBankInfos.map((e) => BankSyncInfo.fromMap(e)).toList();
-
     var dbTransactions = await database.query('transactions', orderBy: 'dateTimeMs desc');
-    _transactions = dbTransactions.map((e) => Transaction.fromMap(e, attachments, bankInfos)).toList();
+    _transactions = dbTransactions.map((e) => Transaction.fromMap(e, attachments)).toList();
 
     var dbExpenses = await database.query('expenses');
     var expenses = dbExpenses.map((e) => Expense.fromMap(e, _transactions, importedWalletDbExpenses)).toList();
@@ -250,7 +233,6 @@ class TransactionService with ChangeNotifier {
     TransactionType? type,
     List<Attachment>? attachments,
     List<Expense>? expenses,
-    BankSyncInfo? bankInfo,
   }) async {
     final previousDateTime = target.dateTime;
 
@@ -264,17 +246,6 @@ class TransactionService with ChangeNotifier {
     if (expenses != null) {
       await _upsertExpenses(expenses, target.expenses);
       target.expenses = expenses;
-    }
-
-    if (bankInfo != null) {
-      target.bankInfo = bankInfo;
-      bankInfo.dbTransactionId = target.id;
-
-      if (bankInfo.id == null) {
-        bankInfo.id = await database.insert('bankSyncInfo', bankInfo.toMap());
-      } else {
-        await database.update('bankSyncInfo', bankInfo.toMap(), where: 'id = ?', whereArgs: [bankInfo.id]);
-      }
     }
 
     target.account = account ?? target.account;

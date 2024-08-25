@@ -1,8 +1,6 @@
-import 'package:collection/collection.dart';
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/transaction/models/attachment.dart';
-import 'package:finances/transaction/models/bank_sync_info.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
@@ -14,7 +12,6 @@ class Transaction {
   TransactionType type;
   List<Attachment> attachments = [];
   List<Expense> expenses = [];
-  BankSyncInfo? bankInfo;
 
   Transaction({
     this.id,
@@ -23,7 +20,6 @@ class Transaction {
     required this.type,
     List<Attachment>? attachments,
     List<Expense>? expenses,
-    this.bankInfo,
   }) {
     if (attachments != null) {
       this.attachments = attachments;
@@ -36,7 +32,6 @@ class Transaction {
   factory Transaction.fromMap(
     Map<String, Object?> map,
     List<Attachment> attachments,
-    List<BankSyncInfo> bankInfos,
   ) {
     var id = map['id'] as int;
 
@@ -46,7 +41,6 @@ class Transaction {
       dateTime: DateTime.fromMillisecondsSinceEpoch(map['dateTimeMs'] as int),
       type: TransactionType.values[map['type'] as int],
       attachments: attachments.where((x) => x.transactionId == id).toList(),
-      bankInfo: bankInfos.firstWhereOrNull((x) => x.dbTransactionId == id),
     );
   }
 

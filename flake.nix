@@ -52,14 +52,6 @@
           androidStudioPackages.stable
         ];
 
-        nativeBuildInputs = [
-          pkg-config
-        ];
-
-        buildInputs = [
-          libsecret
-        ];
-
         FLUTTER_SDK = unstable-pkgs.flutter;
 
         shellHook = ''

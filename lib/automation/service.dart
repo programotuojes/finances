@@ -65,10 +65,6 @@ class AutomationService with ChangeNotifier {
         if (_ruleMatches(rule.creditorName, creditorName)) {
           return automation.category;
         }
-
-        if (_ruleMatches(rule.creditorIban, creditorIban)) {
-          return automation.category;
-        }
       }
     }
 

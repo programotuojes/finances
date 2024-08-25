@@ -13,8 +13,8 @@ class ImporterListPage extends StatelessWidget {
       body: ListView(
         children: [
           ListTile(
-            title: const Text('From Wallet (database files)'),
-            subtitle: const Text('By BudgetBakers'),
+            title: const Text('From Wallet by BudgetBakers'),
+            subtitle: const Text('Database files'),
             onTap: () {
               Navigator.push(
                 context,
