@@ -1,5 +1,6 @@
 import 'package:finances/account/service.dart';
 import 'package:finances/components/amount_text_field.dart';
+import 'package:finances/importers/pages/importer_list_page.dart';
 import 'package:finances/pages/home_page.dart';
 import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
@@ -32,12 +33,10 @@ class _FirstRunPageState extends State<FirstRunPage> {
       return;
     }
 
-    await AccountService.instance.update(
-      AccountService.instance.accounts.first,
+    await AccountService.instance.add(
       name: _nameCtrl.text,
       initialMoney: _amountCtrl.text.toMoney()!,
     );
-    AccountService.instance.needsInput = false;
 
     if (context.mounted) {
       await Navigator.of(context).push(
@@ -55,7 +54,7 @@ class _FirstRunPageState extends State<FirstRunPage> {
             width: 400,
             child: Card.outlined(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(24),
                 child: Form(
                   key: _formKey,
                   autovalidateMode: _autoValidateMode,
@@ -95,6 +94,19 @@ class _FirstRunPageState extends State<FirstRunPage> {
                         onPressed: () => _sumbitForm(context),
                         icon: const Icon(Icons.save),
                         label: const Text('Save'),
+                      ),
+                      const SizedBox(height: 8),
+                      const Divider(),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ImporterListPage()),
+                          );
+                        },
+                        icon: const Icon(Icons.file_download_outlined),
+                        label: const Text('Import'),
                       ),
                     ],
                   ),

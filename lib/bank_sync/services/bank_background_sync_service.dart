@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/category/models/category.dart';
@@ -11,7 +12,7 @@ class BankBackgroundSyncService {
 
   late bool _enabled;
   late TimeOfDay _time;
-  late Account _account;
+  Account? _account;
   late CategoryModel _defaultCategory;
   late bool _remittanceInfoAsDescription;
 
@@ -19,7 +20,7 @@ class BankBackgroundSyncService {
 
   bool get enabled => _enabled;
   TimeOfDay get time => _time;
-  Account get account => _account;
+  Account? get account => _account;
   CategoryModel get defaultCategory => _defaultCategory;
   bool get remittanceInfoAsDescription => _remittanceInfoAsDescription;
 
@@ -34,10 +35,7 @@ class BankBackgroundSyncService {
     _time = TimeOfDay(hour: hour, minute: minute);
 
     var accountId = storage.getInt(_Keys.accountId);
-    _account = AccountService.instance.accounts.firstWhere(
-      (element) => element.id == accountId,
-      orElse: () => AccountService.instance.lastSelection,
-    );
+    _account = AccountService.instance.accounts.firstWhereOrNull((element) => element.id == accountId);
 
     var categoryId = storage.getInt(_Keys.categoryId);
     if (categoryId != null) {

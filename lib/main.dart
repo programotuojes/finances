@@ -49,6 +49,11 @@ void backgroundMain() {
     logger.i('Initialized services');
 
     var account = BankBackgroundSyncService.instance.account;
+    if (account == null) {
+      logger.w('Background service was ran without a configured account');
+      return true;
+    }
+
     var remittanceInfoAsDescription = BankBackgroundSyncService.instance.remittanceInfoAsDescription;
     var defaultCategory = BankBackgroundSyncService.instance.defaultCategory;
 

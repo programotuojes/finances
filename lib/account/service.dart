@@ -1,7 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:finances/account/models/account.dart';
 import 'package:finances/utils/db.dart';
-import 'package:finances/utils/money.dart';
 import 'package:flutter/foundation.dart';
 import 'package:money2/money2.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,7 +12,6 @@ class AccountService with ChangeNotifier {
   late Account _lastSelection;
 
   Account? _selected;
-  bool needsInput = false;
   AccountService._ctor();
 
   Iterable<Account> get accounts => _accounts;
@@ -53,25 +51,12 @@ class AccountService with ChangeNotifier {
     var dbAccounts = await database.query('accounts');
     _accounts = dbAccounts.map((e) => Account.fromTable(e)).toList();
 
-    if (_accounts.isEmpty) {
-      var account = Account(name: '', initialMoney: zeroEur);
-      account.id = await database.insert('accounts', account.toMap());
-      _accounts.add(account);
-    }
-
-    if (_accounts.first.name == '') {
-      needsInput = true;
-    }
-
     _storage = await SharedPreferences.getInstance();
     var lastSelectionId = _storage.getInt('lastSelectionId');
     var lastSelection = accounts.firstWhereOrNull((element) => element.id == lastSelectionId);
 
     if (lastSelection != null) {
       _lastSelection = lastSelection;
-    } else {
-      _lastSelection = accounts.first;
-      await _storage.setInt('lastSelectionId', _lastSelection.id!);
     }
 
     notifyListeners();

@@ -133,7 +133,7 @@ class _SettingsPageState extends State<SettingsPage> {
             enabled: _options.enabled,
             leading: const Icon(Icons.account_balance_rounded),
             title: const Text('Account'),
-            subtitle: Text(_options.account.name),
+            subtitle: Text(_options.account?.name ?? 'Not selected'),
           ),
           ListTile(
             onTap: () async {

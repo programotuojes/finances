@@ -91,6 +91,10 @@ sealed class AppPaths {
 
     await _initializeServices();
 
+    notifyListeners();
+  }
+
+  static void notifyListeners() {
     _listenable.value = !_listenable.value;
   }
 }

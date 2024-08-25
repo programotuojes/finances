@@ -12,6 +12,7 @@ import 'package:finances/transaction/models/temp_combined.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/models/transfer.dart';
 import 'package:finances/transaction/service.dart';
+import 'package:finances/utils/app_paths.dart';
 import 'package:finances/utils/db.dart';
 import 'package:finances/utils/transaction_theme.dart';
 import 'package:flutter/material.dart';
@@ -230,7 +231,7 @@ class WalletDbFinalPage extends StatelessWidget {
             Navigator.of(context).pop(); // Select databases
             Navigator.of(context).pop(); // Imports
             Navigator.of(context).pop(); // Sidebar
-            Navigator.of(context).pop(); // Home
+            AppPaths.notifyListeners(); // In case imported on first launch
           }
         },
         child: const Icon(Icons.save),

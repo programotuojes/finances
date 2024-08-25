@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    if (AccountService.instance.needsInput) {
+    if (AccountService.instance.accounts.isEmpty) {
       return const FirstRunPage();
     }
 
