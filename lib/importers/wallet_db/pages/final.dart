@@ -32,20 +32,18 @@ class WalletDbFinalPage extends StatelessWidget {
     required this.rules,
   });
 
-  Iterable<TempCombined> _calculate() sync* {
+  Iterable<TempCombined> _getImportedDataForPreview() sync* {
     final Map<DateTime, Transaction> transactionCache = {};
 
     for (final record in records) {
-      assert(accountMap[record.accountId] != null);
-
-      final money = Money.fromNumWithCurrency(record.amountReal, CommonCurrencies().euro);
+      final money = Money.fromNumWithCurrency(record.amountReal.abs(), CommonCurrencies().euro);
       final dateTime = DateTime.fromMillisecondsSinceEpoch(record.recordDate);
 
       if (record.transfer) {
         final fromAccount = accountMap[record.accountId];
         final toAccount = accountMap[record.transferAccountId];
 
-        if (money.isNegative && fromAccount != null && toAccount != null) {
+        if (record.amountReal > 0 && fromAccount != null && toAccount != null) {
           // For a to b transfers, skip the b to a record
           continue;
         }
@@ -96,6 +94,69 @@ class WalletDbFinalPage extends StatelessWidget {
     }
   }
 
+  Iterable<TempCombined> _getImportedData() sync* {
+    final Map<DateTime, Transaction> transactionCache = {};
+
+    for (final record in records) {
+      final money = Money.fromNumWithCurrency(record.amountReal.abs(), CommonCurrencies().euro);
+      final dateTime = DateTime.fromMillisecondsSinceEpoch(record.recordDate);
+
+      if (record.transfer) {
+        final fromAccount = accountMap[record.accountId];
+        final toAccount = accountMap[record.transferAccountId];
+
+        if (record.amountReal > 0 && fromAccount != null && toAccount != null) {
+          // For a to b transfers, skip the b to a record
+          continue;
+        }
+
+        final transfer = Transfer(
+          money: money,
+          description: record.note,
+          from: fromAccount,
+          to: toAccount,
+          dateTime: dateTime,
+          importedWalletDbTransfer: ImportedWalletDbTransfer(
+            recordId: record.id,
+            accountId: record.accountId,
+            categoryId: record.categoryId,
+            transferId: record.transferId!,
+            transferAccountId: record.transferAccountId,
+          ),
+        );
+        yield TempCombined.fromTransfer(transfer);
+        continue;
+      }
+
+      var transaction = transactionCache[dateTime];
+      if (transaction == null) {
+        transaction = Transaction(
+          account: accountMap[record.accountId]!,
+          dateTime: dateTime,
+          type: record.amountReal < 0 ? TransactionType.expense : TransactionType.income,
+        );
+        transactionCache[dateTime] = transaction;
+      }
+
+      final rule = rules.firstWhereOrNull((rule) => rule.regex.hasMatch(record.note));
+
+      final expense = Expense(
+        transaction: transaction,
+        money: money,
+        category: rule?.category ?? categoryMap[record.categoryId] ?? CategoryService.instance.otherCategory,
+        description: record.note,
+        importedWalletDbExpense: ImportedWalletDbExpense(
+          recordId: record.id,
+          accountId: record.accountId,
+          categoryId: record.categoryId,
+        ),
+      );
+      transaction.expenses.add(expense);
+    }
+
+    yield* transactionCache.values.map((e) => TempCombined.fromTransaction(e));
+  }
+
   @override
   Widget build(BuildContext context) {
     // TODO clean up
@@ -120,7 +181,7 @@ class WalletDbFinalPage extends StatelessWidget {
       };
     }
 
-    final mapped = _calculate().toList();
+    final mapped = _getImportedDataForPreview().toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -221,8 +282,9 @@ class WalletDbFinalPage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         tooltip: 'Import',
         onPressed: () async {
-          await _importTransactions();
-          await _importTransfers();
+          final importedData = _getImportedData().toList();
+          await _importTransactions(importedData);
+          await _importTransfers(importedData);
 
           if (context.mounted) {
             Navigator.of(context).pop(); // Description rules
@@ -239,8 +301,8 @@ class WalletDbFinalPage extends StatelessWidget {
     );
   }
 
-  Future<void> _importTransactions() async {
-    final newTransactions = _calculate().where((x) => x.transaction != null).map((x) => x.transaction!);
+  Future<void> _importTransactions(List<TempCombined> importedData) async {
+    final newTransactions = importedData.where((x) => x.transaction != null).map((x) => x.transaction!);
     final toBeInserted = <Transaction>[];
     final batch = database.batch();
 
@@ -271,8 +333,8 @@ class WalletDbFinalPage extends StatelessWidget {
     await TransactionService.instance.addBulk(toBeInserted);
   }
 
-  Future<void> _importTransfers() async {
-    final newTransfers = _calculate().where((x) => x.transfer != null).map((x) => x.transfer!);
+  Future<void> _importTransfers(List<TempCombined> importedData) async {
+    final newTransfers = importedData.where((x) => x.transfer != null).map((x) => x.transfer!);
     final toBeInserted = <Transfer>[];
     final batch = database.batch();
 

@@ -16,13 +16,21 @@ final _transferCategory = CategoryModel(
 );
 
 class TempCombined {
+  Transaction? _transaction;
   Expense? expense;
   Transfer? transfer;
 
   TempCombined({
     this.expense,
     this.transfer,
-  });
+    Transaction? transaction,
+  }) : _transaction = transaction;
+
+  factory TempCombined.fromTransaction(Transaction transaction) {
+    return TempCombined(
+      transaction: transaction,
+    );
+  }
 
   factory TempCombined.fromExpense(Expense expense) {
     return TempCombined(
@@ -108,7 +116,7 @@ class TempCombined {
     };
   }
 
-  Transaction? get transaction => expense?.transaction;
+  Transaction? get transaction => _transaction ?? expense?.transaction;
 
   TransactionType get type {
     if (transfer != null) {
