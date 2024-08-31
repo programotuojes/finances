@@ -50,6 +50,7 @@ Future<void> _preventMlKitPhoningHome() async {
   if (Platform.isAndroid) {
     final appDir = await getApplicationDocumentsDirectory();
     final file = File('${appDir.parent.path}/databases/com.google.android.datatransport.events');
+    await file.create(recursive: true);
     await file.writeAsString('No');
   }
 }
