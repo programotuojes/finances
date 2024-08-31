@@ -32,8 +32,8 @@ class WalletDbFinalPage extends StatelessWidget {
     required this.rules,
   });
 
-  Iterable<TempCombined> _getImportedDataForPreview() sync* {
-    final Map<DateTime, Transaction> transactionCache = {};
+  Iterable<TempCombined> _convertWalletToNative() sync* {
+    final transactionCache = <DateTime, Transaction>{};
 
     for (final record in records) {
       final money = Money.fromNumWithCurrency(record.amountReal.abs(), CommonCurrencies().euro);
@@ -94,69 +94,6 @@ class WalletDbFinalPage extends StatelessWidget {
     }
   }
 
-  Iterable<TempCombined> _getImportedData() sync* {
-    final Map<DateTime, Transaction> transactionCache = {};
-
-    for (final record in records) {
-      final money = Money.fromNumWithCurrency(record.amountReal.abs(), CommonCurrencies().euro);
-      final dateTime = DateTime.fromMillisecondsSinceEpoch(record.recordDate);
-
-      if (record.transfer) {
-        final fromAccount = accountMap[record.accountId];
-        final toAccount = accountMap[record.transferAccountId];
-
-        if (record.amountReal > 0 && fromAccount != null && toAccount != null) {
-          // For a to b transfers, skip the b to a record
-          continue;
-        }
-
-        final transfer = Transfer(
-          money: money,
-          description: record.note,
-          from: fromAccount,
-          to: toAccount,
-          dateTime: dateTime,
-          importedWalletDbTransfer: ImportedWalletDbTransfer(
-            recordId: record.id,
-            accountId: record.accountId,
-            categoryId: record.categoryId,
-            transferId: record.transferId!,
-            transferAccountId: record.transferAccountId,
-          ),
-        );
-        yield TempCombined.fromTransfer(transfer);
-        continue;
-      }
-
-      var transaction = transactionCache[dateTime];
-      if (transaction == null) {
-        transaction = Transaction(
-          account: accountMap[record.accountId]!,
-          dateTime: dateTime,
-          type: record.amountReal < 0 ? TransactionType.expense : TransactionType.income,
-        );
-        transactionCache[dateTime] = transaction;
-      }
-
-      final rule = rules.firstWhereOrNull((rule) => rule.regex.hasMatch(record.note));
-
-      final expense = Expense(
-        transaction: transaction,
-        money: money,
-        category: rule?.category ?? categoryMap[record.categoryId] ?? CategoryService.instance.otherCategory,
-        description: record.note,
-        importedWalletDbExpense: ImportedWalletDbExpense(
-          recordId: record.id,
-          accountId: record.accountId,
-          categoryId: record.categoryId,
-        ),
-      );
-      transaction.expenses.add(expense);
-    }
-
-    yield* transactionCache.values.map((e) => TempCombined.fromTransaction(e));
-  }
-
   @override
   Widget build(BuildContext context) {
     // TODO clean up
@@ -181,28 +118,28 @@ class WalletDbFinalPage extends StatelessWidget {
       };
     }
 
-    final mapped = _getImportedDataForPreview().toList();
+    final convertedData = _convertWalletToNative().toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Preview results'),
       ),
       body: ListView.builder(
-        itemCount: mapped.length,
+        itemCount: convertedData.length,
         prototypeItem: ListTile(
           isThreeLine: true,
-          title: Text(mapped.first.category.name),
+          title: Text(convertedData.first.category.name),
           leading: CategoryIcon(
-            icon: mapped.first.category.icon,
-            color: mapped.first.category.color,
+            icon: convertedData.first.category.icon,
+            color: convertedData.first.category.color,
           ),
           subtitle: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(mapped.first.dateTime.toString().substring(0, 16)),
+              Text(convertedData.first.dateTime.toString().substring(0, 16)),
               Text(
-                mapped.first.description ?? '',
+                convertedData.first.description ?? '',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -214,26 +151,26 @@ class WalletDbFinalPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text.rich(
-                style: textStyle(mapped.first.type),
+                style: textStyle(convertedData.first.type),
                 TextSpan(
                   children: [
                     WidgetSpan(
                       child: Icon(
-                        amountSymbol(mapped.first.type),
-                        color: textStyle(mapped.first.type)?.color,
+                        amountSymbol(convertedData.first.type),
+                        color: textStyle(convertedData.first.type)?.color,
                       ),
                       alignment: PlaceholderAlignment.middle,
                     ),
-                    TextSpan(text: mapped.first.money.toString()),
+                    TextSpan(text: convertedData.first.money.toString()),
                   ],
                 ),
               ),
-              Text(mapped.first.accountName),
+              Text(convertedData.first.accountName),
             ],
           ),
         ),
         itemBuilder: (context, index) {
-          final x = mapped[index];
+          final x = convertedData[index];
           return ListTile(
             isThreeLine: true,
             title: Text(x.category.name),
@@ -282,17 +219,39 @@ class WalletDbFinalPage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         tooltip: 'Import',
         onPressed: () async {
-          final importedData = _getImportedData().toList();
-          await _importTransactions(importedData);
-          await _importTransfers(importedData);
+          // Dismissed by popping after import finishes
+          // ignore: unawaited_futures
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const PopScope(
+              canPop: false,
+              child: Dialog(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(width: 24),
+                      Text('Importing...'),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+
+          await _import(convertedData);
 
           if (context.mounted) {
-            Navigator.of(context).pop(); // Description rules
-            Navigator.of(context).pop(); // Map categories
-            Navigator.of(context).pop(); // Map accounts
-            Navigator.of(context).pop(); // Select databases
-            Navigator.of(context).pop(); // Imports
-            Navigator.of(context).pop(); // Sidebar
+            Navigator.of(context).pop(); // Hides the "Importing..." dialog
+            Navigator.of(context).pop(); // Opens description rules
+            Navigator.of(context).pop(); // Opens map categories
+            Navigator.of(context).pop(); // Opens map accounts
+            Navigator.of(context).pop(); // Opens select databases
+            Navigator.of(context).pop(); // Opens imports
+            Navigator.of(context).pop(); // Opens sidebar / home screen if first launch
             AppPaths.notifyListeners(); // In case imported on first launch
           }
         },
@@ -301,58 +260,69 @@ class WalletDbFinalPage extends StatelessWidget {
     );
   }
 
-  Future<void> _importTransactions(List<TempCombined> importedData) async {
-    final newTransactions = importedData.where((x) => x.transaction != null).map((x) => x.transaction!);
-    final toBeInserted = <Transaction>[];
-    final batch = database.batch();
+  Future<void> _import(List<TempCombined> convertedData) async {
+    final existingTransfers = TransactionService.instance.transfers;
+    final existingExpenses = TransactionService.instance.expenses;
 
-    for (final newTransaction in newTransactions) {
-      final newExpenses = newTransaction.expenses.toList();
+    final importedTransfers = {
+      for (final transfer in existingTransfers.where((e) => e.importedWalletDbTransfer != null))
+        transfer.importedWalletDbTransfer!.recordId: transfer,
+    };
+    final importedExpenses = {
+      for (final expense in existingExpenses.where((e) => e.importedWalletDbExpense != null))
+        expense.importedWalletDbExpense!.recordId: expense
+    };
 
-      for (final newExpense in newTransaction.expenses) {
-        final existingExpense = TransactionService.instance.expenses.firstWhereOrNull(
-            (existing) => existing.importedWalletDbExpense?.recordId == newExpense.importedWalletDbExpense?.recordId);
+    final batchUpdate = database.batch();
+    final newTransfers = <Transfer>[];
+    final newTransactions = <Transaction>{};
 
-        if (existingExpense != null) {
-          final transaction = existingExpense.transaction;
-          transaction.account = newExpense.transaction.account;
-          batch.update('transactions', transaction.toMap(), where: 'id = ?', whereArgs: [transaction.id]);
+    for (final data in convertedData) {
+      if (data.transfer != null) {
+        final transfer = data.transfer!;
+        final existingTransfer = importedTransfers[transfer.importedWalletDbTransfer?.recordId];
 
-          existingExpense.category = newExpense.category;
-          batch.update('expenses', existingExpense.toMap(), where: 'id = ?', whereArgs: [existingExpense.id]);
-          newExpenses.remove(newExpense);
+        if (existingTransfer == null) {
+          newTransfers.add(transfer);
+          continue;
         }
-      }
 
-      if (newExpenses.isNotEmpty) {
-        toBeInserted.add(newTransaction);
-      }
-    }
-
-    await batch.commit(noResult: true);
-    await TransactionService.instance.addBulk(toBeInserted);
-  }
-
-  Future<void> _importTransfers(List<TempCombined> importedData) async {
-    final newTransfers = importedData.where((x) => x.transfer != null).map((x) => x.transfer!);
-    final toBeInserted = <Transfer>[];
-    final batch = database.batch();
-
-    for (final newTransfer in newTransfers) {
-      final existingTransfer = TransactionService.instance.transfers.firstWhereOrNull(
-          (existing) => existing.importedWalletDbTransfer?.recordId == newTransfer.importedWalletDbTransfer?.recordId);
-
-      if (existingTransfer != null) {
-        existingTransfer.from = newTransfer.from;
-        existingTransfer.to = newTransfer.to;
-        batch.update('transfers', existingTransfer.toMap(), where: 'id = ?', whereArgs: [existingTransfer.id]);
+        existingTransfer.from = transfer.from;
+        existingTransfer.to = transfer.to;
+        existingTransfer.description = transfer.description;
+        existingTransfer.dateTime = transfer.dateTime;
+        existingTransfer.money = transfer.money;
+        batchUpdate.update('transfers', existingTransfer.toMap(), where: 'id = ?', whereArgs: [existingTransfer.id]);
         continue;
       }
 
-      toBeInserted.add(newTransfer);
+      if (data.expense != null) {
+        final expense = data.expense!;
+        final existingExpense = importedExpenses[expense.importedWalletDbExpense?.recordId];
+
+        if (existingExpense == null) {
+          newTransactions.add(expense.transaction);
+          continue;
+        }
+
+        existingExpense.transaction.account = expense.transaction.account;
+        batchUpdate.update(
+          'transactions',
+          {'accountId': expense.transaction.account.id},
+          where: 'id = ?',
+          whereArgs: [existingExpense.transaction.id],
+        );
+
+        existingExpense.category = expense.category;
+        existingExpense.description = expense.description;
+        existingExpense.money = expense.money;
+        batchUpdate.update('expenses', existingExpense.toMap(), where: 'id = ?', whereArgs: [existingExpense.id]);
+        continue;
+      }
     }
 
-    await batch.commit(noResult: true);
-    await TransactionService.instance.addBulkTransfers(toBeInserted);
+    await batchUpdate.commit(noResult: true);
+    await TransactionService.instance.addBulk(newTransactions);
+    await TransactionService.instance.addBulkTransfers(newTransfers);
   }
 }

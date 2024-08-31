@@ -72,7 +72,7 @@ class TransactionService with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addBulk(List<Transaction> transactions) async {
+  Future<void> addBulk(Iterable<Transaction> transactions) async {
     var batch1 = database.batch();
 
     for (var transaction in transactions) {
@@ -81,9 +81,9 @@ class TransactionService with ChangeNotifier {
     }
 
     var ids = await batch1.commit();
-
-    for (var i = 0; i < transactions.length; i++) {
-      transactions[i].id = ids[i] as int;
+    var idIndex = 0;
+    for (final transaction in transactions) {
+      transaction.id = ids[idIndex++] as int;
     }
 
     var childrenBatch = database.batch();
@@ -101,7 +101,7 @@ class TransactionService with ChangeNotifier {
     }
 
     ids = await childrenBatch.commit();
-    var idIndex = 0;
+    idIndex = 0;
     final batchImportedWallet = database.batch();
 
     for (var transaction in transactions) {
