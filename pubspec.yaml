@@ -29,6 +29,8 @@ dependencies:
   sqflite: ^2.3.3+1
   sqflite_common_ffi: ^2.3.3
   permission_handler: ^11.3.1
+  flutter_expandable_fab:
+    git: https://github.com/programotuojes/flutter_expandable_fab
 
 dev_dependencies:
   flutter_test:

@@ -134,7 +134,6 @@ class TransactionEditPageState extends State<TransactionEditPage> with SingleTic
           ),
           const SizedBox(height: 16),
           FloatingActionButton(
-            heroTag: 'add',
             onPressed: () async {
               try {
                 if (_isEditing) {

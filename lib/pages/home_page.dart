@@ -11,7 +11,6 @@ import 'package:finances/components/cards/budget_card.dart';
 import 'package:finances/components/cards/pie_chart_card.dart';
 import 'package:finances/components/cards/recurring_transaction_card.dart';
 import 'package:finances/components/category_icon.dart';
-import 'package:finances/components/home_fab.dart';
 import 'package:finances/importers/pages/importer_list_page.dart';
 import 'package:finances/pages/first_run.dart';
 import 'package:finances/pages/settings.dart';
@@ -27,11 +26,14 @@ import 'package:finances/utils/money.dart';
 import 'package:finances/utils/periodicity.dart';
 import 'package:finances/utils/transaction_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:grouped_list/sliver_grouped_list.dart';
 import 'package:money2/money2.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  final ExpandableFabPos pos = ExpandableFabPos.right;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -39,6 +41,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final _searchCtrl = TextEditingController();
+  final _expandableFabKey = GlobalKey<ExpandableFabState>();
 
   Periodicity? _period;
   _LastPeriod? _lastPeriod = _LastPeriod.days30;
@@ -126,7 +129,83 @@ class _HomePageState extends State<HomePage> {
           )
         ],
       ),
-      floatingActionButton: const HomeFab(),
+      floatingActionButtonLocation: ExpandableFab.location,
+      floatingActionButton: ExpandableFab(
+        key: _expandableFabKey,
+        distance: 56 + 24,
+        type: ExpandableFabType.up,
+        childrenAnimation: ExpandableFabAnimation.none,
+        overlayStyle: ExpandableFabOverlayStyle(
+          color: Theme.of(context).brightness == Brightness.light ? Colors.white70 : Colors.black54,
+        ),
+        openButtonBuilder: FloatingActionButtonBuilder(
+          size: 56,
+          builder: (context, onPressed, animationProgress) {
+            return FloatingActionButton(
+              onPressed: onPressed,
+              child: const Icon(Icons.add),
+            );
+          },
+        ),
+        closeButtonBuilder: FloatingActionButtonBuilder(
+          size: 56,
+          builder: (context, onPressed, animationProgress) {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Card.outlined(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Text('New transaction'),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                FloatingActionButton(
+                  heroTag: null,
+                  onPressed: () {
+                    onPressed?.call();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const TransactionEditPage(),
+                      ),
+                    );
+                  },
+                  child: const Icon(Icons.add),
+                ),
+              ],
+            );
+          },
+        ),
+        children: [
+          Row(
+            children: [
+              const Card.outlined(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Text('New transfer'),
+                ),
+              ),
+              const SizedBox(width: 24),
+              FloatingActionButton.small(
+                materialTapTargetSize: MaterialTapTargetSize.padded,
+                heroTag: null,
+                onPressed: () {
+                  _expandableFabKey.currentState?.toggle();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EditTransferPage(),
+                    ),
+                  );
+                },
+                child: const Icon(Icons.swap_horiz),
+              ),
+              const SizedBox(width: 4),
+            ],
+          ),
+        ],
+      ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
