@@ -6,7 +6,7 @@ class AmountTextField extends StatelessWidget {
   final TextEditingController controller;
   final String labelText;
   final Widget? suffixIcon;
-  final Function(String)? onFieldSubmitted;
+  final void Function(String)? onFieldSubmitted;
 
   const AmountTextField({
     super.key,

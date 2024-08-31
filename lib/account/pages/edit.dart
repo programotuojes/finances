@@ -58,10 +58,14 @@ class _AccountEditPageState extends State<AccountEditPage> {
                   }
                   return null;
                 },
+                textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 32),
               AmountTextField(
                 controller: _initialAmountCtrl,
+                onFieldSubmitted: (value) {
+                  _submit();
+                },
                 labelText: 'Initial amount',
                 suffixIcon: Visibility(
                   visible: widget.account != null,
@@ -83,37 +87,41 @@ class _AccountEditPageState extends State<AccountEditPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          if (!_formKey.currentState!.validate()) {
-            setState(() {
-              _autovalidateMode = AutovalidateMode.onUserInteraction;
-            });
-
-            return;
-          }
-
-          Account? createdAccount;
-
-          if (_editing) {
-            await AccountService.instance.update(
-              widget.account!,
-              name: _nameCtrl.text,
-              initialMoney: _initialAmountCtrl.text.toMoney()!,
-            );
-          } else {
-            createdAccount = await AccountService.instance.add(
-              name: _nameCtrl.text,
-              initialMoney: _initialAmountCtrl.text.toMoney()!,
-            );
-          }
-
-          if (context.mounted) {
-            Navigator.of(context).pop(createdAccount);
-          }
+        onPressed: () {
+          _submit();
         },
         child: const Icon(Icons.save),
       ),
     );
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) {
+      setState(() {
+        _autovalidateMode = AutovalidateMode.onUserInteraction;
+      });
+
+      return;
+    }
+
+    Account? createdAccount;
+
+    if (_editing) {
+      await AccountService.instance.update(
+        widget.account!,
+        name: _nameCtrl.text,
+        initialMoney: _initialAmountCtrl.text.toMoney()!,
+      );
+    } else {
+      createdAccount = await AccountService.instance.add(
+        name: _nameCtrl.text,
+        initialMoney: _initialAmountCtrl.text.toMoney()!,
+      );
+    }
+
+    if (mounted) {
+      Navigator.of(context).pop(createdAccount);
+    }
   }
 
   Future<void> _recalculate() async {
