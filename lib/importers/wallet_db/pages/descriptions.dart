@@ -16,6 +16,7 @@ class WalletDbDescriptionsPage extends StatefulWidget {
   final List<wallet_db.Category> walletCategories;
   final Map<String, Account> accountMap;
   final Map<String, CategoryModel> categoryMap;
+  final Map<String, CategoryModel> manualOverrides;
 
   const WalletDbDescriptionsPage({
     super.key,
@@ -24,6 +25,7 @@ class WalletDbDescriptionsPage extends StatefulWidget {
     required this.walletCategories,
     required this.accountMap,
     required this.categoryMap,
+    required this.manualOverrides,
   });
 
   @override
@@ -54,6 +56,7 @@ class _WalletDbDescriptionsPageState extends State<WalletDbDescriptionsPage> {
                 _rules.removeAt(index);
               });
             },
+            manualOverrides: widget.manualOverrides,
           );
         },
         itemCount: _rules.length,
@@ -102,7 +105,8 @@ class _WalletDbDescriptionsPageState extends State<WalletDbDescriptionsPage> {
                     Text('Create rules to set the category based on the description.'),
                     SizedBox(height: 8),
                     Text(
-                      'These override category mappings from the previous page. '
+                      'These override general category mappings from the previous page, '
+                      'but are below individual record overrides. '
                       'If a record is matched by multiple rules, the top most takes precedence.',
                     ),
                   ],
@@ -138,6 +142,7 @@ class _WalletDbDescriptionsPageState extends State<WalletDbDescriptionsPage> {
                       categoryMap: widget.categoryMap,
                       records: widget.records,
                       rules: _rules,
+                      manualOverrides: widget.manualOverrides,
                     ),
                   ),
                 );
@@ -159,6 +164,7 @@ class _RuleTile extends StatefulWidget {
   final Rule rule;
   final int index;
   final VoidCallback onDelete;
+  final Map<String, CategoryModel> manualOverrides;
 
   const _RuleTile({
     super.key,
@@ -168,6 +174,7 @@ class _RuleTile extends StatefulWidget {
     required this.rule,
     required this.index,
     required this.onDelete,
+    required this.manualOverrides,
   });
 
   @override
@@ -231,6 +238,7 @@ class __RuleTileState extends State<_RuleTile> {
                               accounts: {for (final x in widget.walletAccounts) x.id: x.name},
                               categories: {for (final x in widget.walletCategories) x.id: x.name},
                               records: _filteredRecords,
+                              manualOverrides: widget.manualOverrides,
                             ),
                           ),
                         );

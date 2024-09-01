@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:finances/account/models/account.dart';
 import 'package:finances/category/models/category.dart';
+import 'package:finances/category/pages/list.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/components/category_icon.dart';
 import 'package:finances/importers/wallet_db/models.dart' as wallet_db;
@@ -14,7 +15,6 @@ import 'package:finances/transaction/models/transfer.dart';
 import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/app_paths.dart';
 import 'package:finances/utils/db.dart';
-import 'package:finances/utils/transaction_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:money2/money2.dart';
 
@@ -23,6 +23,7 @@ class WalletDbFinalPage extends StatelessWidget {
   final Map<String, CategoryModel> categoryMap;
   final List<wallet_db.Record> records;
   final List<Rule> rules;
+  final Map<String, CategoryModel> manualOverrides;
 
   const WalletDbFinalPage({
     super.key,
@@ -30,7 +31,77 @@ class WalletDbFinalPage extends StatelessWidget {
     required this.categoryMap,
     required this.records,
     required this.rules,
+    required this.manualOverrides,
   });
+
+  @override
+  Widget build(BuildContext context) {
+    final convertedData = _convertWalletToNative().toList();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Preview results'),
+      ),
+      body: convertedData.isNotEmpty
+          ? ListView.builder(
+              itemCount: convertedData.length,
+              prototypeItem: _ListTile(tempCombined: convertedData.first),
+              itemBuilder: (context, index) => _ListTile(tempCombined: convertedData[index]),
+            )
+          : Center(
+              child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('No records'),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).popUntil(ModalRoute.withName(Navigator.defaultRouteName));
+                  },
+                  icon: const Icon(Icons.arrow_back),
+                  label: const Text('Go home'),
+                ),
+              ],
+            )),
+      floatingActionButton: convertedData.isEmpty
+          ? null
+          : FloatingActionButton.extended(
+              label: const Text('Import'),
+              icon: const Icon(Icons.file_download_outlined),
+              onPressed: () async {
+                // Dismissed by popping after import finishes
+                // ignore: unawaited_futures
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => const PopScope(
+                    canPop: false,
+                    child: Dialog(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(width: 24),
+                            Text('Importing...'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+
+                await _import(convertedData);
+
+                if (context.mounted) {
+                  Navigator.of(context).popUntil(ModalRoute.withName(Navigator.defaultRouteName));
+                  AppPaths.notifyListeners(); // In case imported on first launch
+                }
+              },
+            ),
+    );
+  }
 
   Iterable<TempCombined> _convertWalletToNative() sync* {
     final transactionCache = <DateTime, Transaction>{};
@@ -76,12 +147,15 @@ class WalletDbFinalPage extends StatelessWidget {
         transactionCache[dateTime] = transaction;
       }
 
-      final rule = rules.firstWhereOrNull((rule) => rule.regex.hasMatch(record.note));
+      final category = manualOverrides[record.id] ??
+          rules.firstWhereOrNull((rule) => rule.regex.hasMatch(record.note))?.category ??
+          categoryMap[record.categoryId] ??
+          CategoryService.instance.otherCategory;
 
       final expense = Expense(
         transaction: transaction,
         money: money,
-        category: rule?.category ?? categoryMap[record.categoryId] ?? CategoryService.instance.otherCategory,
+        category: category,
         description: record.note,
         importedWalletDbExpense: ImportedWalletDbExpense(
           recordId: record.id,
@@ -92,172 +166,6 @@ class WalletDbFinalPage extends StatelessWidget {
       transaction.expenses.add(expense);
       yield TempCombined.fromExpense(expense);
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // TODO clean up
-    final theme = TransactionTheme(context);
-    final incomeStyle = theme.createTextStyle(context, TransactionType.income);
-    final expenseStyle = theme.createTextStyle(context, TransactionType.expense);
-    final transferStyle = theme.createTextStyle(context, TransactionType.transfer);
-
-    TextStyle? textStyle(TransactionType type) {
-      return switch (type) {
-        TransactionType.income => incomeStyle,
-        TransactionType.expense => expenseStyle,
-        TransactionType.transfer => transferStyle,
-      };
-    }
-
-    IconData? amountSymbol(TransactionType type) {
-      return switch (type) {
-        TransactionType.income => Icons.arrow_drop_up_rounded,
-        TransactionType.expense => Icons.arrow_drop_down_rounded,
-        TransactionType.transfer => null,
-      };
-    }
-
-    final convertedData = _convertWalletToNative().toList();
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Preview results'),
-      ),
-      body: ListView.builder(
-        itemCount: convertedData.length,
-        prototypeItem: ListTile(
-          isThreeLine: true,
-          title: Text(convertedData.first.category.name),
-          leading: CategoryIcon(
-            icon: convertedData.first.category.icon,
-            color: convertedData.first.category.color,
-          ),
-          subtitle: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(convertedData.first.dateTime.toString().substring(0, 16)),
-              Text(
-                convertedData.first.description ?? '',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-          trailing: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text.rich(
-                style: textStyle(convertedData.first.type),
-                TextSpan(
-                  children: [
-                    WidgetSpan(
-                      child: Icon(
-                        amountSymbol(convertedData.first.type),
-                        color: textStyle(convertedData.first.type)?.color,
-                      ),
-                      alignment: PlaceholderAlignment.middle,
-                    ),
-                    TextSpan(text: convertedData.first.money.toString()),
-                  ],
-                ),
-              ),
-              Text(convertedData.first.accountName),
-            ],
-          ),
-        ),
-        itemBuilder: (context, index) {
-          final x = convertedData[index];
-          return ListTile(
-            isThreeLine: true,
-            title: Text(x.category.name),
-            leading: CategoryIcon(
-              icon: x.category.icon,
-              color: x.category.color,
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(x.dateTime.toString().substring(0, 16)),
-                Text(
-                  x.description ?? '',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text.rich(
-                  style: textStyle(x.type),
-                  TextSpan(
-                    children: [
-                      WidgetSpan(
-                        child: Icon(
-                          amountSymbol(x.type),
-                          color: textStyle(x.type)?.color,
-                        ),
-                        alignment: PlaceholderAlignment.middle,
-                      ),
-                      TextSpan(text: x.money.toString()),
-                    ],
-                  ),
-                ),
-                Text(x.accountName),
-              ],
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'Import',
-        onPressed: () async {
-          // Dismissed by popping after import finishes
-          // ignore: unawaited_futures
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => const PopScope(
-              canPop: false,
-              child: Dialog(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(width: 24),
-                      Text('Importing...'),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-
-          await _import(convertedData);
-
-          if (context.mounted) {
-            Navigator.of(context).pop(); // Hides the "Importing..." dialog
-            Navigator.of(context).pop(); // Opens description rules
-            Navigator.of(context).pop(); // Opens map categories
-            Navigator.of(context).pop(); // Opens map accounts
-            Navigator.of(context).pop(); // Opens select databases
-            Navigator.of(context).pop(); // Opens imports
-            Navigator.of(context).pop(); // Opens sidebar / home screen if first launch
-            AppPaths.notifyListeners(); // In case imported on first launch
-          }
-        },
-        child: const Icon(Icons.save),
-      ),
-    );
   }
 
   Future<void> _import(List<TempCombined> convertedData) async {
@@ -324,5 +232,91 @@ class WalletDbFinalPage extends StatelessWidget {
     await batchUpdate.commit(noResult: true);
     await TransactionService.instance.addBulk(newTransactions);
     await TransactionService.instance.addBulkTransfers(newTransfers);
+  }
+}
+
+// TODO probably could also use this on the home page
+class _ListTile extends StatefulWidget {
+  final TempCombined tempCombined;
+
+  const _ListTile({
+    required this.tempCombined,
+  });
+
+  @override
+  State<_ListTile> createState() => __ListTileState();
+}
+
+class __ListTileState extends State<_ListTile> {
+  @override
+  Widget build(BuildContext context) {
+    final amountIcon = switch (widget.tempCombined.type) {
+      TransactionType.income => Icons.arrow_drop_up_rounded,
+      TransactionType.expense => Icons.arrow_drop_down_rounded,
+      TransactionType.transfer => null,
+    };
+
+    return ListTile(
+      isThreeLine: true,
+      title: Text(widget.tempCombined.category.name),
+      leading: CategoryIcon(
+        icon: widget.tempCombined.category.icon,
+        color: widget.tempCombined.category.color,
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(widget.tempCombined.dateTime.toString().substring(0, 16)),
+          Text(
+            widget.tempCombined.description ?? '',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+      trailing: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                amountIcon,
+                color: widget.tempCombined.type.color,
+                size: 32,
+              ),
+              Text(
+                widget.tempCombined.money.toString(),
+                style: Theme.of(context).textTheme.bodyLarge?.apply(
+                      color: widget.tempCombined.type.color,
+                    ),
+              ),
+            ],
+          ),
+          Text(widget.tempCombined.accountName),
+        ],
+      ),
+      onTap: widget.tempCombined.transfer == null
+          ? () async {
+              final selectedCategory = await Navigator.push<CategoryModel>(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CategoryListPage(CategoryService.instance.rootCategory),
+                ),
+              );
+
+              if (selectedCategory == null) {
+                return;
+              }
+
+              setState(() {
+                widget.tempCombined.category = selectedCategory;
+              });
+            }
+          : null,
+    );
   }
 }

@@ -29,7 +29,8 @@ class WalletDbCategoryPage extends StatefulWidget {
 }
 
 class _WalletDbCategoryPageState extends State<WalletDbCategoryPage> {
-  final Map<String, CategoryModel> _categoryMap = {};
+  final _categoryMap = <String, CategoryModel>{};
+  final _manualOverrides = <String, CategoryModel>{};
   var _sortBy = _SortBy.totalMoney;
   late final List<_CalculatedCategory> _sortedCategories = widget.walletCategories
       .whereNot((x) => x.name == 'Transfer')
@@ -126,8 +127,8 @@ class _WalletDbCategoryPageState extends State<WalletDbCategoryPage> {
                             builder: (context) => ImportRecordsPage(
                               accounts: {for (final x in widget.walletAccounts) x.id: x.name},
                               categories: {for (final x in widget.walletCategories) x.id: x.name},
-                              records:
-                                  widget.records.where((element) => element.categoryId == walletCategory.id).toList(),
+                              records: widget.records.where((x) => x.categoryId == walletCategory.id).toList(),
+                              manualOverrides: _manualOverrides,
                             ),
                           ),
                         );
@@ -161,6 +162,7 @@ class _WalletDbCategoryPageState extends State<WalletDbCategoryPage> {
                       records: widget.records,
                       accountMap: widget.accountMap,
                       categoryMap: _categoryMap,
+                      manualOverrides: _manualOverrides,
                     ),
                   ),
                 );
