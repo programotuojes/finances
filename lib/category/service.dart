@@ -3,6 +3,7 @@ import 'package:finances/category/models/category.dart';
 import 'package:finances/category/seed.dart';
 import 'package:finances/utils/db.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -25,7 +26,7 @@ class CategoryService with ChangeNotifier {
     CategoryModel parent, {
     required String name,
     required Color color,
-    required IconData icon,
+    required IconPickerIcon icon,
   }) async {
     var child = CategoryModel(
       name: name,
@@ -99,7 +100,7 @@ class CategoryService with ChangeNotifier {
     CategoryModel target, {
     String? newName,
     Color? newColor,
-    IconData? newIcon,
+    IconPickerIcon? newIcon,
   }) async {
     target.name = newName ?? target.name;
     target.color = newColor ?? target.color;

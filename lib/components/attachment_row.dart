@@ -283,7 +283,7 @@ class _ThumbState extends State<Thumb> {
           child: ElevatedButton(
             onPressed: widget.onRemove,
             style: ButtonStyle(
-              shape: MaterialStateProperty.all(
+              shape: WidgetStateProperty.all(
                 const CircleBorder(),
               ),
             ),

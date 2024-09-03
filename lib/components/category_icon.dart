@@ -1,12 +1,13 @@
 import 'package:finances/components/conditional_tooltip.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_iconpicker/Models/configuration.dart';
 import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 
 class CategoryIcon extends StatelessWidget {
   final Color color;
-  final IconData icon;
-  final void Function(Color, IconData)? onChange;
+  final IconPickerIcon icon;
+  final void Function(Color, IconPickerIcon)? onChange;
 
   const CategoryIcon({
     super.key,
@@ -34,7 +35,7 @@ class CategoryIcon extends StatelessWidget {
               height: 40,
               color: color,
               child: Icon(
-                icon,
+                icon.data,
                 color: color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
               ),
             ),
@@ -75,16 +76,27 @@ class CategoryIcon extends StatelessWidget {
         break;
 
       case _DialogOption.icon:
-        var icon = await showIconPicker(
+        if (!context.mounted) {
+          return;
+        }
+
+        final icon = await showIconPicker(
           context,
-          closeChild: const Text('Close'),
-          iconPackModes: [
-            IconPack.allMaterial,
-          ],
+          configuration: const SinglePickerConfiguration(
+            closeChild: Text('Close'),
+            iconPackModes: [
+              IconPack.cupertino,
+              IconPack.fontAwesomeIcons,
+              IconPack.lineAwesomeIcons,
+              IconPack.roundedMaterial,
+            ],
+          ),
         );
+
         if (icon != null) {
           newIcon = icon;
         }
+
         break;
 
       default:

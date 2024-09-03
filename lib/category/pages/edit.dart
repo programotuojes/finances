@@ -3,6 +3,7 @@ import 'package:finances/category/service.dart';
 import 'package:finances/components/category_icon.dart';
 import 'package:finances/components/common_values.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_iconpicker/IconPicker/Packs/MaterialRounded.dart';
 
 class CategoryEditPage extends StatefulWidget {
   final CategoryModel category;
@@ -18,7 +19,7 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
   final _childNameCtrl = TextEditingController();
   var _childNameEmpty = true;
   var _childColor = const Color(0xFFBDBDBD);
-  var _childIcon = Icons.question_mark;
+  var _childIcon = roundedIcons['question_mark_rounded']!;
   final _formKey = GlobalKey<FormState>();
   late var _color = widget.category.color;
   late var _icon = widget.category.icon;

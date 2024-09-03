@@ -39,7 +39,7 @@ class AccountsCard extends StatelessWidget {
           color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
         ),
       ),
-      color: Theme.of(context).colorScheme.surfaceVariant,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: SizedBox(
         height: 60,
         width: 120,

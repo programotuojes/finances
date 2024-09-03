@@ -6,7 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 
-final logger = Logger(printer: PrettyPrinter(colors: false, printTime: true));
+final logger = Logger(
+  printer: PrettyPrinter(
+    colors: false,
+    dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
+  ),
+);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -87,7 +87,7 @@ class _WalletDbDescriptionsPageState extends State<WalletDbDescriptionsPage> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 460),
             child: Card(
-              color: Theme.of(context).colorScheme.surfaceVariant,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               margin: const EdgeInsets.all(16),
               child: const Padding(
                 padding: EdgeInsets.all(16),

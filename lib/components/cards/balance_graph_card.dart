@@ -72,7 +72,7 @@ class BalanceGraphCard extends StatelessWidget {
                   ),
                   lineTouchData: LineTouchData(
                     touchTooltipData: LineTouchTooltipData(
-                      getTooltipColor: (spot) => Theme.of(context).colorScheme.surfaceVariant,
+                      getTooltipColor: (spot) => Theme.of(context).colorScheme.surfaceContainerHighest,
                       getTooltipItems: (spots) => spots.map((spot) {
                         var date = _dateFormatter.format(DateTime.fromMillisecondsSinceEpoch(spot.x.toInt()));
                         return LineTooltipItem(

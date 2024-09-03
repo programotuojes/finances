@@ -252,7 +252,7 @@ class _PieChartCardState extends State<PieChartCard> {
         showTitle: false,
         badgeWidget: showIcon
             ? Icon(
-                category.icon,
+                category.icon.data,
                 color: category.color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
               )
             : null,

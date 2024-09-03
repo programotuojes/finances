@@ -38,7 +38,7 @@ class ImageViewer extends StatelessWidget {
                 child: BackButton(
                   color: Colors.white,
                   style: ButtonStyle(
-                    backgroundColor: MaterialStatePropertyAll(
+                    backgroundColor: WidgetStatePropertyAll(
                       _background,
                     ),
                   ),

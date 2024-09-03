@@ -165,7 +165,7 @@ class _BarChart extends StatelessWidget {
                       Container(
                         decoration: BoxDecoration(
                           color: value < timeValue
-                              ? Theme.of(context).colorScheme.surfaceVariant
+                              ? Theme.of(context).colorScheme.surfaceContainerHighest
                               : Theme.of(context).colorScheme.errorContainer,
                           borderRadius: BorderRadius.circular(4),
                         ),

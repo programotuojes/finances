@@ -6,7 +6,7 @@ class CategoryModel {
   int id;
   String name;
   Color color;
-  IconData icon;
+  IconPickerIcon icon;
   int? parentId;
   CategoryModel? parent;
   final List<CategoryModel> children = [];
@@ -32,14 +32,19 @@ class CategoryModel {
         'pack': map['iconPack'],
         'key': map['iconKey'],
       },
-      iconPack: IconPack.allMaterial,
-    )!;
+    );
+
+    assert(
+      icon != null,
+      'Failed to deserialize icon (${map['iconPack']}, ${map['iconKey']}). '
+      'Perhaps you forgot to run `flutter pub run flutter_iconpicker:generate_packs --packs cupertino,fontAwesome,lineAwesome,roundedMaterial`?',
+    );
 
     return CategoryModel(
       id: map['id'] as int,
       name: map['name'] as String,
       color: Color(map['color'] as int),
-      icon: icon,
+      icon: icon!,
       parentId: map['parentId'] as int?,
       orderIndex: map['orderIndex'] as int,
     );
@@ -70,7 +75,7 @@ class CategoryModel {
   }
 
   Map<String, Object?> toMap({bool setId = true}) {
-    var icon = serializeIcon(this.icon, iconPack: IconPack.allMaterial)!;
+    var icon = serializeIcon(this.icon)!;
 
     return {
       'id': setId ? id : null,

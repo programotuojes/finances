@@ -10,7 +10,7 @@ ThemeData _transactionTheme(
     brightness: Theme.of(context).brightness,
   );
   return Theme.of(context).copyWith(
-    scaffoldBackgroundColor: colorScheme.background,
+    scaffoldBackgroundColor: colorScheme.surface,
     colorScheme: colorScheme,
   );
 }

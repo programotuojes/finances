@@ -426,7 +426,7 @@ class _HomePageState extends State<HomePage> {
                 groupSeparatorBuilder: (format) {
                   var dateGroup = format.display;
                   return Container(
-                    color: Theme.of(context).colorScheme.surfaceVariant,
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 4, 24, 4),
                       child: DefaultTextStyle.merge(
@@ -569,7 +569,7 @@ class _MySearch extends StatelessWidget {
       padding: const EdgeInsets.all(_searchPadding),
       child: SearchBar(
         controller: textController,
-        padding: const MaterialStatePropertyAll(
+        padding: const WidgetStatePropertyAll(
           EdgeInsets.symmetric(horizontal: 16),
         ),
         textInputAction: TextInputAction.search,
