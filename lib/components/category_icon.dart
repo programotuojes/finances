@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iconpicker/Models/configuration.dart';
 import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 
-class CategoryIcon extends StatelessWidget {
+class CategoryIconSquare extends StatelessWidget {
   final Color color;
   final IconPickerIcon icon;
   final void Function(Color, IconPickerIcon)? onChange;
 
-  const CategoryIcon({
+  const CategoryIconSquare({
     super.key,
     required this.color,
     required this.icon,
@@ -34,10 +34,7 @@ class CategoryIcon extends StatelessWidget {
               width: 40,
               height: 40,
               color: color,
-              child: Icon(
-                icon.data,
-                color: color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
-              ),
+              child: CategoryIcon(icon: icon, backgroundColor: color),
             ),
           ),
         ),
@@ -145,4 +142,24 @@ class CategoryIcon extends StatelessWidget {
 enum _DialogOption {
   color,
   icon,
+}
+
+class CategoryIcon extends StatelessWidget {
+  final IconPickerIcon icon;
+  final Color backgroundColor;
+
+  const CategoryIcon({
+    super.key,
+    required this.icon,
+    required this.backgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      icon.data,
+      size: icon.pack == IconPack.fontAwesomeIcons ? 20 : 24,
+      color: backgroundColor.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+    );
+  }
 }

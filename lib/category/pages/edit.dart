@@ -71,7 +71,7 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Row(
                   children: [
-                    CategoryIcon(
+                    CategoryIconSquare(
                       icon: _icon,
                       color: _color,
                       onChange: (newColor, newIcon) {
@@ -119,7 +119,7 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
                 children: [
                   const Divider(),
                   ListTile(
-                    leading: CategoryIcon(
+                    leading: CategoryIconSquare(
                       color: _childColor,
                       icon: _childIcon,
                       onChange: (newColor, newIcon) {
@@ -167,7 +167,7 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
                       }
                     },
                     title: Text(category.name),
-                    leading: CategoryIcon(
+                    leading: CategoryIconSquare(
                       icon: category.icon,
                       color: category.color,
                     ),

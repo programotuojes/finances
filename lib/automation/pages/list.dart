@@ -41,7 +41,7 @@ class AutomationListPage extends StatelessWidget {
             itemBuilder: (context, index) {
               var automation = automations.elementAt(index);
               return ListTile(
-                leading: CategoryIcon(
+                leading: CategoryIconSquare(
                   icon: automation.category.icon,
                   color: automation.category.color,
                 ),

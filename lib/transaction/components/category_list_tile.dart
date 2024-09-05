@@ -46,7 +46,7 @@ class _CategoryListTileState extends State<CategoryListTile> {
         });
       },
       contentPadding: widget.morePadding ? const EdgeInsets.symmetric(horizontal: 24) : null,
-      leading: CategoryIcon(
+      leading: CategoryIconSquare(
         icon: category.icon,
         color: category.color,
       ),

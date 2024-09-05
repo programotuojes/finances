@@ -259,7 +259,7 @@ class __ListTileState extends State<_ListTile> {
     return ListTile(
       isThreeLine: true,
       title: Text(widget.tempCombined.category.name),
-      leading: CategoryIcon(
+      leading: CategoryIconSquare(
         icon: widget.tempCombined.category.icon,
         color: widget.tempCombined.category.color,
       ),

@@ -63,7 +63,7 @@ class _RecurringListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: CategoryIcon(
+      leading: CategoryIconSquare(
         icon: recurringModel.category.icon,
         color: recurringModel.category.color,
       ),

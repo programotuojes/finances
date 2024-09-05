@@ -27,7 +27,7 @@ class CategoryListPage extends StatelessWidget {
             for (var i in category.children)
               ListTile(
                 title: Text(i.name),
-                leading: CategoryIcon(
+                leading: CategoryIconSquare(
                   icon: i.icon,
                   color: i.color,
                 ),

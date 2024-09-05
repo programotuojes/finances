@@ -30,7 +30,7 @@ class RecurringListPage extends StatelessWidget {
               for (var i in recurring)
                 ListTile(
                   title: Text(i.category.name),
-                  leading: CategoryIcon(
+                  leading: CategoryIconSquare(
                     icon: i.category.icon,
                     color: i.category.color,
                   ),

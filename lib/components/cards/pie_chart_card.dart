@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:finances/category/models/category.dart';
 import 'package:finances/category/service.dart';
+import 'package:finances/components/category_icon.dart';
 import 'package:finances/components/home_card.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/service.dart';
@@ -250,12 +251,7 @@ class _PieChartCardState extends State<PieChartCard> {
         color: category.color,
         radius: radius,
         showTitle: false,
-        badgeWidget: showIcon
-            ? Icon(
-                category.icon.data,
-                color: category.color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
-              )
-            : null,
+        badgeWidget: showIcon ? CategoryIcon(icon: category.icon, backgroundColor: category.color) : null,
       );
 
       index++;

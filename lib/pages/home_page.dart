@@ -447,7 +447,7 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (context, x) {
                   return ListTile(
                     title: Text(x.category.name),
-                    leading: CategoryIcon(
+                    leading: CategoryIconSquare(
                       icon: x.category.icon,
                       color: x.category.color,
                     ),

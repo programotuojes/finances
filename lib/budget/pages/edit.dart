@@ -275,7 +275,7 @@ class _CategoryListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: CategoryIcon(
+      leading: CategoryIconSquare(
         icon: budgetCategory.category.icon,
         color: budgetCategory.category.color,
       ),
