@@ -19,10 +19,10 @@ class CategoryModel {
     required this.icon,
     this.parentId,
     this.parent,
-    required this.orderIndex,
+    this.orderIndex = 0,
   }) {
     if (parent != null) {
-      parentId = parent?.id;
+      parentId = parent!.id;
     }
   }
 
@@ -37,7 +37,7 @@ class CategoryModel {
     assert(
       icon != null,
       'Failed to deserialize icon (${map['iconPack']}, ${map['iconKey']}). '
-      'Perhaps you forgot to run `flutter pub run flutter_iconpicker:generate_packs --packs cupertino,fontAwesome,lineAwesome,roundedMaterial`?',
+      'Perhaps you forgot to run `flutter pub run flutter_iconpicker:generate_packs --packs fontAwesomeIcons,material`?',
     );
 
     return CategoryModel(

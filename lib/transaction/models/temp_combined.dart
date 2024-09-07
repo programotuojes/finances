@@ -4,7 +4,7 @@ import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/models/transfer.dart';
 import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_iconpicker/IconPicker/Packs/MaterialRounded.dart';
+import 'package:flutter_iconpicker/IconPicker/Packs/MaterialDefault.dart';
 import 'package:money2/money2.dart';
 
 // TODO remove this file
@@ -12,7 +12,7 @@ import 'package:money2/money2.dart';
 final _transferCategory = CategoryModel(
   name: 'Transfer',
   color: Colors.blue,
-  icon: roundedIcons['swap_horiz_rounded']!,
+  icon: defaultIcons['swap_horiz']!,
   orderIndex: 0,
 );
 

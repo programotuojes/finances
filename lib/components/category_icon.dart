@@ -82,10 +82,8 @@ class CategoryIconSquare extends StatelessWidget {
           configuration: const SinglePickerConfiguration(
             closeChild: Text('Close'),
             iconPackModes: [
-              IconPack.cupertino,
               IconPack.fontAwesomeIcons,
-              IconPack.lineAwesomeIcons,
-              IconPack.roundedMaterial,
+              IconPack.material,
             ],
           ),
         );

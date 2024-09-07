@@ -211,6 +211,7 @@ class _PieChartCardState extends State<PieChartCard> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // TODO handle long title names
         Text(title),
         Text(
           amount,
