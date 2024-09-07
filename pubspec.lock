@@ -315,7 +315,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "87cfec1e305d41648e64ba37b61c932cc4b44e23"
+      resolved-ref: "59756ddc51a624e8868783391222e0e8ad8882d7"
       url: "https://github.com/programotuojes/flutter_expandable_fab"
     source: git
     version: "2.2.0"
@@ -517,10 +517,10 @@ packages:
     dependency: "direct main"
     description:
       name: material_symbols_icons
-      sha256: b72bf7566d024d51627dce81b1b98539830a0e3ffbb5784989aa3e97c8493160
+      sha256: "6a482f4a99546515155d3ed6d66c5d8a13a305bcb080336806f21b8721d8fd33"
       url: "https://pub.dev"
     source: hosted
-    version: "4.2784.0"
+    version: "4.2785.0"
   meta:
     dependency: transitive
     description:

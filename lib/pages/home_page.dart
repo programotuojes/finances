@@ -134,6 +134,7 @@ class _HomePageState extends State<HomePage> {
         key: _expandableFabKey,
         distance: 56 + 24,
         type: ExpandableFabType.up,
+        openCloseStackAlignment: Alignment.centerRight,
         childrenAnimation: ExpandableFabAnimation.none,
         overlayStyle: ExpandableFabOverlayStyle(
           color: Theme.of(context).brightness == Brightness.light ? Colors.white70 : Colors.black54,
