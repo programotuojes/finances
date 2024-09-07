@@ -183,7 +183,7 @@ class _HomePageState extends State<HomePage> {
               const Card.outlined(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: Text('New transfer'),
+                  child: Text('Transfer between accounts'),
                 ),
               ),
               const SizedBox(width: 24),
