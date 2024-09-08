@@ -390,7 +390,7 @@ CategoryModel seedCategories() {
         CategoryModel(
           id: id++,
           name: 'Investments',
-          icon: defaultIcons['trending_up']!,
+          icon: defaultIcons['trending_down']!,
           color: const Color(0xFFEF5350),
         ),
       ]),
@@ -448,6 +448,12 @@ CategoryModel seedCategories() {
           name: 'Received gifts',
           icon: defaultIcons['redeem']!,
           color: const Color(0xFFD2546B),
+        ),
+        CategoryModel(
+          id: id++,
+          name: 'Investments',
+          icon: defaultIcons['trending_up']!,
+          color: const Color(0xFF827717),
         ),
       ]),
     CategoryModel(
