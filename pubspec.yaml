@@ -25,7 +25,7 @@ dependencies:
   fc_native_image_resize: ^0.10.0
   grouped_list: ^6.0.0
   flex_color_picker: ^3.4.1
-  flutter_iconpicker: 3.6.1
+  flutter_iconpicker: 4.0.0
   sqflite: ^2.3.3+1
   sqflite_common_ffi: ^2.3.3
   permission_handler: ^11.3.1

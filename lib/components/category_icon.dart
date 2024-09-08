@@ -81,6 +81,8 @@ class CategoryIconSquare extends StatelessWidget {
           context,
           configuration: const SinglePickerConfiguration(
             closeChild: Text('Close'),
+            iconSize: 35,
+            showTooltips: true,
             iconPackModes: [
               IconPack.fontAwesomeIcons,
               IconPack.material,
