@@ -1,9 +1,7 @@
 import 'package:finances/automation/models/automation.dart';
-import 'package:finances/automation/seed.dart' as seed;
 import 'package:finances/category/models/category.dart';
 import 'package:finances/utils/db.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 final lidlNameVariants = [
   'Lidl',
@@ -78,46 +76,6 @@ class AutomationService with ChangeNotifier {
     var dbAutomations = await database.query('automations');
     _automations = dbAutomations.map((e) => Automation.fromMap(e, rules)).toList();
 
-    var sharedPrefs = await SharedPreferences.getInstance();
-    if (sharedPrefs.getBool('automationsSeeded') != true) {
-      await seedData();
-      await sharedPrefs.setBool('automationsSeeded', true);
-    }
-
-    notifyListeners();
-  }
-
-  Future<void> seedData() async {
-    var automations = seed.seedData().toList();
-
-    var batch = database.batch();
-    for (var automation in automations) {
-      batch.insert('automations', automation.toMap(setId: false));
-    }
-
-    var ids = await batch.commit();
-    var batch2 = database.batch();
-
-    for (var i = 0; i < automations.length; i++) {
-      var id = ids[i] as int;
-      automations[i].id = id;
-
-      for (var rule in automations[i].rules) {
-        rule.automationId = id;
-        batch2.insert('automationRules', rule.toMap());
-      }
-    }
-
-    ids = await batch2.commit();
-    var idIndex = 0;
-
-    for (var automation in automations) {
-      for (var rule in automation.rules) {
-        rule.id = ids[idIndex++] as int;
-      }
-    }
-
-    _automations.addAll(automations);
     notifyListeners();
   }
 
