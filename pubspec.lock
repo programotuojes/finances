@@ -313,12 +313,11 @@ packages:
   flutter_expandable_fab:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "59756ddc51a624e8868783391222e0e8ad8882d7"
-      url: "https://github.com/programotuojes/flutter_expandable_fab"
-    source: git
-    version: "2.2.0"
+      name: flutter_expandable_fab
+      sha256: "85275279d19faf4fbe5639dc1f139b4555b150e079d056f085601a45688af12c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.0"
   flutter_iconpicker:
     dependency: "direct main"
     description:

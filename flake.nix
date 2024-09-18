@@ -51,13 +51,21 @@
 
         FLUTTER_SDK = flutter;
         JAVA_HOME = jdk17.home;
-        LD_LIBRARY_PATH=ld-library-path;
+        LD_LIBRARY_PATH = ld-library-path;
 
         shellHook = ''
+          echo Setting Flutter config...
           ${flutter}/bin/flutter config --disable-analytics --jdk-dir ${jdk17} > /dev/null
+
+          echo Fetching pub.dev dependencies...
+          ${flutter}/bin/flutter pub get > /dev/null
+
+          echo Generating icon packs...
+          ${flutter}/bin/flutter pub run flutter_iconpicker:generate_packs --packs fontAwesomeIcons,material > /dev/null
+
           source <(${flutter}/bin/flutter bash-completion)
 
-          export PS1='\[\e[1;93m\][Finances]\[\e[m\] \$ '
+          export PS1='\n\e[38;5;38m\w\e[0m \e[1;93m(Finances)\e[0m \$ '
 
           # Avoid crashing when opening file picker
           export XDG_DATA_DIRS=${gtk3}/share/gsettings-schemas/${gtk3.name}:$XDG_DATA_DIRS
