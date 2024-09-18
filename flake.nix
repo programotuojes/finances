@@ -54,14 +54,17 @@
         LD_LIBRARY_PATH = ld-library-path;
 
         shellHook = ''
-          echo Setting Flutter config...
+          echo -n 'Setting Flutter config... '
           ${flutter}/bin/flutter config --disable-analytics --jdk-dir ${jdk17} > /dev/null
+          echo ✓
 
-          echo Fetching pub.dev dependencies...
+          echo -n 'Fetching pub.dev dependencies... '
           ${flutter}/bin/flutter pub get > /dev/null
+          echo ✓
 
-          echo Generating icon packs...
+          echo -n 'Generating icon packs... '
           ${flutter}/bin/flutter pub run flutter_iconpicker:generate_packs --packs fontAwesomeIcons,material > /dev/null
+          echo ✓
 
           source <(${flutter}/bin/flutter bash-completion)
 
