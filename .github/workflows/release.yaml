@@ -7,7 +7,7 @@ on:
 
 jobs:
   android:
-    name: Android build
+    name: Android
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -37,7 +37,7 @@ jobs:
 
   # TODO also package Linux builds, perhaps Flatpak?
   linux:
-    name: Linux build
+    name: Linux
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
