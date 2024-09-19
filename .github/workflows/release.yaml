@@ -35,7 +35,8 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          path: build/app/outputs/flutter-apk/*
+          name: android
+          path: build/app/outputs/flutter-apk/
           if-no-files-found: error
 
   # TODO also package Linux builds, perhaps Flatpak?
