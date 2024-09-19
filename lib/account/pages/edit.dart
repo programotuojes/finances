@@ -2,10 +2,13 @@ import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/components/amount_text_field.dart';
 import 'package:finances/components/common_values.dart';
+import 'package:finances/transaction/models/expense.dart';
+import 'package:finances/transaction/models/transfer.dart';
 import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/amount_input_formatter.dart';
 import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
+import 'package:money2/money2.dart';
 
 class AccountEditPage extends StatefulWidget {
   final Account? account;
@@ -179,13 +182,45 @@ class _AccountEditPageState extends State<AccountEditPage> {
     }
 
     var currentMoney = _dialogAmountCtrl.text.toMoney()!;
-    var totalExpenses = TransactionService.instance.expenses
-        .where((expense) => expense.transaction.account == widget.account)
-        .map((expense) => expense.signedMoney)
-        .fold(zeroEur, (acc, x) => acc + x);
+
+    final newInitial = calculateInitialAmount(
+      currentMoney,
+      TransactionService.instance.expenses,
+      TransactionService.instance.transfers,
+      widget.account,
+    );
 
     setState(() {
-      _initialAmountCtrl.text = (currentMoney - totalExpenses).amount.toString();
+      _initialAmountCtrl.text = newInitial.amount.toString();
     });
   }
+}
+
+Money calculateInitialAmount(
+  Money current,
+  Iterable<Expense> expenses,
+  Iterable<Transfer> transfers,
+  Account? account,
+) {
+  var expenseAndIncome = expenses
+      .where((expense) => expense.transaction.account == account)
+      .map((expense) => expense.signedMoney)
+      .fold(zeroEur, (acc, x) => acc + x);
+
+  var totalTransfers = zeroEur;
+  for (final transfer in transfers) {
+    if (transfer.from == account && transfer.to == account) {
+      // Ignored
+      // Could happen in case multiple separate imported accounts were mapped to a single app account
+      continue;
+    }
+
+    if (transfer.from == account) {
+      totalTransfers += transfer.money;
+    } else if (transfer.to == account) {
+      totalTransfers -= transfer.money;
+    }
+  }
+
+  return current - expenseAndIncome + totalTransfers;
 }
