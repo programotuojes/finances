@@ -16,6 +16,9 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@v27
 
+      - name: Run tests
+        run: nix develop -c -- flutter test
+
       - name: Decode Keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
 
@@ -45,6 +48,9 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v27
+
+      - name: Run tests
+        run: nix develop -c -- flutter test
 
       - name: Build
         run: nix build
