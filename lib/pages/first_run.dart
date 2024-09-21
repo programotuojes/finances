@@ -1,7 +1,7 @@
 import 'package:finances/account/service.dart';
 import 'package:finances/components/amount_text_field.dart';
 import 'package:finances/importers/pages/importer_list_page.dart';
-import 'package:finances/pages/home_page.dart';
+import 'package:finances/utils/app_paths.dart';
 import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
 
@@ -38,11 +38,7 @@ class _FirstRunPageState extends State<FirstRunPage> {
       initialMoney: _amountCtrl.text.toMoney()!,
     );
 
-    if (context.mounted) {
-      await Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
-    }
+    AppPaths.notifyListeners();
   }
 
   @override

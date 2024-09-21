@@ -61,9 +61,11 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     AppPaths.listenable.addListener(() {
-      setState(() {
-        // Listening for changes in `main.dart` does not work
-      });
+      if (context.mounted) {
+        setState(() {
+          // Listening for changes in `main.dart` does not work
+        });
+      }
     });
   }
 
