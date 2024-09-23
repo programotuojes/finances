@@ -36,7 +36,7 @@
     {
       packages.${system}.default = flutter.buildFlutterApplication {
         pname = "finances";
-        version = "0.2.0";
+        version = "0.2.1";
         src = ./.;
         autoPubspecLock = ./pubspec.lock;
         extraWrapProgramArgs = "--suffix LD_LIBRARY_PATH : ${ld-library-path}";
