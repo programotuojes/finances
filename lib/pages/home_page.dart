@@ -11,7 +11,7 @@ import 'package:finances/category/service.dart';
 import 'package:finances/components/cards/accounts_card.dart';
 import 'package:finances/components/cards/balance_graph_card.dart';
 import 'package:finances/components/cards/budget_card.dart';
-import 'package:finances/components/cards/pie_chart_card.dart';
+import 'package:finances/components/cards/pie_chart_card/pie_chart_card.dart';
 import 'package:finances/components/cards/recurring_transaction_card.dart';
 import 'package:finances/components/category_icon.dart';
 import 'package:finances/importers/pages/importer_list_page.dart';
