@@ -227,7 +227,7 @@ class _PieChartCardState extends State<PieChartCard> {
   ) sync* {
     var index = 0;
 
-    for (var entry in categoryWithTotals.entries) {
+    for (var entry in categoryWithTotals.entries.sorted((a, b) => b.value.compareTo(a.value))) {
       var category = entry.key;
       var money = entry.value;
 
