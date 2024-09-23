@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:finances/account/pages/list.dart';
@@ -93,6 +94,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _setupQuickActions() {
+    final supportsQuickActions = Platform.isAndroid;
+    if (!supportsQuickActions) {
+      return;
+    }
+
     const newTransaction = 'new_transaction';
     const newTransfer = 'new_transfer';
     const quickActions = QuickActions();
