@@ -21,7 +21,7 @@ class _PieChartCardState extends State<PieChartCard> {
   late final _layers = [
     PieChartLayer(
       dateRangeFilter: widget.dateRange,
-      categories: CategoryService.instance.rootCategory.children,
+      parent: CategoryService.instance.rootCategory,
     )
   ];
   var _clickedIndex = -1;
@@ -42,7 +42,7 @@ class _PieChartCardState extends State<PieChartCard> {
           ..clear()
           ..add(PieChartLayer(
             dateRangeFilter: widget.dateRange,
-            categories: CategoryService.instance.rootCategory.children,
+            parent: CategoryService.instance.rootCategory,
           ));
       });
     });
@@ -101,7 +101,9 @@ class _PieChartCardState extends State<PieChartCard> {
                           PieChartData(
                             pieTouchData: PieTouchData(
                               mouseCursorResolver: (event, response) {
-                                if (response?.touchedSection?.touchedSection != null) {
+                                final index = response?.touchedSection?.touchedSectionIndex ?? -1;
+
+                                if (currentLayer.canClick(index)) {
                                   return SystemMouseCursors.click;
                                 }
 
@@ -111,7 +113,7 @@ class _PieChartCardState extends State<PieChartCard> {
                                 var index = pieTouchResponse?.touchedSection?.touchedSectionIndex ?? -1;
 
                                 setState(() {
-                                  if (event is FlTapUpEvent) {
+                                  if (event is FlTapUpEvent && currentLayer.canClick(index)) {
                                     _clickedIndex = index;
                                   }
 
@@ -175,6 +177,13 @@ class _PieChartCardState extends State<PieChartCard> {
                 child: OutlinedButton(
                   onPressed: () {
                     setState(() {
+                      if (_clickedIndex == -1) {
+                        // Sometimes the _clickedIndex is -1 here
+                        // Perhaps a race condition?
+                        // Simplest solution - ignore it and just make the user click again
+                        return;
+                      }
+
                       _layers.add(currentLayer.createNewLayer(_clickedIndex));
                       _clickedIndex = -1;
                     });
