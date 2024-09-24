@@ -55,8 +55,10 @@ class _PieChartCardState extends State<PieChartCard> {
 
     return GestureDetector(
       onTap: () {
-        _clickedIndex = -1;
-        _hoveredIndex = -1;
+        setState(() {
+          _clickedIndex = -1;
+          _hoveredIndex = -1;
+        });
       },
       child: HomeCard(
         title: 'Expenses by category',
@@ -113,7 +115,7 @@ class _PieChartCardState extends State<PieChartCard> {
                                 var index = pieTouchResponse?.touchedSection?.touchedSectionIndex ?? -1;
 
                                 setState(() {
-                                  if (event is FlTapUpEvent && currentLayer.canClick(index)) {
+                                  if (event is FlTapUpEvent) {
                                     _clickedIndex = index;
                                   }
 
@@ -171,7 +173,7 @@ class _PieChartCardState extends State<PieChartCard> {
                   child: const Text('Go back'),
                 ),
               ),
-            if (_clickedIndex != -1)
+            if (currentLayer.canClick(_clickedIndex))
               Align(
                 alignment: Alignment.topRight,
                 child: OutlinedButton(
