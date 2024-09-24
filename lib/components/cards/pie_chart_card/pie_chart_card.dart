@@ -155,7 +155,13 @@ class _PieChartCardState extends State<PieChartCard> {
                             height: 16,
                           ),
                           const SizedBox(width: 8),
-                          Text(section.title),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 200),
+                            child: Text(
+                              section.title,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ],
                       ),
                   ],
