@@ -1,4 +1,5 @@
 import 'package:finances/category/models/category.dart';
+import 'package:finances/components/cards/pie_chart_card/pie_chart_card.dart';
 import 'package:finances/components/category_icon.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/service.dart';
@@ -114,8 +115,15 @@ class PieChartLayer {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // TODO handle long title names
-        Text(title),
+        SizedBox(
+          width: pieChartCenterSpaceRadius * 2 - 24,
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
         Text(amount, textScaler: const TextScaler.linear(1.5)),
       ],
     );

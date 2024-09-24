@@ -5,6 +5,8 @@ import 'package:finances/transaction/service.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+const pieChartCenterSpaceRadius = 70.0;
+
 class PieChartCard extends StatefulWidget {
   final DateTimeRange dateRange;
 
@@ -127,7 +129,7 @@ class _PieChartCardState extends State<PieChartCard> {
                                 });
                               },
                             ),
-                            centerSpaceRadius: 70,
+                            centerSpaceRadius: pieChartCenterSpaceRadius,
                             sections: sections,
                           ),
                         ),
