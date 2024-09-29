@@ -7,13 +7,13 @@ import 'package:flutter/material.dart';
 class CategoryListTile extends StatefulWidget {
   final CategoryModel initialCategory;
   final void Function(CategoryModel) onCategorySelected;
-  final bool morePadding;
+  final EdgeInsets? listTilePadding;
 
   const CategoryListTile({
     super.key,
     required this.initialCategory,
     required this.onCategorySelected,
-    required this.morePadding,
+    this.listTilePadding,
   });
 
   @override
@@ -26,6 +26,7 @@ class _CategoryListTileState extends State<CategoryListTile> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      contentPadding: widget.listTilePadding,
       onTap: () async {
         var selectedCategory = await Navigator.push<CategoryModel>(
           context,
@@ -45,7 +46,6 @@ class _CategoryListTileState extends State<CategoryListTile> {
           category = selectedCategory;
         });
       },
-      contentPadding: widget.morePadding ? const EdgeInsets.symmetric(horizontal: 24) : null,
       leading: CategoryIconSquare(
         icon: category.icon,
         color: category.color,

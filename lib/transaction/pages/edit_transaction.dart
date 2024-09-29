@@ -54,6 +54,8 @@ class TransactionEditPageState extends State<TransactionEditPage> with SingleTic
     length: 2,
     initialIndex: widget.transaction?.type.index ?? TransactionType.expense.index,
   );
+  final _dialogAmountCtrl = TextEditingController();
+  final _dialogDescriptionCtrl = TextEditingController();
 
   @override
   void initState() {
@@ -66,6 +68,8 @@ class TransactionEditPageState extends State<TransactionEditPage> with SingleTic
   @override
   void dispose() {
     _tabCtrl.dispose();
+    _dialogAmountCtrl.dispose();
+    _dialogDescriptionCtrl.dispose();
     super.dispose();
   }
 
@@ -395,8 +399,6 @@ class TransactionEditPageState extends State<TransactionEditPage> with SingleTic
   /// Returns true if a split was successful, false if there were validation errors.
   Future<bool> _split(BuildContext context) async {
     var dialogCategory = CategoryService.instance.lastSelection;
-    final amountCtrl = TextEditingController();
-    final descriptionCtrl = TextEditingController();
 
     final newExpense = await showDialog<Expense>(
       context: context,
@@ -404,14 +406,17 @@ class TransactionEditPageState extends State<TransactionEditPage> with SingleTic
         return AlertDialog(
           title: const Text('Split the amount into'),
           contentPadding: const EdgeInsets.symmetric(vertical: 24),
-          content: ExpenseColumn(
-            initialCategory: dialogCategory,
-            onCategorySelected: (category) {
-              dialogCategory = category;
-            },
-            amountCtrl: amountCtrl,
-            descriptionCtrl: descriptionCtrl,
-            morePadding: true,
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 440),
+            child: ExpenseColumn(
+              initialCategory: dialogCategory,
+              onCategorySelected: (category) {
+                dialogCategory = category;
+              },
+              amountCtrl: _dialogAmountCtrl,
+              descriptionCtrl: _dialogDescriptionCtrl,
+              listTilePadding: const EdgeInsets.symmetric(horizontal: 24),
+            ),
           ),
           actions: [
             TextButton(
@@ -421,9 +426,9 @@ class TransactionEditPageState extends State<TransactionEditPage> with SingleTic
               child: const Text('Cancel'),
             ),
             ListenableBuilder(
-              listenable: amountCtrl,
+              listenable: _dialogAmountCtrl,
               builder: (context, setState) {
-                final moneyToSplit = amountCtrl.text.toMoney();
+                final moneyToSplit = _dialogAmountCtrl.text.toMoney();
                 final isValid = moneyToSplit != null && moneyToSplit < _mainExpense.money;
 
                 return TextButton(
@@ -433,7 +438,7 @@ class TransactionEditPageState extends State<TransactionEditPage> with SingleTic
                             transaction: _transaction,
                             money: moneyToSplit,
                             category: dialogCategory,
-                            description: descriptionCtrl.text,
+                            description: _dialogDescriptionCtrl.text,
                           ));
                         }
                       : null,
@@ -446,8 +451,8 @@ class TransactionEditPageState extends State<TransactionEditPage> with SingleTic
       },
     );
 
-    amountCtrl.dispose();
-    descriptionCtrl.dispose();
+    _dialogAmountCtrl.clear();
+    _dialogDescriptionCtrl.clear();
 
     if (newExpense == null) {
       return false;

@@ -212,7 +212,6 @@ class _BudgetEditPageState extends State<BudgetEditPage> {
                   await CategoryService.instance.setLastSelection(newCategory);
                   budgetCategory.category = newCategory;
                 },
-                morePadding: false,
               ),
               StatefulBuilder(builder: (context, setter) {
                 return ListTile(

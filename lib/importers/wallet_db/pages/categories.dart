@@ -145,7 +145,6 @@ class _WalletDbCategoryPageState extends State<WalletDbCategoryPage> {
                           _categoryMap[walletCategory.id] = selected;
                         });
                       },
-                      morePadding: false,
                     ),
                   ),
                 ],

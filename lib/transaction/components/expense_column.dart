@@ -1,4 +1,5 @@
 import 'package:finances/category/models/category.dart';
+import 'package:finances/transaction/components/autocomplete_list_tile.dart';
 import 'package:finances/transaction/components/category_list_tile.dart';
 import 'package:finances/transaction/components/text_field_list_tile.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +10,7 @@ class ExpenseColumn extends StatelessWidget {
   final void Function(CategoryModel) onCategorySelected;
   final TextEditingController amountCtrl;
   final TextEditingController descriptionCtrl;
-  final bool morePadding;
+  final EdgeInsets? listTilePadding;
   final bool showCategory;
 
   const ExpenseColumn({
@@ -18,7 +19,7 @@ class ExpenseColumn extends StatelessWidget {
     required this.onCategorySelected,
     required this.amountCtrl,
     required this.descriptionCtrl,
-    this.morePadding = false,
+    this.listTilePadding,
     this.showCategory = true,
   });
 
@@ -31,20 +32,18 @@ class ExpenseColumn extends StatelessWidget {
           CategoryListTile(
             initialCategory: initialCategory,
             onCategorySelected: onCategorySelected,
-            morePadding: morePadding,
+            listTilePadding: listTilePadding,
           ),
         TextFieldListTile(
           controller: amountCtrl,
           icon: Symbols.euro,
           hintText: 'Amount',
-          morePadding: morePadding,
+          listTilePadding: listTilePadding,
           money: true,
         ),
-        TextFieldListTile(
+        AutocompleteListTile(
+          listTilePadding: listTilePadding,
           controller: descriptionCtrl,
-          icon: Symbols.description,
-          hintText: 'Description',
-          morePadding: morePadding,
         ),
       ],
     );

@@ -5,7 +5,7 @@ class TextFieldListTile extends StatelessWidget {
   final IconData icon;
   final String hintText;
   final TextEditingController controller;
-  final bool morePadding;
+  final EdgeInsets? listTilePadding;
   final bool money;
 
   const TextFieldListTile({
@@ -13,7 +13,7 @@ class TextFieldListTile extends StatelessWidget {
     required this.icon,
     required this.hintText,
     required this.controller,
-    this.morePadding = false,
+    this.listTilePadding,
     this.money = false,
   });
 
@@ -21,7 +21,7 @@ class TextFieldListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       minVerticalPadding: 0,
-      contentPadding: morePadding ? const EdgeInsets.symmetric(horizontal: 24) : null,
+      contentPadding: listTilePadding,
       leading: SizedBox(
         width: 40,
         height: 40,

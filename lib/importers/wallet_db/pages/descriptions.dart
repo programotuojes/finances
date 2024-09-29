@@ -255,7 +255,6 @@ class __RuleTileState extends State<_RuleTile> {
                       onCategorySelected: (selected) {
                         widget.rule.category = selected;
                       },
-                      morePadding: false,
                     ),
                   ],
                 ),
