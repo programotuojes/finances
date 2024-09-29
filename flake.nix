@@ -38,7 +38,7 @@
         pname = "finances";
         version =
           let
-            versionMatch = builtins.match ".*version: ([0-9]+\.[0-9]+\.[0-9]+)\n" (builtins.readFile ./pubspec.yaml);
+            versionMatch = builtins.match ".*version: ([0-9]+\.[0-9]+\.[0-9]+)\n.*" (builtins.readFile ./pubspec.yaml);
           in
           if versionMatch != null && versionMatch != [ ]
           then builtins.head versionMatch
