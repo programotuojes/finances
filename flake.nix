@@ -36,7 +36,13 @@
     {
       packages.${system}.default = flutter.buildFlutterApplication {
         pname = "finances";
-        version = "0.3.1";
+        version =
+          let
+            versionMatch = builtins.match ".*version: ([0-9]+\.[0-9]+\.[0-9]+)\n" (builtins.readFile ./pubspec.yaml);
+          in
+          if versionMatch != null && versionMatch != [ ]
+          then builtins.head versionMatch
+          else throw "Failed to extract version from pubspec.yaml";
         src = ./.;
         autoPubspecLock = ./pubspec.lock;
         extraWrapProgramArgs = "--suffix LD_LIBRARY_PATH : ${ld-library-path}";
