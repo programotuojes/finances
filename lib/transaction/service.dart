@@ -262,7 +262,7 @@ class TransactionService with ChangeNotifier {
   }
 
   Future<void> _copyAttachments(List<Attachment> attachments) async {
-    await Directory(AppPaths.attachments).create();
+    await File(join(AppPaths.attachments, '.nomedia')).create(exclusive: false, recursive: true);
 
     for (final attachment in attachments) {
       if (attachment.id != null) {
