@@ -148,10 +148,15 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
                       initialDate: _from,
                       firstDate: DateTime(0),
                       lastDate: DateTime(9999),
-                      builder: (context, child) => Theme(
-                        data: _theme.current(_tabCtrl.index),
-                        child: child!,
-                      ),
+                      builder: (context, child) {
+                        return Theme(
+                          data: _theme.current(_tabCtrl.index),
+                          child: MediaQuery(
+                            data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1)),
+                            child: child!,
+                          ),
+                        );
+                      },
                     );
                     if (selected == null) {
                       return;
@@ -185,6 +190,12 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
                             initialDate: _until,
                             firstDate: _from,
                             lastDate: DateTime(9999),
+                            builder: (context, child) {
+                              return MediaQuery(
+                                data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1)),
+                                child: child!,
+                              );
+                            },
                           );
                           if (selected == null) {
                             return;

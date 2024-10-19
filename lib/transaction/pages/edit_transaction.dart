@@ -215,6 +215,12 @@ class TransactionEditPageState extends State<TransactionEditPage> with SingleTic
                         initialDate: _transaction.dateTime,
                         firstDate: DateTime(0),
                         lastDate: DateTime(9999),
+                        builder: (context, child) {
+                          return MediaQuery(
+                            data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1)),
+                            child: child!,
+                          );
+                        },
                       );
                       if (selected == null) return;
                       setState(() {
@@ -235,6 +241,12 @@ class TransactionEditPageState extends State<TransactionEditPage> with SingleTic
                       var selected = await showTimePicker(
                         context: context,
                         initialTime: TimeOfDay.fromDateTime(_transaction.dateTime),
+                        builder: (context, child) {
+                          return MediaQuery(
+                            data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1)),
+                            child: child!,
+                          );
+                        },
                       );
                       if (selected == null) return;
                       setState(() {

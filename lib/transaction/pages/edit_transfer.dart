@@ -147,6 +147,12 @@ class _EditTransferPageState extends State<EditTransferPage> {
                         initialDate: _transfer.dateTime,
                         firstDate: DateTime(0),
                         lastDate: DateTime(9999),
+                        builder: (context, child) {
+                          return MediaQuery(
+                            data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1)),
+                            child: child!,
+                          );
+                        },
                       );
                       if (selected == null) return;
                       setState(() {
@@ -167,6 +173,12 @@ class _EditTransferPageState extends State<EditTransferPage> {
                       var selected = await showTimePicker(
                         context: context,
                         initialTime: TimeOfDay.fromDateTime(_transfer.dateTime),
+                        builder: (context, child) {
+                          return MediaQuery(
+                            data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1)),
+                            child: child!,
+                          );
+                        },
                       );
                       if (selected == null) return;
                       setState(() {
