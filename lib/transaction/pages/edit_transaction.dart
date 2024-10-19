@@ -192,13 +192,14 @@ class TransactionEditPageState extends State<TransactionEditPage> with SingleTic
               expandedInsets: const EdgeInsets.all(0),
               initialSelection: _transaction.account,
               label: const Text('Account'),
-              onSelected: (selected) {
+              onSelected: (selected) async {
                 if (selected == null) {
                   return;
                 }
                 setState(() {
                   _transaction.account = selected;
                 });
+                await AccountService.instance.setLastSelection(selected);
               },
               dropdownMenuEntries: [
                 for (final x in AccountService.instance.accounts) DropdownMenuEntry(value: x, label: x.name)
