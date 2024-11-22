@@ -155,6 +155,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+      // TODO use a switch to not render both pages
       body: [
         home(),
         history(),

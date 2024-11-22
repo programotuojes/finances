@@ -73,6 +73,11 @@ class Expense {
       );
 
   bool matchesFilter(RegExp regex) {
+    final accountMatches = transaction.account.name.contains(regex);
+    if (accountMatches) {
+      return true;
+    }
+
     var descriptionMatches = description?.contains(regex) == true;
     if (descriptionMatches) {
       return true;
