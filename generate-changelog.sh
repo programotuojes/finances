@@ -18,6 +18,12 @@ function print_list {
 
 prev_ver=$(git tag --sort=-creatordate | head -2 | tail -1)
 current_ver=$(git tag --sort=-creatordate | head -1)
+
+if [ "$prev_ver" == "$current_ver" ]; then
+    echo Failed to fetch the previous version >&2
+    exit 1
+fi
+
 commits=$(git log $prev_ver..$current_ver --format='- %s' | grep -v 'release:') 
 
 echo -e "**Changes from the last release:** https://github.com/programotuojes/finances/compare/$prev_ver...$current_ver\n"
