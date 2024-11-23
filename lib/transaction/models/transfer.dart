@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/transaction/models/import_detais/imported_wallet_db_transfer.dart';
+import 'package:finances/utils/diacritic.dart';
 import 'package:money2/money2.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -52,6 +53,7 @@ class Transfer {
       'moneyDecimalDigits': money.decimalDigits,
       'currencyIsoCode': money.currency.isoCode,
       'description': description,
+      'descriptionNorm': normalizeString(description),
       'fromAccountId': from?.id,
       'toAccountId': to?.id,
       'dateTimeMs': dateTime.millisecondsSinceEpoch,
@@ -66,6 +68,7 @@ class Transfer {
         moneyDecimalDigits integer not null,
         currencyIsoCode text not null,
         description text,
+        descriptionNorm text,
         fromAccountId integer,
         toAccountId integer,
         dateTimeMs integer not null,
@@ -76,7 +79,8 @@ class Transfer {
   }
 
   bool matchesFilter(RegExp regex) {
-    final descriptionMatches = description?.contains(regex) == true;
+    // TODO normalize only once per object creation and description update
+    final descriptionMatches = normalizeString(description)?.contains(regex) == true;
     if (descriptionMatches) {
       return true;
     }

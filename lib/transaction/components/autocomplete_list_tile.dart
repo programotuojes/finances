@@ -1,4 +1,5 @@
 import 'package:finances/utils/db.dart';
+import 'package:finances/utils/diacritic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -153,11 +154,11 @@ class _AutocompleteListTileState extends State<AutocompleteListTile> {
   }
 
   Future<List<String>> _search(TextEditingValue value) async {
-    if (value.text.length < 3) {
+    if (value.text.length < 2) {
       return const [];
     }
 
-    _searching = value.text;
+    _searching = normalizeString(value.text);
     final actualSearch = '%$_searching%';
     final dbDescriptions = await database.rawQuery(
       '''
@@ -166,15 +167,15 @@ class _AutocompleteListTileState extends State<AutocompleteListTile> {
       FROM
         expenses
       WHERE
-        description LIKE ? AND description != ""
+        descriptionNorm != "" AND descriptionNorm LIKE ?
       UNION
       SELECT DISTINCT
         description
       FROM
         transfers
       WHERE
-        description LIKE ? AND description != ""
-          ''',
+        descriptionNorm != "" AND descriptionNorm LIKE ?
+      ''',
       [actualSearch, actualSearch],
     );
 

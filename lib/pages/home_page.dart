@@ -26,6 +26,7 @@ import 'package:finances/transaction/pages/edit_transfer.dart';
 import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/app_paths.dart';
 import 'package:finances/utils/date.dart';
+import 'package:finances/utils/diacritic.dart';
 import 'package:finances/utils/money.dart';
 import 'package:finances/utils/periodicity.dart';
 import 'package:finances/utils/transaction_theme.dart';
@@ -436,7 +437,7 @@ class _HomePageState extends State<HomePage> {
     return ListenableBuilder(
       listenable: Listenable.merge([TransactionService.instance, _searchCtrl]),
       builder: (context, child) {
-        var regex = RegExp(_searchCtrl.text, caseSensitive: false);
+        var regex = RegExp(normalizeString(_searchCtrl.text)!, caseSensitive: false);
 
         var expenses = TransactionService.instance.expenses
             .where((expense) => expense.transaction.dateTime.isIn(_dateRange) && expense.matchesFilter(regex))

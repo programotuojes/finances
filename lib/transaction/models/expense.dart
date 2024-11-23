@@ -3,6 +3,7 @@ import 'package:finances/category/models/category.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/transaction/models/import_detais/imported_wallet_db_expense.dart';
 import 'package:finances/transaction/models/transaction.dart';
+import 'package:finances/utils/diacritic.dart';
 import 'package:finances/utils/money.dart';
 import 'package:money2/money2.dart';
 import 'package:sqflite/sqflite.dart' as sql;
@@ -78,7 +79,8 @@ class Expense {
       return true;
     }
 
-    var descriptionMatches = description?.contains(regex) == true;
+    // TODO normalize only once per object creation and description update
+    var descriptionMatches = normalizeString(description)?.contains(regex) == true;
     if (descriptionMatches) {
       return true;
     }
@@ -102,6 +104,7 @@ class Expense {
       'moneyDecimalDigits': money.decimalDigits,
       'currencyIsoCode': money.currency.isoCode,
       'description': description,
+      'descriptionNorm': normalizeString(description),
       'categoryId': category.id,
       'transactionId': transaction.id,
     };
@@ -115,6 +118,7 @@ class Expense {
         moneyDecimalDigits integer not null,
         currencyIsoCode text not null,
         description text,
+        descriptionNorm text,
         categoryId integer not null,
         transactionId integer not null,
         foreign key (categoryId) references categories(id) on delete cascade,
