@@ -99,6 +99,7 @@ class RecurringService with ChangeNotifier {
   Future<void> init() async {
     var dbRecurring = await database.query('recurring');
     _transactions = dbRecurring.map((e) => RecurringModel.fromMap(e)).toList();
+    _sort();
     notifyListeners();
   }
 
