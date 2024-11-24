@@ -9,23 +9,23 @@ const pieChartCenterSpaceRadius = 70.0;
 
 class PieChartCard extends StatefulWidget {
   final DateTimeRange dateRange;
+  final List<PieChartLayer> _layers;
 
-  const PieChartCard({
+  PieChartCard({
     super.key,
     required this.dateRange,
-  });
+  }) : _layers = [
+          PieChartLayer(
+            dateRangeFilter: dateRange,
+            parent: CategoryService.instance.rootCategory,
+          )
+        ];
 
   @override
   State<PieChartCard> createState() => _PieChartCardState();
 }
 
 class _PieChartCardState extends State<PieChartCard> {
-  late final _layers = [
-    PieChartLayer(
-      dateRangeFilter: widget.dateRange,
-      parent: CategoryService.instance.rootCategory,
-    )
-  ];
   var _clickedIndex = -1;
   var _hoveredIndex = -1;
 
@@ -40,7 +40,7 @@ class _PieChartCardState extends State<PieChartCard> {
       setState(() {
         _clickedIndex = -1;
         _hoveredIndex = -1;
-        _layers
+        widget._layers
           ..clear()
           ..add(PieChartLayer(
             dateRangeFilter: widget.dateRange,
@@ -52,7 +52,7 @@ class _PieChartCardState extends State<PieChartCard> {
 
   @override
   Widget build(BuildContext context) {
-    final currentLayer = _layers.last;
+    final currentLayer = widget._layers.last;
     final sections = currentLayer.getSections(clickedIndex: _clickedIndex, hoveredIndex: _hoveredIndex).toList();
 
     return GestureDetector(
@@ -168,13 +168,13 @@ class _PieChartCardState extends State<PieChartCard> {
                 )
               ],
             ),
-            if (_layers.length > 1)
+            if (widget._layers.length > 1)
               Align(
                 alignment: Alignment.topLeft,
                 child: OutlinedButton(
                   onPressed: () {
                     setState(() {
-                      _layers.removeLast();
+                      widget._layers.removeLast();
                       _clickedIndex = -1;
                     });
                   },
@@ -194,7 +194,7 @@ class _PieChartCardState extends State<PieChartCard> {
                         return;
                       }
 
-                      _layers.add(currentLayer.createNewLayer(_clickedIndex));
+                      widget._layers.add(currentLayer.createNewLayer(_clickedIndex));
                       _clickedIndex = -1;
                     });
                   },
