@@ -1,9 +1,5 @@
-import 'dart:async';
-import 'dart:io';
-
 import 'package:collection/collection.dart';
 import 'package:finances/account/pages/list.dart';
-import 'package:finances/account/service.dart';
 import 'package:finances/automation/pages/list.dart';
 import 'package:finances/budget/pages/list.dart';
 import 'package:finances/category/pages/list.dart';
@@ -14,8 +10,6 @@ import 'package:finances/components/cards/budget_card.dart';
 import 'package:finances/components/cards/pie_chart_card/pie_chart_card.dart';
 import 'package:finances/components/category_icon.dart';
 import 'package:finances/importers/pages/importer_list_page.dart';
-import 'package:finances/main.dart';
-import 'package:finances/pages/first_run.dart';
 import 'package:finances/pages/settings.dart';
 import 'package:finances/recurring/pages/list.dart';
 import 'package:finances/recurring/recurring_transaction_card.dart';
@@ -31,11 +25,9 @@ import 'package:finances/utils/money.dart';
 import 'package:finances/utils/periodicity.dart';
 import 'package:finances/utils/transaction_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:grouped_list/sliver_grouped_list.dart';
 import 'package:money2/money2.dart';
-import 'package:quick_actions/quick_actions.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -62,22 +54,6 @@ class _HomePageState extends State<HomePage> {
   late TextStyle? _incomeStyle;
   late TextStyle? _expenseStyle;
   late TextStyle? _transferStyle;
-  String? _currentQuickAction;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _setupQuickActions();
-
-    AppPaths.listenable.addListener(() {
-      if (context.mounted) {
-        setState(() {
-          // Listening for changes in `main.dart` does not work
-        });
-      }
-    });
-  }
 
   @override
   void dispose() {
@@ -94,51 +70,8 @@ class _HomePageState extends State<HomePage> {
     _transferStyle = theme.createTextStyle(context, TransactionType.transfer);
   }
 
-  void _setupQuickActions() {
-    final supportsQuickActions = Platform.isAndroid;
-    if (!supportsQuickActions) {
-      return;
-    }
-
-    const newTransaction = 'new_transaction';
-    const newTransfer = 'new_transfer';
-    const quickActions = QuickActions();
-
-    quickActions.initialize((shortcutType) async {
-      logger.i('Handling $shortcutType quick action');
-
-      if (_currentQuickAction == shortcutType) {
-        // https://github.com/flutter/flutter/issues/131121
-        return;
-      }
-
-      _currentQuickAction = shortcutType;
-
-      Widget page;
-      if (shortcutType == newTransaction) {
-        page = const TransactionEditPage();
-      } else if (shortcutType == newTransfer) {
-        page = const EditTransferPage();
-      } else {
-        return;
-      }
-
-      await Navigator.push(context, MaterialPageRoute(builder: (context) => page));
-      unawaited(SystemNavigator.pop()); // Cleaner exit screen
-    });
-
-    quickActions.setShortcutItems(const [
-      ShortcutItem(type: newTransaction, localizedTitle: 'New transaction', icon: 'add'),
-      ShortcutItem(type: newTransfer, localizedTitle: 'New transfer', icon: 'swap_horiz'),
-    ]);
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (AccountService.instance.accounts.isEmpty) {
-      return const FirstRunPage();
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Finances'),
