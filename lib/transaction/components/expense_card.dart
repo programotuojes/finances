@@ -69,6 +69,7 @@ class _ExpenseCardState extends State<ExpenseCard> {
                 },
                 amountCtrl: _amountCtrl,
                 descriptionCtrl: _descriptionCtrl,
+                currency: widget.entity.currency,
               ),
             ),
             Column(

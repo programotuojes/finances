@@ -429,6 +429,7 @@ class TransactionEditPageState extends State<TransactionEditPage> with SingleTic
               amountCtrl: _dialogAmountCtrl,
               descriptionCtrl: _dialogDescriptionCtrl,
               listTilePadding: const EdgeInsets.symmetric(horizontal: 24),
+              currency: _transaction.account.currency,
             ),
           ),
           actions: [

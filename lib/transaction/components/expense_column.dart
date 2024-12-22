@@ -4,6 +4,7 @@ import 'package:finances/transaction/components/category_list_tile.dart';
 import 'package:finances/transaction/components/text_field_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:money2/money2.dart';
 
 class ExpenseColumn extends StatelessWidget {
   final CategoryModel initialCategory;
@@ -12,6 +13,7 @@ class ExpenseColumn extends StatelessWidget {
   final TextEditingController descriptionCtrl;
   final EdgeInsets? listTilePadding;
   final bool showCategory;
+  final Currency currency;
 
   const ExpenseColumn({
     super.key,
@@ -21,6 +23,7 @@ class ExpenseColumn extends StatelessWidget {
     required this.descriptionCtrl,
     this.listTilePadding,
     this.showCategory = true,
+    required this.currency,
   });
 
   @override
@@ -39,7 +42,7 @@ class ExpenseColumn extends StatelessWidget {
           icon: Symbols.euro,
           hintText: 'Amount',
           listTilePadding: listTilePadding,
-          money: true,
+          currency: currency,
         ),
         AutocompleteListTile(
           listTilePadding: listTilePadding,

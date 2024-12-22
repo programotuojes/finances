@@ -1,12 +1,13 @@
-import 'package:finances/utils/amount_input_formatter.dart';
 import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
+import 'package:money2/money2.dart';
 
 class AmountTextField extends StatelessWidget {
   final TextEditingController controller;
   final String labelText;
   final Widget? suffixIcon;
   final void Function(String)? onFieldSubmitted;
+  final Currency currency;
 
   const AmountTextField({
     super.key,
@@ -14,6 +15,7 @@ class AmountTextField extends StatelessWidget {
     this.labelText = 'Amount',
     this.suffixIcon,
     this.onFieldSubmitted,
+    required this.currency,
   });
 
   @override
@@ -25,19 +27,18 @@ class AmountTextField extends StatelessWidget {
           return 'Please enter an amount';
         }
 
-        if (value.toMoney() == null) {
+        if (value.toMoneyWithCurrency(currency) == null) {
           return 'Please enter a valid amount';
         }
 
         return null;
       },
       controller: controller,
-      inputFormatters: amountFormatter,
-      keyboardType: const TextInputType.numberWithOptions(
-        decimal: true,
+      keyboardType: TextInputType.numberWithOptions(
+        decimal: currency.decimalDigits > 0,
       ),
       decoration: InputDecoration(
-        prefixText: '€ ',
+        prefixText: '${currency.symbol} ',
         labelText: labelText,
         suffixIcon: suffixIcon,
       ),

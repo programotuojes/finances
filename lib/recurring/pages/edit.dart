@@ -229,7 +229,10 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
                   child: Text(_category.name),
                 ),
                 const SizedBox(height: 16),
-                AmountTextField(controller: amountCtrl),
+                AmountTextField(
+                  controller: amountCtrl,
+                  currency: _account.currency,
+                ),
                 const SizedBox(height: 16),
                 PeriodDropdown(
                   initialSelection: _period,

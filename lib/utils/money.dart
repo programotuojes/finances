@@ -27,4 +27,12 @@ extension MoneyParsing on String {
       isoCode: 'EUR',
     );
   }
+
+  Money? toMoneyWithCurrency(Currency currency) {
+    try {
+      return currency.parse(this);
+    } catch (e) {
+      return null;
+    }
+  }
 }

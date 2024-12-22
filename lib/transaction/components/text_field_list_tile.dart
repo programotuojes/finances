@@ -1,12 +1,12 @@
-import 'package:finances/utils/amount_input_formatter.dart';
 import 'package:flutter/material.dart';
+import 'package:money2/money2.dart';
 
 class TextFieldListTile extends StatelessWidget {
   final IconData icon;
   final String hintText;
   final TextEditingController controller;
   final EdgeInsets? listTilePadding;
-  final bool money;
+  final Currency? currency;
 
   const TextFieldListTile({
     super.key,
@@ -14,11 +14,13 @@ class TextFieldListTile extends StatelessWidget {
     required this.hintText,
     required this.controller,
     this.listTilePadding,
-    this.money = false,
+    this.currency,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isMoney = currency != null;
+
     return ListTile(
       minVerticalPadding: 0,
       contentPadding: listTilePadding,
@@ -29,9 +31,8 @@ class TextFieldListTile extends StatelessWidget {
       ),
       title: TextField(
         controller: controller,
-        keyboardType: money ? const TextInputType.numberWithOptions(decimal: true) : null,
         textCapitalization: TextCapitalization.sentences,
-        inputFormatters: money ? amountFormatter : null,
+        keyboardType: isMoney ? TextInputType.numberWithOptions(decimal: currency!.decimalDigits > 0) : null,
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: hintText,

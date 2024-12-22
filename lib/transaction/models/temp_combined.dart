@@ -55,6 +55,22 @@ class TempCombined {
     }
   }
 
+  Currency get currency {
+    if (expense != null) {
+      return expense!.transaction.account.currency;
+    }
+
+    if (transfer!.from != null) {
+      return transfer!.from!.currency;
+    }
+
+    if (transfer!.to != null) {
+      return transfer!.to!.currency;
+    }
+
+    throw 'Transfer does not have an account';
+  }
+
   CategoryModel get category {
     if (expense != null) {
       return expense!.category;

@@ -4,6 +4,7 @@ import 'package:finances/importers/pages/importer_list_page.dart';
 import 'package:finances/utils/app_paths.dart';
 import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
+import 'package:money2/money2.dart';
 
 class FirstRunPage extends StatefulWidget {
   const FirstRunPage({super.key});
@@ -84,6 +85,7 @@ class _FirstRunPageState extends State<FirstRunPage> {
                         controller: _amountCtrl,
                         labelText: 'Initial amount',
                         onFieldSubmitted: (value) => _sumbitForm(context),
+                        currency: CommonCurrencies().euro, // TODO allow selecting
                       ),
                       const SizedBox(height: 24),
                       FilledButton.icon(

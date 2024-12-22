@@ -10,6 +10,7 @@ import 'package:finances/utils/money.dart';
 import 'package:finances/utils/periodicity.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:money2/money2.dart';
 
 class BudgetEditPage extends StatefulWidget {
   final Budget? budget;
@@ -85,6 +86,7 @@ class _BudgetEditPageState extends State<BudgetEditPage> {
                 padding: const EdgeInsets.all(16),
                 child: AmountTextField(
                   controller: _amountCtrl,
+                  currency: CommonCurrencies().euro, // TODO what currency to use for budgets?
                 ),
               ),
               Padding(

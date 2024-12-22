@@ -5,10 +5,15 @@ import 'package:finances/components/common_values.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transfer.dart';
 import 'package:finances/transaction/service.dart';
-import 'package:finances/utils/amount_input_formatter.dart';
 import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
 import 'package:money2/money2.dart';
+
+final _currencies = [
+  DropdownMenuEntry(value: CommonCurrencies().euro, label: CommonCurrencies().euro.name),
+  DropdownMenuEntry(value: CommonCurrencies().usd, label: CommonCurrencies().usd.name),
+  DropdownMenuEntry(value: CommonCurrencies().jpy, label: CommonCurrencies().jpy.name),
+];
 
 class AccountEditPage extends StatefulWidget {
   final Account? account;
@@ -26,6 +31,7 @@ class _AccountEditPageState extends State<AccountEditPage> {
   late final _nameCtrl = TextEditingController(text: widget.account?.name);
   late final _initialAmountCtrl = TextEditingController(text: widget.account?.initialMoney.amount.toString());
   final _dialogAmountCtrl = TextEditingController();
+  late var _currency = widget.account?.initialMoney.currency ?? CommonCurrencies().euro;
 
   @override
   void dispose() {
@@ -83,6 +89,22 @@ class _AccountEditPageState extends State<AccountEditPage> {
                     ),
                   ),
                 ),
+                currency: _currency,
+              ),
+              const SizedBox(height: 32),
+              DropdownMenu<Currency>(
+                expandedInsets: EdgeInsets.zero,
+                initialSelection: _currency,
+                dropdownMenuEntries: _currencies,
+                onSelected: (currency) {
+                  if (currency == null) {
+                    return;
+                  }
+
+                  setState(() {
+                    _currency = currency;
+                  });
+                },
               ),
               const SizedBox(height: fabHeight),
             ],
@@ -113,12 +135,12 @@ class _AccountEditPageState extends State<AccountEditPage> {
       await AccountService.instance.update(
         widget.account!,
         name: _nameCtrl.text,
-        initialMoney: _initialAmountCtrl.text.toMoney()!,
+        initialMoney: _initialAmountCtrl.text.toMoneyWithCurrency(_currency)!,
       );
     } else {
       createdAccount = await AccountService.instance.add(
         name: _nameCtrl.text,
-        initialMoney: _initialAmountCtrl.text.toMoney()!,
+        initialMoney: _initialAmountCtrl.text.toMoneyWithCurrency(_currency)!,
       );
     }
 
@@ -143,7 +165,6 @@ class _AccountEditPageState extends State<AccountEditPage> {
               const SizedBox(height: 16),
               TextField(
                 controller: _dialogAmountCtrl,
-                inputFormatters: amountFormatter,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
                   labelText: 'Current amount',

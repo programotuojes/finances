@@ -12,6 +12,8 @@ class Account {
     required this.initialMoney,
   });
 
+  Currency get currency => initialMoney.currency;
+
   static void createTable(Batch batch) {
     batch.execute('''
       create table accounts (
