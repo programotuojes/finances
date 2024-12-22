@@ -19,14 +19,11 @@
 
       android-sdk = android.sdk.${system} (sdkPkgs: with sdkPkgs; [
         cmdline-tools-latest
-        emulator
         platform-tools
-        system-images-android-34-google-apis-x86-64
-        build-tools-30-0-3
-        platforms-android-28
-        platforms-android-31
-        platforms-android-33
-        platforms-android-34
+        build-tools-33-0-1
+        platforms-android-32 # sqlite3_flutter_libs
+        platforms-android-34 # fc_native_image_resize
+        platforms-android-35
       ]);
     in
     {
@@ -37,12 +34,17 @@
           jdk17
         ];
 
+        buildInputs = [
+          gtk3
+          pkg-config
+        ];
+
         FLUTTER_SDK = flutter;
         JAVA_HOME = jdk17.home;
 
         shellHook = ''
           echo -n 'Setting Flutter config... '
-          ${flutter}/bin/flutter config --disable-analytics --jdk-dir ${jdk17} > /dev/null
+          ${flutter}/bin/flutter config --jdk-dir ${jdk17} > /dev/null
           echo ✓
 
           echo -n 'Fetching pub.dev dependencies... '
