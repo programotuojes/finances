@@ -1,7 +1,6 @@
 import 'package:finances/account/service.dart';
 import 'package:finances/components/home_card.dart';
 import 'package:finances/transaction/service.dart';
-import 'package:finances/utils/money.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -145,7 +144,7 @@ class BalanceGraphCard extends StatelessWidget {
   }
 
   Iterable<FlSpot> _getPeriodizedPoints() sync* {
-    var initial = AccountService.instance.accounts.fold(zeroEur, (acc, x) => acc + x.initialMoney);
+    var initial = AccountService.instance.accounts.fold(Fixed.zero, (acc, x) => acc + x.initialMoney.amount);
     var moneyOnStart = _getTotalExpenditureOn(range.start);
     var runningTotal = initial + moneyOnStart;
 
@@ -155,22 +154,22 @@ class BalanceGraphCard extends StatelessWidget {
 
       yield FlSpot(
         date.millisecondsSinceEpoch.toDouble(),
-        runningTotal.amount.toDecimal().toDouble(),
+        runningTotal.toDecimal().toDouble(),
       );
     }
   }
 
-  Money _getExpenditureOnDate(DateTime date) {
+  Fixed _getExpenditureOnDate(DateTime date) {
     return TransactionService.instance.expenses
         .where((x) => DateUtils.isSameDay(x.transaction.dateTime, date))
-        .map((e) => e.signedMoney)
-        .fold(zeroEur, (acc, x) => acc + x);
+        .map((e) => e.signedMoney.amount)
+        .fold(Fixed.zero, (acc, x) => acc + x);
   }
 
-  Money _getTotalExpenditureOn(DateTime date) {
+  Fixed _getTotalExpenditureOn(DateTime date) {
     return TransactionService.instance.expenses
         .where((x) => x.transaction.dateTime.isBefore(date))
-        .map((e) => e.signedMoney)
-        .fold(zeroEur, (acc, x) => acc + x);
+        .map((e) => e.signedMoney.amount)
+        .fold(Fixed.zero, (acc, x) => acc + x);
   }
 }
