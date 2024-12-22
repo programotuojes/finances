@@ -39,23 +39,6 @@ jobs:
           path: build/app/outputs/flutter-apk/*.apk
           if-no-files-found: error
 
-  # TODO also package Linux builds, perhaps Flatpak?
-  linux:
-    name: Linux
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Nix
-        uses: cachix/install-nix-action@v27
-
-      - name: Run tests
-        run: nix develop -c -- flutter test
-
-      - name: Build
-        run: nix build
-
   release:
     name: Create GitHub release
     runs-on: ubuntu-latest

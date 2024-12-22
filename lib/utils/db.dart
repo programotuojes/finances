@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:finances/account/models/account.dart';
 import 'package:finances/automation/models/automation.dart';
 import 'package:finances/budget/models/budget.dart';
@@ -20,9 +18,8 @@ late Database _database;
 Database get database => _database;
 
 Future<void> initializeDatabase() async {
-  if (!Platform.isAndroid && !Platform.isIOS && !Platform.isMacOS) {
-    databaseFactory = databaseFactoryFfi;
-  }
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
 
   _database = await openDatabase(
     AppPaths.db,

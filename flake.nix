@@ -2,22 +2,20 @@
   description = "A program for tracking personal finances";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/24.05";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     android = {
       url = "github:tadfisher/android-nixpkgs/stable";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, android }:
+  outputs = { nixpkgs, android, ... }:
     let
       system = "x86_64-linux";
 
       pkgs = nixpkgs.legacyPackages.${system};
-      pkgs-unstable = nixpkgs-unstable.legacyPackages.${system};
 
-      flutter = pkgs-unstable.flutterPackages.v3_24;
+      flutter = pkgs.flutter327;
 
       android-sdk = android.sdk.${system} (sdkPkgs: with sdkPkgs; [
         cmdline-tools-latest
@@ -30,24 +28,8 @@
         platforms-android-33
         platforms-android-34
       ]);
-
-      ld-library-path = pkgs.lib.makeLibraryPath [ pkgs.sqlite ];
     in
     {
-      packages.${system}.default = flutter.buildFlutterApplication {
-        pname = "finances";
-        version =
-          let
-            versionMatch = builtins.match ".*version: ([0-9]+\.[0-9]+\.[0-9]+)\n.*" (builtins.readFile ./pubspec.yaml);
-          in
-          if versionMatch != null && versionMatch != [ ]
-          then builtins.head versionMatch
-          else throw "Failed to extract version from pubspec.yaml";
-        src = ./.;
-        autoPubspecLock = ./pubspec.lock;
-        extraWrapProgramArgs = "--suffix LD_LIBRARY_PATH : ${ld-library-path}";
-      };
-
       devShells.${system}.default = with pkgs; mkShell {
         packages = [
           android-sdk
@@ -57,7 +39,6 @@
 
         FLUTTER_SDK = flutter;
         JAVA_HOME = jdk17.home;
-        LD_LIBRARY_PATH = ld-library-path;
 
         shellHook = ''
           echo -n 'Setting Flutter config... '
