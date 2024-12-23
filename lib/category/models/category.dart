@@ -1,3 +1,4 @@
+import 'package:finances/utils/extensions.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 import 'package:sqflite/sqflite.dart';
@@ -80,7 +81,7 @@ class CategoryModel {
     return {
       'id': setId ? id : null,
       'name': name,
-      'color': color.value,
+      'color': color.intValue,
       'iconPack': icon['pack'],
       'iconKey': icon['key'],
       'parentId': parent?.id,

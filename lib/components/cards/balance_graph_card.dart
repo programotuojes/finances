@@ -101,7 +101,7 @@ class BalanceGraphCard extends StatelessWidget {
                       spots: spots,
                       belowBarData: BarAreaData(
                         show: true,
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                       ),
                     ),
                   ],
