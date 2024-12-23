@@ -35,7 +35,7 @@ class Transfer {
     var from = accounts.firstWhereOrNull((x) => x.id == map['fromAccountId'] as int?);
     var to = accounts.firstWhereOrNull((x) => x.id == map['toAccountId'] as int?);
 
-    if (from?.currency.isoCode != to?.currency.isoCode) {
+    if (from != null && to != null && from.currency.isoCode != to.currency.isoCode) {
       // TODO remove this once transfer between different currency accounts is supported
       throw UnimplementedError('Accounts have different currencies');
     }
