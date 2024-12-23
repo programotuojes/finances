@@ -6,6 +6,7 @@ import 'package:finances/components/currency_dropdown.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transfer.dart';
 import 'package:finances/transaction/service.dart';
+import 'package:finances/utils/app_paths.dart';
 import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
 import 'package:money2/money2.dart';
@@ -133,6 +134,7 @@ class _AccountEditPageState extends State<AccountEditPage> {
       );
     }
 
+    await AppPaths.init();
     if (mounted) {
       Navigator.of(context).pop(createdAccount);
     }

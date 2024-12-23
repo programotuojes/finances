@@ -1,10 +1,14 @@
 import 'package:finances/account/service.dart';
 import 'package:finances/components/home_card.dart';
 import 'package:finances/transaction/service.dart';
+import 'package:finances/utils/money.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:money2/money2.dart';
+
+// TODO allow to configure
+final _barChartCurrency = CommonCurrencies().euro;
 
 final _dateFormatter = DateFormat('MMM d');
 final _listenables = Listenable.merge([
@@ -75,7 +79,7 @@ class BalanceGraphCard extends StatelessWidget {
                       getTooltipItems: (spots) => spots.map((spot) {
                         var date = _dateFormatter.format(DateTime.fromMillisecondsSinceEpoch(spot.x.toInt()));
                         return LineTooltipItem(
-                          '${spot.y.toStringAsFixed(0)} €\n$date',
+                          '${spot.y.toStringAsFixed(0)} ${_barChartCurrency.symbol}\n$date',
                           Theme.of(context).textTheme.bodyMedium!,
                         );
                       }).toList(),
@@ -132,19 +136,22 @@ class BalanceGraphCard extends StatelessWidget {
     );
   }
 
-  Widget _yAxis(value, meta) {
+  Widget _yAxis(double value, TitleMeta meta) {
     if (value == meta.max || value == meta.min) {
       return const SizedBox.shrink();
     }
 
     return SideTitleWidget(
       axisSide: meta.axisSide,
-      child: Text('${meta.formattedValue} €'),
+      child: Text('${meta.formattedValue} ${_barChartCurrency.symbol}'),
     );
   }
 
   Iterable<FlSpot> _getPeriodizedPoints() sync* {
-    var initial = AccountService.instance.accounts.fold(Fixed.zero, (acc, x) => acc + x.initialMoney.amount);
+    var initial = AccountService.instance.accounts
+        .where((x) => x.currency.isoCode == _barChartCurrency.isoCode)
+        .fold(Fixed.zero, (acc, x) => acc + x.initialMoney.amount);
+
     var moneyOnStart = _getTotalExpenditureOn(range.start);
     var runningTotal = initial + moneyOnStart;
 
@@ -161,14 +168,18 @@ class BalanceGraphCard extends StatelessWidget {
 
   Fixed _getExpenditureOnDate(DateTime date) {
     return TransactionService.instance.expenses
-        .where((x) => DateUtils.isSameDay(x.transaction.dateTime, date))
+        .where((x) =>
+            DateUtils.isSameDay(x.transaction.dateTime, date) &&
+            x.transaction.account.currency.isoCode == _barChartCurrency.isoCode)
         .map((e) => e.signedMoney.amount)
         .fold(Fixed.zero, (acc, x) => acc + x);
   }
 
   Fixed _getTotalExpenditureOn(DateTime date) {
     return TransactionService.instance.expenses
-        .where((x) => x.transaction.dateTime.isBefore(date))
+        .where((x) =>
+            x.transaction.dateTime.isBefore(date) &&
+            x.transaction.account.currency.isoCode == _barChartCurrency.isoCode)
         .map((e) => e.signedMoney.amount)
         .fold(Fixed.zero, (acc, x) => acc + x);
   }

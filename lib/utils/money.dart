@@ -32,7 +32,7 @@ extension MoneyParsing on String {
 
   Money? toMoneyWithCurrency(Currency currency) {
     try {
-      return currency.parse(this);
+      return currency.parse(replaceAll('.', currency.decimalSeparator));
     } catch (e) {
       return null;
     }
