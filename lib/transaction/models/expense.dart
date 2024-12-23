@@ -33,16 +33,13 @@ class Expense {
     List<ImportedWalletDbExpense> importedWalletDbExpenses,
   ) {
     var id = map['id'] as int;
+    var transaction = transactions.firstWhere((x) => x.id == map['transactionId'] as int);
 
     return Expense(
       id: id,
-      money: Money.fromInt(
-        map['moneyMinor'] as int,
-        decimalDigits: map['moneyDecimalDigits'] as int,
-        isoCode: map['currencyIsoCode'] as String,
-      ),
+      money: Money.fromIntWithCurrency(map['moneyMinor'] as int, transaction.account.currency),
       category: CategoryService.instance.findById(map['categoryId'] as int)!,
-      transaction: transactions.firstWhere((x) => x.id == map['transactionId'] as int),
+      transaction: transaction,
       description: map['description'] as String?,
       importedWalletDbExpense: importedWalletDbExpenses.firstWhereOrNull((x) => x.parentId == id),
     );
@@ -101,8 +98,6 @@ class Expense {
   Map<String, Object?> toMap() {
     return {
       'moneyMinor': money.minorUnits.toInt(),
-      'moneyDecimalDigits': money.decimalDigits,
-      'currencyIsoCode': money.currency.isoCode,
       'description': description,
       'descriptionNorm': normalizeString(description),
       'categoryId': category.id,
@@ -115,8 +110,6 @@ class Expense {
       create table expenses (
         id integer primary key autoincrement,
         moneyMinor integer not null,
-        moneyDecimalDigits integer not null,
-        currencyIsoCode text not null,
         description text,
         descriptionNorm text,
         categoryId integer not null,

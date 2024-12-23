@@ -23,7 +23,7 @@ Future<void> initializeDatabase() async {
 
   _database = await openDatabase(
     AppPaths.db,
-    version: 2,
+    version: 3,
     onConfigure: (db) {
       db.execute('PRAGMA foreign_keys = ON');
     },
@@ -47,13 +47,14 @@ Future<void> initializeDatabase() async {
       await batch.commit();
     },
     onUpgrade: (db, oldVersion, newVersion) async {
-      await _upgrade1(db, oldVersion, newVersion);
+      await _upgradeFrom1(db, oldVersion, newVersion);
+      await _upgradeFrom2(db, oldVersion, newVersion);
     },
   );
 }
 
-Future<void> _upgrade1(Database db, int oldVersion, int newVersion) async {
-  if (oldVersion != 1) {
+Future<void> _upgradeFrom1(Database db, int oldVersion, int newVersion) async {
+  if (oldVersion > 1) {
     return;
   }
 
@@ -89,4 +90,19 @@ Future<void> _upgrade1(Database db, int oldVersion, int newVersion) async {
   }
 
   await batch.commit(noResult: true);
+}
+
+Future<void> _upgradeFrom2(Database db, int oldVersion, int newVersion) async {
+  if (oldVersion > 2) {
+    return;
+  }
+
+  logger.i('Upgrading database from v2');
+
+  await db.execute('''
+    ALTER TABLE expenses DROP COLUMN moneyDecimalDigits;
+    ALTER TABLE expenses DROP COLUMN currencyIsoCode;
+    ALTER TABLE transfers DROP COLUMN moneyDecimalDigits;
+    ALTER TABLE transfers DROP COLUMN currencyIsoCode;
+  ''');
 }

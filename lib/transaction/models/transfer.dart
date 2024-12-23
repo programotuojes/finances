@@ -32,16 +32,23 @@ class Transfer {
     final id = map['id'] as int;
     final accounts = AccountService.instance.accounts;
 
+    var from = accounts.firstWhereOrNull((x) => x.id == map['fromAccountId'] as int?);
+    var to = accounts.firstWhereOrNull((x) => x.id == map['toAccountId'] as int?);
+
+    if (from?.currency.isoCode != to?.currency.isoCode) {
+      // TODO remove this once transfer between different currency accounts is supported
+      throw UnimplementedError('Accounts have different currencies');
+    }
+
     return Transfer(
       id: id,
-      money: Money.fromInt(
+      money: Money.fromIntWithCurrency(
         map['moneyMinor'] as int,
-        decimalDigits: map['moneyDecimalDigits'] as int,
-        isoCode: map['currencyIsoCode'] as String,
+        from?.currency ?? to?.currency ?? (throw Exception('Both accounts are null')),
       ),
       description: map['description'] as String?,
-      from: accounts.firstWhereOrNull((x) => x.id == map['fromAccountId'] as int?),
-      to: accounts.firstWhereOrNull((x) => x.id == map['toAccountId'] as int?),
+      from: from,
+      to: to,
       dateTime: DateTime.fromMillisecondsSinceEpoch(map['dateTimeMs'] as int),
       importedWalletDbTransfer: importedWalletDbTransfers.firstWhereOrNull((x) => x.parentId == id),
     );
@@ -50,8 +57,6 @@ class Transfer {
   Map<String, Object?> toMap() {
     return {
       'moneyMinor': money.minorUnits.toInt(),
-      'moneyDecimalDigits': money.decimalDigits,
-      'currencyIsoCode': money.currency.isoCode,
       'description': description,
       'descriptionNorm': normalizeString(description),
       'fromAccountId': from?.id,
@@ -65,8 +70,6 @@ class Transfer {
       create table transfers (
         id integer primary key autoincrement,
         moneyMinor integer not null,
-        moneyDecimalDigits integer not null,
-        currencyIsoCode text not null,
         description text,
         descriptionNorm text,
         fromAccountId integer,
