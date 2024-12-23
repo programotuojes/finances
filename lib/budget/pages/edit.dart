@@ -3,6 +3,7 @@ import 'package:finances/budget/service.dart';
 import 'package:finances/category/service.dart';
 import 'package:finances/components/amount_text_field.dart';
 import 'package:finances/components/category_icon.dart';
+import 'package:finances/components/currency_dropdown.dart';
 import 'package:finances/components/period_dropdown.dart';
 import 'package:finances/transaction/components/category_list_tile.dart';
 import 'package:finances/utils/app_bar_delete.dart';
@@ -33,6 +34,7 @@ class _BudgetEditPageState extends State<BudgetEditPage> {
   late final editing = widget.budget != null;
   final _formKey = GlobalKey<FormState>();
   var _autoValidateMode = AutovalidateMode.disabled;
+  late var _currency = widget.budget?.currency ?? CommonCurrencies().euro;
 
   @override
   void dispose() {
@@ -86,7 +88,16 @@ class _BudgetEditPageState extends State<BudgetEditPage> {
                 padding: const EdgeInsets.all(16),
                 child: AmountTextField(
                   controller: _amountCtrl,
-                  currency: CommonCurrencies().euro, // TODO what currency to use for budgets?
+                  currency: _currency,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: CurrencyDropdown(
+                  currency: _currency,
+                  onChange: (newCurrency) {
+                    setState(() => _currency = newCurrency);
+                  },
                 ),
               ),
               Padding(

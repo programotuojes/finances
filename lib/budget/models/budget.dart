@@ -24,6 +24,8 @@ class Budget {
     required this.categories,
   });
 
+  Currency get currency => limit.currency;
+
   factory Budget.fromMap(Map<String, Object?> map, List<BudgetCategory> budgetCategories) {
     var id = map['id'] as int;
 
@@ -70,20 +72,20 @@ class Budget {
 
   Money usedThisPeriod(DateTime now) {
     var range = currentRange(now);
-
-    Money total = zeroEur;
+    var total = Fixed.zero;
 
     for (var budget in categories) {
       total += TransactionService.instance.expenses
           .where((expense) =>
               expense.transaction.dateTime.isIn(range) &&
               expense.transaction.type == TransactionType.expense &&
+              expense.money.currency.isoCode == currency.isoCode &&
               _categoryMatches(expense.category, budget))
-          .map((expense) => expense.money)
-          .fold(zeroEur, (acc, x) => acc + x);
+          .map((expense) => expense.money.amount)
+          .fold(Fixed.zero, (acc, x) => acc + x);
     }
 
-    return total;
+    return Money.fromFixedWithCurrency(total, currency);
   }
 
   bool _categoryMatches(CategoryModel expenseCategory, BudgetCategory budgetCategory) {
