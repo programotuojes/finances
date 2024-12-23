@@ -24,6 +24,7 @@ import 'package:finances/utils/diacritic.dart';
 import 'package:finances/utils/money.dart';
 import 'package:finances/utils/periodicity.dart';
 import 'package:finances/utils/transaction_theme.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:grouped_list/sliver_grouped_list.dart';
@@ -289,6 +290,14 @@ class _HomePageState extends State<HomePage> {
                 await AppPaths.init();
               },
             ),
+            if (kDebugMode)
+              ListTile(
+                leading: const Icon(Icons.delete),
+                title: const Text('Delete database'),
+                onTap: () async {
+                  await AppPaths.delete();
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),

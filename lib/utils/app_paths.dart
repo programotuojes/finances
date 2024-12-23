@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:finances/account/service.dart';
 import 'package:finances/automation/service.dart';
 import 'package:finances/budget/service.dart';
@@ -81,5 +83,11 @@ sealed class AppPaths {
 
   static void notifyListeners() {
     _listenable.value = !_listenable.value;
+  }
+
+  static Future<void> delete() async {
+    logger.i('Deleting the database');
+    await File(_db).delete();
+    await init();
   }
 }
