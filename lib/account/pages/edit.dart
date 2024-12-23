@@ -124,12 +124,12 @@ class _AccountEditPageState extends State<AccountEditPage> {
       await AccountService.instance.update(
         widget.account!,
         name: _nameCtrl.text,
-        initialMoney: _currency.parse(_initialAmountCtrl.text),
+        initialMoney: _initialAmountCtrl.text.toMoneyWithCurrency(_currency)!,
       );
     } else {
       createdAccount = await AccountService.instance.add(
         name: _nameCtrl.text,
-        initialMoney: _currency.parse(_initialAmountCtrl.text),
+        initialMoney: _initialAmountCtrl.text.toMoneyWithCurrency(_currency)!,
       );
     }
 
@@ -152,13 +152,10 @@ class _AccountEditPageState extends State<AccountEditPage> {
             children: [
               const Text('This will be done using your saved transactions.'),
               const SizedBox(height: 16),
-              TextField(
+              AmountTextField(
                 controller: _dialogAmountCtrl,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: 'Current amount',
-                  prefixText: '€ ',
-                ),
+                currency: _currency,
+                labelText: 'Current amount',
               ),
             ],
           ),
@@ -173,9 +170,9 @@ class _AccountEditPageState extends State<AccountEditPage> {
           ListenableBuilder(
               listenable: _dialogAmountCtrl,
               builder: (context, child) {
-                var money = _dialogAmountCtrl.text.toMoney();
+                var money = _dialogAmountCtrl.text.toMoneyWithCurrency(_currency);
                 return TextButton(
-                  onPressed: money != null && money != zeroEur
+                  onPressed: money != null && money != _currency.zero()
                       ? () {
                           Navigator.of(context).pop(true);
                         }
@@ -191,13 +188,13 @@ class _AccountEditPageState extends State<AccountEditPage> {
       return;
     }
 
-    var currentMoney = _dialogAmountCtrl.text.toMoney()!;
+    var currentMoney = _dialogAmountCtrl.text.toMoneyWithCurrency(_currency)!;
 
     final newInitial = calculateInitialAmount(
       currentMoney,
       TransactionService.instance.expenses,
       TransactionService.instance.transfers,
-      widget.account,
+      widget.account!, // Covered by the Visibility() widget
     );
 
     setState(() {
@@ -210,14 +207,14 @@ Money calculateInitialAmount(
   Money current,
   Iterable<Expense> expenses,
   Iterable<Transfer> transfers,
-  Account? account,
+  Account account,
 ) {
   var expenseAndIncome = expenses
       .where((expense) => expense.transaction.account == account)
-      .map((expense) => expense.signedMoney)
-      .fold(zeroEur, (acc, x) => acc + x);
+      .map((expense) => expense.signedMoney.toFixed())
+      .fold(Fixed.zero, (acc, x) => acc + x);
 
-  var totalTransfers = zeroEur;
+  var totalTransfers = Fixed.zero;
   for (final transfer in transfers) {
     if (transfer.from == account && transfer.to == account) {
       // Ignored
@@ -226,11 +223,14 @@ Money calculateInitialAmount(
     }
 
     if (transfer.from == account) {
-      totalTransfers += transfer.money;
+      totalTransfers += transfer.money.toFixed();
     } else if (transfer.to == account) {
-      totalTransfers -= transfer.money;
+      totalTransfers -= transfer.money.toFixed();
     }
   }
 
-  return current - expenseAndIncome + totalTransfers;
+  return Money.fromFixedWithCurrency(
+    current.toFixed() - expenseAndIncome + totalTransfers,
+    current.currency,
+  );
 }

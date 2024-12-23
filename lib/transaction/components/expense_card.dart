@@ -32,7 +32,7 @@ class _ExpenseCardState extends State<ExpenseCard> {
     _descriptionCtrl = TextEditingController(text: widget.entity.description);
 
     _amountCtrl.addListener(() {
-      var money = _amountCtrl.text.toMoney();
+      var money = _amountCtrl.text.toMoneyWithCurrency(widget.entity.currency);
       if (money != null) {
         widget.entity.money = money;
       }

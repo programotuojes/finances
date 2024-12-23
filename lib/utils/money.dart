@@ -2,9 +2,11 @@ import 'package:money2/money2.dart';
 
 final amountValidator = RegExp(r'^\d*[\.,]?\d{0,2}$');
 
+@Deprecated('Use Money.fromFixedWithCurrency() or alternatives')
 final zeroEur = Money.fromInt(0, isoCode: 'EUR');
 
 extension MoneyParsing on String {
+  @Deprecated('This method has hard coded euros. Use toMoneyWithCurrency() instead.')
   Money? toMoney() {
     if (isEmpty) {
       return null;
@@ -35,4 +37,8 @@ extension MoneyParsing on String {
       return null;
     }
   }
+}
+
+extension MyExtensions on Currency {
+  Money zero() => Money.fromIntWithCurrency(0, this);
 }

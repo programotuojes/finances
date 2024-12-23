@@ -21,7 +21,6 @@ import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/app_paths.dart';
 import 'package:finances/utils/date.dart';
 import 'package:finances/utils/diacritic.dart';
-import 'package:finances/utils/money.dart';
 import 'package:finances/utils/periodicity.dart';
 import 'package:finances/utils/transaction_theme.dart';
 import 'package:flutter/foundation.dart';
@@ -391,9 +390,19 @@ class _HomePageState extends State<HomePage> {
 
         final combined = [...expenses, ...transfers].sortedBy((element) => element.dateTime);
 
-        var moneyPerPeriod = combined.groupFoldBy<String, Money>(
-          (x) => x.dateTime.getGrouping(_historyGroupingPeriod).display,
-          (acc, x) => (acc ?? zeroEur) + x.signedMoney,
+        var moneyPerPeriod = combined.groupFoldBy<String, Map<Currency, Money>>(
+          (entry) => entry.dateTime.getGrouping(_historyGroupingPeriod).display,
+          (acc, entry) {
+            final map = (acc ?? {});
+
+            if (map.containsKey(entry.currency)) {
+              map[entry.currency] = map[entry.currency]! + entry.signedMoney;
+            } else {
+              map[entry.currency] = entry.signedMoney;
+            }
+
+            return map;
+          },
         );
 
         return CustomScrollView(
@@ -432,7 +441,7 @@ class _HomePageState extends State<HomePage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(dateGroup),
-                            Text(moneyPerPeriod[dateGroup].toString()),
+                            Text(moneyPerPeriod[dateGroup]!.values.map((x) => x.toString()).join('; ')),
                           ],
                         ),
                       ),

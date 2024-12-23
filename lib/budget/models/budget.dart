@@ -3,7 +3,6 @@ import 'package:finances/category/service.dart';
 import 'package:finances/transaction/models/transaction.dart';
 import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/date.dart';
-import 'package:finances/utils/money.dart';
 import 'package:finances/utils/periodicity.dart';
 import 'package:flutter/material.dart';
 import 'package:money2/money2.dart';

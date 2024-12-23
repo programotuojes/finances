@@ -59,7 +59,7 @@ class Expense {
     return switch (transaction.type) {
       TransactionType.income => money,
       TransactionType.expense => -money,
-      TransactionType.transfer => zeroEur,
+      TransactionType.transfer => money.currency.zero(),
     };
   }
 

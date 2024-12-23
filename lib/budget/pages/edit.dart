@@ -188,7 +188,7 @@ class _BudgetEditPageState extends State<BudgetEditPage> {
   Future<void> _add() async {
     await BudgetService.instance.add(Budget(
       name: _nameCtrl.text,
-      limit: _amountCtrl.text.toMoney()!,
+      limit: _amountCtrl.text.toMoneyWithCurrency(_currency)!,
       period: _period,
       categories: _categories,
     ));
@@ -198,7 +198,7 @@ class _BudgetEditPageState extends State<BudgetEditPage> {
     await BudgetService.instance.update(
       widget.budget!,
       name: _nameCtrl.text,
-      limit: _amountCtrl.text.toMoney()!,
+      limit: _amountCtrl.text.toMoneyWithCurrency(_currency)!,
       period: _period,
       budgetCategories: _categories,
     );

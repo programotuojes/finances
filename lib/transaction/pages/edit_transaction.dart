@@ -19,6 +19,7 @@ import 'package:finances/utils/app_paths.dart';
 import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:money2/money2.dart';
 import 'package:sqflite/sqflite.dart' as sql;
 
 class TransactionEditPage extends StatefulWidget {
@@ -44,7 +45,7 @@ class TransactionEditPageState extends State<TransactionEditPage> with SingleTic
   );
   late final _mainExpense = Expense(
     transaction: _transaction,
-    money: zeroEur,
+    money: Money.fromFixedWithCurrency(Fixed.zero, _transaction.account.currency),
     category: CategoryService.instance.lastSelection,
     description: null,
   );
@@ -298,7 +299,7 @@ class TransactionEditPageState extends State<TransactionEditPage> with SingleTic
                 },
                 onAutoCategorize: (attachment) async {
                   var lineItems = await attachment.extractLineItems().toList();
-                  var sum = lineItems.fold(zeroEur, (acc, x) => acc + x.money);
+                  var sum = lineItems.fold(Fixed.zero, (acc, x) => acc + x.money.amount);
 
                   var expected = '${sum.integerPart},${sum.decimalPart}';
                   logger.i('Expecting to find $expected in receipt');
@@ -315,7 +316,7 @@ class TransactionEditPageState extends State<TransactionEditPage> with SingleTic
                   }
 
                   setState(() {
-                    _mainExpense.money = sum;
+                    _mainExpense.money = Money.fromFixedWithCurrency(sum, _mainExpense.money.currency);
                   });
 
                   final auto = <Expense>[];
@@ -442,7 +443,7 @@ class TransactionEditPageState extends State<TransactionEditPage> with SingleTic
             ListenableBuilder(
               listenable: _dialogAmountCtrl,
               builder: (context, setState) {
-                final moneyToSplit = _dialogAmountCtrl.text.toMoney();
+                final moneyToSplit = _dialogAmountCtrl.text.toMoneyWithCurrency(_mainExpense.money.currency);
                 final isValid = moneyToSplit != null && moneyToSplit < _mainExpense.money;
 
                 return TextButton(

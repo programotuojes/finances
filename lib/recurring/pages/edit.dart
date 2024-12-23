@@ -286,7 +286,7 @@ class _RecurringEditPageState extends State<RecurringEditPage> with SingleTicker
               return;
             }
 
-            var money = amountCtrl.text.toMoney();
+            var money = amountCtrl.text.toMoneyWithCurrency(_account.currency);
             var interval = int.parse(intervalCtrl.text);
 
             assert(money != null, 'Should have been checked with the amountFormatter');

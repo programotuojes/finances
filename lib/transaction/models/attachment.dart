@@ -133,6 +133,7 @@ class Attachment {
       return null;
     }
 
+    // TODO add reference to transaction.account.currency
     var money = match.group(2)?.replaceAll(' ', '').toMoney();
     if (money == null) {
       return null;

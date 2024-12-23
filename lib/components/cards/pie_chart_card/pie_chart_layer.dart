@@ -9,10 +9,13 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:money2/money2.dart';
 
+// TODO make this configurable
+final _pieChartCurrency = CommonCurrencies().euro;
+
 class PieChartLayer {
   final DateTimeRange _dateRangeFilter;
   final CategoryModel _parent;
-  Money _total = zeroEur;
+  Money _total = _pieChartCurrency.zero();
   Map<CategoryModel, Money> _categoryTotals = {};
 
   Money get total => _total;
@@ -30,9 +33,10 @@ class PieChartLayer {
           .where((expense) =>
               expense.transaction.type == TransactionType.expense &&
               expense.transaction.dateTime.isIn(_dateRangeFilter) &&
+              expense.money.currency.isoCode == _pieChartCurrency.isoCode &&
               expense.category.isNestedChildOf(category))
           .map((e) => e.money)
-          .fold(zeroEur, (acc, x) => acc + x);
+          .fold(_pieChartCurrency.zero(), (acc, x) => acc + x);
 
       if (categoryTotal.isZero) {
         continue;
@@ -46,9 +50,10 @@ class PieChartLayer {
         .where((expense) =>
             expense.transaction.type == TransactionType.expense &&
             expense.transaction.dateTime.isIn(_dateRangeFilter) &&
+            expense.money.currency.isoCode == _pieChartCurrency.isoCode &&
             expense.category == parent)
         .map((e) => e.money)
-        .fold(zeroEur, (acc, x) => acc + x);
+        .fold(_pieChartCurrency.zero(), (acc, x) => acc + x);
 
     if (!parentTotal.isZero) {
       categorySums.add(MapEntry(parent, parentTotal));

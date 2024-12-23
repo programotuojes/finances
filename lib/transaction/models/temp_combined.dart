@@ -129,7 +129,7 @@ class TempCombined {
     return switch (type) {
       TransactionType.income => money,
       TransactionType.expense => -money,
-      TransactionType.transfer => zeroEur,
+      TransactionType.transfer => currency.zero(),
     };
   }
 
