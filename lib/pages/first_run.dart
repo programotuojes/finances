@@ -1,8 +1,8 @@
 import 'package:finances/account/service.dart';
 import 'package:finances/components/amount_text_field.dart';
+import 'package:finances/components/currency_dropdown.dart';
 import 'package:finances/importers/pages/importer_list_page.dart';
 import 'package:finances/utils/app_paths.dart';
-import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
 import 'package:money2/money2.dart';
 
@@ -18,6 +18,7 @@ class _FirstRunPageState extends State<FirstRunPage> {
   final _nameCtrl = TextEditingController();
   final _amountCtrl = TextEditingController();
   var _autoValidateMode = AutovalidateMode.disabled;
+  var _currency = CommonCurrencies().euro;
 
   @override
   void dispose() {
@@ -36,7 +37,7 @@ class _FirstRunPageState extends State<FirstRunPage> {
 
     await AccountService.instance.add(
       name: _nameCtrl.text,
-      initialMoney: _amountCtrl.text.toMoney()!,
+      initialMoney: _currency.parse(_amountCtrl.text),
     );
 
     AppPaths.notifyListeners();
@@ -85,7 +86,16 @@ class _FirstRunPageState extends State<FirstRunPage> {
                         controller: _amountCtrl,
                         labelText: 'Initial amount',
                         onFieldSubmitted: (value) => _sumbitForm(context),
-                        currency: CommonCurrencies().euro, // TODO allow selecting
+                        currency: _currency,
+                      ),
+                      const SizedBox(height: 24),
+                      CurrencyDropdown(
+                        currency: _currency,
+                        onChange: (newCurrency) {
+                          setState(() {
+                            _currency = newCurrency;
+                          });
+                        },
                       ),
                       const SizedBox(height: 24),
                       FilledButton.icon(

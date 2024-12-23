@@ -2,18 +2,13 @@ import 'package:finances/account/models/account.dart';
 import 'package:finances/account/service.dart';
 import 'package:finances/components/amount_text_field.dart';
 import 'package:finances/components/common_values.dart';
+import 'package:finances/components/currency_dropdown.dart';
 import 'package:finances/transaction/models/expense.dart';
 import 'package:finances/transaction/models/transfer.dart';
 import 'package:finances/transaction/service.dart';
 import 'package:finances/utils/money.dart';
 import 'package:flutter/material.dart';
 import 'package:money2/money2.dart';
-
-final _currencies = [
-  DropdownMenuEntry(value: CommonCurrencies().euro, label: CommonCurrencies().euro.name),
-  DropdownMenuEntry(value: CommonCurrencies().usd, label: CommonCurrencies().usd.name),
-  DropdownMenuEntry(value: CommonCurrencies().jpy, label: CommonCurrencies().jpy.name),
-];
 
 class AccountEditPage extends StatefulWidget {
   final Account? account;
@@ -92,17 +87,11 @@ class _AccountEditPageState extends State<AccountEditPage> {
                 currency: _currency,
               ),
               const SizedBox(height: 32),
-              DropdownMenu<Currency>(
-                expandedInsets: EdgeInsets.zero,
-                initialSelection: _currency,
-                dropdownMenuEntries: _currencies,
-                onSelected: (currency) {
-                  if (currency == null) {
-                    return;
-                  }
-
+              CurrencyDropdown(
+                currency: _currency,
+                onChange: (newCurrency) {
                   setState(() {
-                    _currency = currency;
+                    _currency = newCurrency;
                   });
                 },
               ),
@@ -135,12 +124,12 @@ class _AccountEditPageState extends State<AccountEditPage> {
       await AccountService.instance.update(
         widget.account!,
         name: _nameCtrl.text,
-        initialMoney: _initialAmountCtrl.text.toMoneyWithCurrency(_currency)!,
+        initialMoney: _currency.parse(_initialAmountCtrl.text),
       );
     } else {
       createdAccount = await AccountService.instance.add(
         name: _nameCtrl.text,
-        initialMoney: _initialAmountCtrl.text.toMoneyWithCurrency(_currency)!,
+        initialMoney: _currency.parse(_initialAmountCtrl.text),
       );
     }
 
