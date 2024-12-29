@@ -97,6 +97,7 @@ class _BudgetEditPageState extends State<BudgetEditPage> {
                   currency: _currency,
                   onChange: (newCurrency) {
                     setState(() => _currency = newCurrency);
+                    return true;
                   },
                 ),
               ),

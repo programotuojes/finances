@@ -92,9 +92,8 @@ class _FirstRunPageState extends State<FirstRunPage> {
                       CurrencyDropdown(
                         currency: _currency,
                         onChange: (newCurrency) {
-                          setState(() {
-                            _currency = newCurrency;
-                          });
+                          setState(() => _currency = newCurrency);
+                          return true;
                         },
                       ),
                       const SizedBox(height: 24),

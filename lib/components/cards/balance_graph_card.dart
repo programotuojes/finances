@@ -1,7 +1,6 @@
 import 'package:finances/account/service.dart';
 import 'package:finances/components/home_card.dart';
 import 'package:finances/transaction/service.dart';
-import 'package:finances/utils/money.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

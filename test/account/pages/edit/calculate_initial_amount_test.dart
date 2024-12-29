@@ -38,7 +38,7 @@ void main() {
     final result = calculateInitialAmount(zeroEur, expenses, [], _testAccount);
 
     // Assert
-    expect(result.toDouble(), 1);
+    expect(result.toDecimal().toDouble(), 1);
   });
 
   test('Has income', () {
@@ -60,7 +60,7 @@ void main() {
     final result = calculateInitialAmount(zeroEur, expenses, [], _testAccount);
 
     // Assert
-    expect(result.toDouble(), -1);
+    expect(result.toDecimal().toDouble(), -1);
   });
 
   test('Has outbound transfer', () {
@@ -80,7 +80,7 @@ void main() {
     final result = calculateInitialAmount(zeroEur, expenses, transfers, _testAccount);
 
     // Assert
-    expect(result.toDouble(), 1);
+    expect(result.toDecimal().toDouble(), 1);
   });
 
   test('Has inbound transfer', () {
@@ -100,7 +100,7 @@ void main() {
     final result = calculateInitialAmount(zeroEur, expenses, transfers, _testAccount);
 
     // Assert
-    expect(result.toDouble(), -1);
+    expect(result.toDecimal().toDouble(), -1);
   });
 
   test('Has inbound transfer and expense', () {
@@ -131,7 +131,7 @@ void main() {
     final result = calculateInitialAmount(zeroEur, expenses, transfers, _testAccount);
 
     // Assert
-    expect(result.toDouble(), 0);
+    expect(result.toDecimal().toDouble(), 0);
   });
 
   test('Transfer with same "from" and "to" accounts', () {
@@ -151,6 +151,6 @@ void main() {
     final result = calculateInitialAmount(zeroEur, expenses, transfers, _testAccount);
 
     // Assert
-    expect(result.toDouble(), 0);
+    expect(result.toDecimal().toDouble(), 0);
   });
 }

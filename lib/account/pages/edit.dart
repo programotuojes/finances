@@ -90,10 +90,8 @@ class _AccountEditPageState extends State<AccountEditPage> {
               const SizedBox(height: 32),
               CurrencyDropdown(
                 currency: _currency,
-                onChange: (newCurrency) {
-                  setState(() {
-                    _currency = newCurrency;
-                  });
+                onChange: (newCurrency) async {
+                  return await _changeCurrency(context, newCurrency);
                 },
               ),
               const SizedBox(height: fabHeight),
@@ -108,6 +106,45 @@ class _AccountEditPageState extends State<AccountEditPage> {
         child: const Icon(Icons.save),
       ),
     );
+  }
+
+  Future<bool> _changeCurrency(BuildContext context, Currency currencyNow) async {
+    if (_currency.decimalDigits > currencyNow.decimalDigits) {
+      var agreed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Warning'),
+          content: SizedBox(
+            width: 450,
+            child: const Text(
+              'The previous currency had more decimal digits. '
+              'Changing to the new currency will lead to data loss. '
+              'E.g. 12,3€ will be converted to ¥12.',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+
+      if (agreed != true) {
+        return false;
+      }
+    }
+
+    setState(() {
+      _currency = currencyNow;
+    });
+
+    return true;
   }
 
   Future<void> _submit() async {
@@ -134,7 +171,9 @@ class _AccountEditPageState extends State<AccountEditPage> {
       );
     }
 
+    // TODO use a more sophisticated approach to reload currencies
     await AppPaths.init();
+
     if (mounted) {
       Navigator.of(context).pop(createdAccount);
     }
@@ -200,12 +239,12 @@ class _AccountEditPageState extends State<AccountEditPage> {
     );
 
     setState(() {
-      _initialAmountCtrl.text = newInitial.amount.toString();
+      _initialAmountCtrl.text = newInitial.toString();
     });
   }
 }
 
-Money calculateInitialAmount(
+Fixed calculateInitialAmount(
   Money current,
   Iterable<Expense> expenses,
   Iterable<Transfer> transfers,
@@ -231,8 +270,5 @@ Money calculateInitialAmount(
     }
   }
 
-  return Money.fromFixedWithCurrency(
-    current.toFixed() - expenseAndIncome + totalTransfers,
-    current.currency,
-  );
+  return current.toFixed() - expenseAndIncome + totalTransfers;
 }
